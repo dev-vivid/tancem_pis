@@ -1,0 +1,20 @@
+model Analysis {
+  id           String   @id @unique @default(cuid()) @db.VarChar(36)
+  code         Int      @unique @default(autoincrement())
+  analysisCode String   @map("analysis_code") @db.VarChar(10)
+  type         String   @db.VarChar(50)
+  description  String?  @db.VarChar(200)
+  requestId    String?  @map("wf_request_id") @db.VarChar(36)
+  materialId   String?  @map("material_id") @db.VarChar(36)
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  updatedById  String? @map("updated_by_id")@db.VarChar(36)
+  createdById  String?  @map("created_by_id") @db.VarChar(36)
+  isActive     Boolean  @default(true) @map("is_active")
+
+  @@index([type])
+  @@index([materialId])
+  @@index([materialId, type])
+  @@map("analysis")
+}
