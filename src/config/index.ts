@@ -1,0 +1,38 @@
+import { AppError } from "@utils/errorHandler/appError";
+import { config } from "dotenv";
+config();
+
+import { env } from "node:process";
+
+const getEnvVariable = (
+	key: string,
+	options?: { defaultValue?: string }
+): string => {
+	const value = env[key];
+	const defaultValue = options?.defaultValue;
+	if (!value && !defaultValue) {
+		throw new Error(`Environment variable ${key} is not set`);
+	}
+	if (value) {
+		return value;
+	}
+	if (defaultValue) {
+		return defaultValue;
+	}
+	throw new AppError(
+		"envVariableNotFound",
+		404,
+		`Environment variable '${key}' not found`
+	);
+};
+
+export const DATABASE_URL = getEnvVariable("DATABASE_URL");
+export const PORT = getEnvVariable("APP_PORT", { defaultValue: "3000" });
+export const ENV = getEnvVariable("NODE_ENV", { defaultValue: "development" });
+export const BASE_PATH = getEnvVariable("APP_BASE_PATH");
+
+export const MICROSERVICE_BASE_URL = getEnvVariable("MICROSERVICE_BASE_URL");
+export const SESSION_VALIDATION_URL = getEnvVariable("SESSION_VALIDATION_URL");
+
+
+export const V1_BASE_PATH = `/${BASE_PATH}/v1`;

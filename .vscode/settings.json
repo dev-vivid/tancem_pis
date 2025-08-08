@@ -1,0 +1,70 @@
+{
+	"prismaERDPreviewer.preferredTheme": "dark",
+	"cSpell.words": [
+		"CURDATE",
+		"DESIG",
+		"Encashable",
+		"encashed",
+		"reportee",
+		"reportees",
+		"TIMESTAMPDIFF",
+		"typegraphql",
+		"usecase",
+		"usecases"
+	],
+	"todo-tree.highlights.defaultHighlight": {
+		"icon": "alert",
+		"type": "text",
+		"foreground": "red",
+		"background": "white",
+		"opacity": 50,
+		"iconColour": "blue"
+	},
+	"todo-tree.highlights.customHighlight": {
+		"TODO": {
+			"icon": "check",
+			"type": "text-and-comment",
+			"foreground": "#ef6c00",
+			"background": "#787878",
+			"iconColour": "yellow",
+			"gutterIcon": true
+		},
+		"FIXME": {
+			"icon": "check",
+			"type": "text-and-comment",
+			"foreground": "#ef0000",
+			"background": "#787878",
+			"iconColour": "yellow",
+			"gutterIcon": true
+		}
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+	"editor.formatOnPaste": false,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "always"
+	},
+	"[prisma]": {
+		"editor.defaultFormatter": "Prisma.prisma"
+	},
+	"search.exclude": {
+		"**/dist": true,
+		"**/.git": true,
+		"**/.vscode": true,
+		"**/node_modules": true,
+		"node_modules": true,
+		"**/.prisma": true,
+		"prisma/migrations": true,
+		"prisma/generated": true,
+	},
+	// statos bar color as blue
+	"workbench.colorCustomizations": {
+		"statusBar.background": "#005f99",
+		"statusBar.foreground": "#ffffff",
+		"statusBarItem.activeBackground": "#005f99",
+		"statusBarItem.hoverBackground": "#005f99",
+		"statusBarItem.prominentBackground": "#005f99",
+		"statusBarItem.remoteBackground": "#005f99",
+		"statusBarItem.remoteForeground": "#ffffff"
+	},
+}

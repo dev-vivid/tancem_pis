@@ -1,0 +1,153 @@
+{
+	// Place your tancem-hrms-express workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+	"Prisma Model Template": {
+		"prefix": "prisma-model",
+		"body": [
+			"model ${1:ModelName} {",
+			"  //? Primary Key",
+			"  id   String @id @unique @default(cuid())",
+			"  //? Readable reference Key",
+			"  code Int    @unique @default(autoincrement())",
+			"",
+			"  //? Columns",
+			"",
+			"",
+			"  //? Default columns",
+			"  createdAt   DateTime @default(now())",
+			"  updatedAt   DateTime @default(now()) @updatedAt",
+			"  createdById String?",
+			"  isActive    Boolean  @default(true)",
+			"",
+			"  //? Foreign key references",
+			"  createdBy Employee? @relation(\"${1:ModelName}CreatedBy\", fields: [createdById], references: [id], onDelete: SetNull)",
+			"",
+			"  //? Indexing",
+			"  // @@index([])",
+			"",
+			"  //? Table name in DB",
+			"  @@map(\"${2}\")",
+			"}"
+		],
+		"description": "Template for creating a new Prisma model"
+	},
+	"Prisma Master Model Template": {
+		"prefix": "master-prisma-model",
+		"body": [
+			"model ${1:ModelName}Master {",
+			"  //? Primary Key",
+			"  id   String @id @unique @default(cuid())",
+			"  //? Readable reference Key",
+			"  code Int    @unique @default(autoincrement())",
+			"",
+			"  //? Columns",
+			"  name        String  @db.VarChar(50)",
+			"  description String? @db.VarChar(200)",
+			"",
+			"  //? Default columns",
+			"  sortOrder   Int      @default(0)",
+			"  createdAt   DateTime @default(now())",
+			"  updatedAt   DateTime @default(now()) @updatedAt",
+			"  createdById String?",
+			"  isActive    Boolean  @default(true)",
+			"",
+			"  //? Foreign key references",
+			"  // createdBy Employee? @relation(\"${1:ModelName}MasterCreatedBy\", fields: [createdById], references: [id], onDelete: SetNull)",
+			"",
+			"  //? Indexing",
+			"  @@index([name])",
+			"",
+			"  //? Table name in DB",
+			"  @@map(\"master_${2}\")",
+			"}"
+		],
+		"description": "Template for creating a new Prisma model"
+	},
+
+	// model SeparationDocument {
+	//   id            String     @id @default(uuid())
+	//   separationId  String
+	//   file          File       @relation(fields: [fileId], references: [id])
+	//   fileId        String
+	//   docType       String     // e.g. "Resignation Letter", "Exit Form"
+	//   uploadedAt    DateTime   @default(now())
+	//   separation    Separation @relation(fields: [separationId], references: [id])
+	// }
+
+	"Prisma Document Model Template": {
+		"prefix": "doc-prisma-model",
+		"body": [
+			"model ${1:ModelName}Document {",
+			"  //? Primary Key",
+			"  id   String @id @unique @default(cuid())",
+			"  //? Readable reference Key",
+			"  code Int    @unique @default(autoincrement())",
+			"",
+			"  //? Columns",
+			"  ${2:moduleName}Id        String",
+			"  fileId        String @unique",
+			"  docType String? //? Enum: ${3:docType}",
+			"",
+			"  //? Default columns",
+			"  createdAt   DateTime @default(now())",
+			"  updatedAt   DateTime @default(now()) @updatedAt",
+			"  createdById String?",
+			"  isActive    Boolean  @default(true)",
+			"",
+			"  //? Foreign key references",
+			"  file File @relation(\"${1:ModelName}DocToFile\", fields: [fileId], references: [id], onDelete: Cascade)",
+			"  ${2:moduleName} ${1:ModelName} @relation(\"${1:ModelName}DocTo${1:ModelName}\", fields: [${2:moduleName}Id], references: [id], onDelete: Cascade)",
+			"  // createdBy Employee? @relation(\"${1:ModelName}DocCreatedBy\", fields: [createdById], references: [id], onDelete: SetNull)",
+			"",
+			"  //? Table name in DB",
+			"  @@map(\"${2:moduleName}_document\")",
+			"}"
+		],
+		"description": "Template for creating a new Prisma model"
+	}
+	// "Prisma Document Model Template": {
+	// 	"prefix": "doc-prisma-model",
+	// 	"body": [
+	// 		"model ${1:ModelName}Document {",
+	// 		"  //? Primary Key",
+	// 		"  id   String @id @unique @default(cuid())",
+	// 		"  //? Readable reference Key",
+	// 		"  code Int    @unique @default(autoincrement())",
+	// 		"",
+	// 		"  //? Columns",
+	// 		"  fileId        String",
+	// 		"  ${3:linkedEntityColumn}Id        String",
+	// 		"",
+	// 		"  //? Default columns",
+	// 		"  createdAt   DateTime @default(now())",
+	// 		"  updatedAt   DateTime @default(now()) @updatedAt",
+	// 		"  createdById String?",
+	// 		"  isActive    Boolean  @default(true)",
+	// 		"",
+	// 		"  //? Foreign key references",
+	// 		"  file File? @relation(\"${1:ModelName}DocToFile\", fields: [fileId], references: [id], onDelete: Cascade)",
+	// 		"  ${3:linkedEntityColumn} ${4:LinkedEntity}? @relation(\"${1:ModelName}DocTo${4:LinkedEntity}\", fields: [${3:linkedEntityColumn}Id], references: [id], onDelete: Cascade)",
+	// 		"  // createdBy Employee? @relation(\"${1:ModelName}DocCreatedBy\", fields: [createdById], references: [id], onDelete: SetNull)",
+	// 		"",
+	// 		"  //? Table name in DB",
+	// 		"  @@map(\"${2:moduleName}_document\")",
+	// 		"}"
+	// 	],
+	// 	"description": "Template for creating a new Prisma model"
+	// }
+}

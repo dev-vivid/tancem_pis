@@ -1,0 +1,185 @@
+{
+	// "Express Prisma Joi Handler": {
+	// 	"prefix": "exp-handler",
+	// 	"body": [
+	// 		"import prisma from \"@shared/prisma\";",
+	// 		"import responses, { ResponseProps } from \"@utils/responses\";",
+	// 		"import { Request, Response } from \"express\";",
+	// 		"import Joi from \"joi\";",
+	// 		"",
+	// 		"type ReqParamType = {};",
+	// 		"type ReqBodyType = {};",
+	// 		"type ResBodyType = {};",
+	// 		"type ReqQueryParamType = {};",
+	// 		"type BaseReqQueryParamType = {",
+	// 		"  $$schema: any;",
+	// 		"};",
+	// 		"",
+	// 		"type RequestType = Request<",
+	// 		"  ReqParamType,",
+	// 		"  ResBodyType,",
+	// 		"  ReqBodyType,",
+	// 		"  ReqQueryParamType & BaseReqQueryParamType",
+	// 		">;",
+	// 		"",
+	// 		"type ResponseType = Response;",
+	// 		"",
+	// 		"const _schema = Joi.object({}).description(\" \");",
+	// 		"",
+	// 		"let response: ResponseProps;",
+	// 		"",
+	// 		"const ${TM_FILENAME_BASE} = async (req: RequestType, res: ResponseType) => {",
+	// 		"  try {",
+	// 		"    const {} = req.params;",
+	// 		"    const { ...body } = req.body;",
+	// 		"    const { $$schema } = req.query;",
+	// 		"",
+	// 		"    // ? describe schema",
+	// 		"    if ($$schema === \"true\") {",
+	// 		"      response = responses.generate(\"success\", {",
+	// 		"        data: { $$schema: _schema.describe() },",
+	// 		"      });",
+	// 		"      return;",
+	// 		"    }",
+	// 		"",
+	// 		"    // ? schema validation",
+	// 		"    const { error: schemaError } = _schema.validate(req.body);",
+	// 		"    if (schemaError) {",
+	// 		"      throw schemaError.details[0].message;",
+	// 		"    }",
+	// 		"",
+	// 		"    // ? Write your logic here",
+	// 		"",
+	// 		"    response = responses.generate(\"success\", {",
+	// 		"      data: {},",
+	// 		"    });",
+	// 		"  } catch (error) {",
+	// 		"    response = responses.generate(\"error\", {",
+	// 		"      error: error,",
+	// 		"    });",
+	// 		"  } finally {",
+	// 		"    res.status(response.statusCode).send(response);",
+	// 		"    await prisma.$$disconnect();",
+	// 		"  }",
+	// 		"};",
+	// 		"",
+	// 		"export default ${TM_FILENAME_BASE};"
+	// 	],
+	// 	"description": "Creates an Express controller function with Prisma and Joi validation, using the filename as the function name."
+	// },
+	"Express Router with Dynamic Controller": {
+		"prefix": "exp-routes",
+		"body": [
+			"import { Router } from \"express\";",
+			"import * as controllers from \"@v1/controllers/index\";",
+			"",
+			"const routes = Router();",
+			"",
+			"routes.get(\"/:name\", controllers.${2});",
+			"",
+			"export { routes as ${1:routeName}Routes };"
+		],
+		"description": "Creates an Express router with a dynamic parameter and controller."
+	},
+	"Create a usecase": {
+		"prefix": "usecase",
+		"body": [
+			"import prisma from \"@shared/prisma\";",
+			"import { ${2:servicename} } from \"../services/${1:serviceFileName}\";",
+			"",
+			"export interface I${TM_FILENAME_BASE/(^.).*/${1:/upcase}/}${TM_FILENAME_BASE/.(.*)\\.usecase/$1/}UsecaseProps {",
+			"  actionTakenById?:string",
+			"}",
+			"export const ${TM_FILENAME_BASE/\\.usecase//}Usecase = async (props: I${TM_FILENAME_BASE/(^.).*/${1:/upcase}/}${TM_FILENAME_BASE/.(.*)\\.usecase/$1/}UsecaseProps) => {",
+			"  return prisma.$$transaction(async (tx) => {",
+			"    return ${2:servicename}(props, tx);",
+			"  });",
+			"};",
+			""
+		]
+	},
+	"Create a service": {
+		"prefix": "service",
+		"body": [
+			"import prisma, { IPrismaTransactionClient } from \"@shared/prisma\";",
+			"",
+			"export interface I${TM_FILENAME_BASE/(^.).*/${1:/upcase}/}${TM_FILENAME_BASE/.(.*)\\.service/$1/}ServiceProps {}",
+			"",
+			"export const ${TM_FILENAME_BASE/\\.service//}Service = async (",
+			"  props?: I${TM_FILENAME_BASE/(^.).*/${1:/upcase}/}${TM_FILENAME_BASE/.(.*)\\.service/$1/}ServiceProps,",
+			"  tx: IPrismaTransactionClient | typeof prisma = prisma",
+			") => {",
+			"  return;",
+			"};"
+		]
+	},
+	"Create a Router": {
+		"prefix": "router",
+		"body": [
+			"import express from \"express\";",
+			"import { validateRequest } from \"@middleware/validateRequest\";",
+			"import { ${TM_FILENAME_BASE/\\.routes//}Schema } from \"../validations/${TM_FILENAME_BASE/\\.routes//}.schema\";",
+			"import { ${2:controllerName} } from \"../controllers/${1:controllerFileName}\";",
+			"",
+			"const ${TM_FILENAME_BASE/\\.routes//}Router = express.Router();",
+			"",
+			"${TM_FILENAME_BASE/\\.routes//}Router.get(",
+			" \"/\",",
+			" validateRequest(employeesSchema),",
+			" ${2:controllerName}",
+			");",
+			"",
+			"export default ${TM_FILENAME_BASE/\\.routes//}Router;"
+		]
+	},
+	"Create a Controller": {
+		"prefix": "controller",
+		"body": [
+			"export const handle${1:controillerName} = async (req: Request, res: Response, next: NextFunction) => {",
+			" try {",
+			"  const result = await ${2:usecaseName}({",
+			"   actionTakenById: req.employee.id,",
+			"  });",
+			"",
+			"  const response = responses.generate(\"success\", {",
+			"    data: result,",
+			"  });",
+			"  res.status(response.statusCode).send(response);",
+			" } catch (error) {",
+			"  next(error)",
+			" }",
+			"};"
+		]
+	},
+
+	"Error throw": {
+		"prefix": "err-throw",
+		"body": [
+			"throw {",
+			" code: \"${1}\",",
+			" statusCode: ${2:500},",
+			" message: `${3:Error Message}`,",
+			" success: false,",
+			"};"
+		]
+	},
+
+	"App error": {
+		"prefix": "app-error",
+		"body": ["throw new AppError(${1}, ${2:500}, `${3:Error}`)"]
+	},
+	"Audi Log": {
+		"prefix": "audit-log",
+		"body": [
+			"//? Audit Log : ${TM_FILENAME_BASE}",
+			"await createAuditLog(",
+			"  {",
+			"    module: \"\",",
+			"    action: \"\",",
+			"    description: \"\",",
+			"    changedBy: ,",
+			"  },",
+			"tx)"
+		]
+	}
+}
