@@ -18,3 +18,59 @@ model Analysis {
   @@index([materialId, type])
   @@map("analysis")
 }
+
+model Problem {
+	//? Primary Key
+  id          String   @id @unique @default(cuid()) @db.VarChar(36)
+	//? Readable reference Key
+  code        Int      @unique @default(autoincrement())
+
+	//? Columns
+	name        String  @db.VarChar(50)
+	description String? @db.VarChar(200)
+	departmentId	String @db.VarChar(36) @map("department_id")
+	problem	String  @db.VarChar(36)	@map("problem")
+
+	//? Default columns
+	sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  updatedById  String?	 @map("updated_by_id")@db.VarChar(36)
+  createdById  String?  @map("created_by_id") @db.VarChar(36)
+  isActive     Boolean  @default(true) @map("is_active")
+	ProblemCode ProblemCode[]
+
+	@@index([departmentId])
+
+	//? Table name in DB
+	@@map("problem")
+}
+
+model ProblemCode {
+	//? Primary Key
+	id   String @id @unique @default(cuid())  @db.VarChar(36)
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	problemId 	String? @map("problem_id")@db.VarChar(36)
+	ProblemMaster Problem? @relation(fields: [problemId], references: [id])
+	equipmentId 	String? @map("equipment_id")@db.VarChar(36)
+	departmentId 	String? @map("department_id")@db.VarChar(36)
+	problemcode Int @map("problem_code")
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+	createdById String? @db.VarChar(36) @map("created_by_id")
+	updatedById String? @db.VarChar(36) @map("updated_by_id")
+	isActive    Boolean  @default(true) @map("is_active")
+
+	//? Indexing
+	// @@index([])
+	@@index([code])
+  @@index([problemId])
+  @@index([departmentId])
+  @@index([code, problemId,departmentId])
+	//? Table name in DB
+	@@map("problem_code")
+}
