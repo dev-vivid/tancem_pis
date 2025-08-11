@@ -75,3 +75,194 @@ model ProblemCode {
 	//? Table name in DB
 	@@map("problem_code")
 }
+
+model TransactionType {
+	//? Primary Key
+	id   String @id @unique @default(uuid())
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	name        String  @db.VarChar(50)
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+	createdById String? @db.VarChar(36) @map("created_by_id")
+	updatedById String? @db.VarChar(36) @map("updated_by_id")
+	isActive    Boolean  @default(true) @map("is_active")
+
+	//? Foreign key references
+
+	//? Indexing
+	@@index([code])
+
+	//? Table name in DB
+	@@map("transaction_type")
+}
+
+model ProductionCategory {
+	//? Primary Key
+	id   String @id @unique @default(uuid())
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	name        String  @db.VarChar(50)
+	productCatagoryCode 			String 		@map("product_category_code")
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+	createdById String? @db.VarChar(36) @map("created_by_id")
+	updatedById String? @db.VarChar(36) @map("updated_by_id")
+	isActive    Boolean  @default(true) @map("is_active")
+
+	//? Foreign key references
+
+	//? Indexing
+	@@index([code])
+	@@index([productCatagoryCode])
+
+	//? Table name in DB
+	@@map("production_category")
+}
+
+model MaterialType {
+  // Primary Key
+  id   String @id @unique @default(uuid())
+	//? Readable reference Key
+  code Int    @unique @default(autoincrement())
+
+  // Columns
+  materialId String  @db.VarChar(50) @map("material_id")
+	materialTypeMasterId String @db.VarChar(36) @map("material_type_id")
+
+  // Default columns
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String? @db.VarChar(36) @map("created_by_id")
+  updatedById String? @db.VarChar(36) @map("updated_by_id")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  // Foreign key references
+  materialTypeMaster MaterialTypeMaster @relation(fields: [materialTypeMasterId], references: [id])
+
+  // Indexing
+  @@index([code])
+
+  // Table name
+  @@map("material_type")
+}
+
+model MaterialTypeMaster {
+  // Primary Key
+  id   String @id @unique @default(uuid())
+  code Int    @unique @default(autoincrement())
+
+  // Columns
+  name  String @db.VarChar(50)
+  materialTypeCode String    @map("material_type_code")
+
+  // Default columns
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String? @db.VarChar(36) @map("created_by_id")
+  updatedById String? @db.VarChar(36) @map("updated_by_id")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  // Relation (back reference)
+  materialTypes MaterialType[]
+
+	//? Foreign key references
+
+
+  // Indexing
+  @@index([code])
+
+  // Table name
+  @@map("material_type_master")
+}
+
+model MaterialAnalysis {
+	//? Primary Key
+	id   String @id @unique @default(uuid())
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	materialId String  @db.VarChar(50) @map("material_id")
+	analysisId String  @db.VarChar(50) @map("analysis_id")
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String? @db.VarChar(36) @map("created_by_id")
+  updatedById String? @db.VarChar(36) @map("updated_by_id")
+  isActive    Boolean  @default(true) @map("is_active")
+
+	//? Foreign key references
+
+	//? Indexing
+	@@index([code])
+
+	//? Table name in DB
+	@@map("material_analysis")
+}
+
+model EquipmentOutputMaterialMapping {
+	//? Primary Key
+	id   String @id @unique @default(uuid())
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	equipmentId 	String @db.VarChar(36) @map("equipment_id")
+	materialId    String @db.VarChar(36) @map("material_id")
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String? @db.VarChar(36) @map("created_by_id")
+  updatedById String? @db.VarChar(36) @map("updated_by_id")
+  isActive    Boolean  @default(true) @map("is_active")
+
+	//? Foreign key references
+
+	//? Indexing
+	@@index([code])
+	@@index([equipmentId])
+	@@index([materialId])
+
+	//? Table name in DB
+	@@map("equipment_output_material_mapping")
+}
+
+model AnnualMaterialBudget {
+	//? Primary Key
+	id   String @id @unique @default(uuid())
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	financialYear String @db.VarChar(9) @map("financial_year")
+	month					Int
+	year					Int
+	materialId  String 	@db.VarChar(36) @map("material_id")
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String? @db.VarChar(36) @map("created_by_id")
+  updatedById String? @db.VarChar(36) @map("updated_by_id")
+  isActive    Boolean  @default(true) @map("is_active")
+
+	//? Foreign key references
+
+	//? Indexing
+	@@index([financialYear])
+	@@index([materialId])
+	@@index([code])
+
+	//? Table name in DB
+	@@map("annual_material_budget")
+}

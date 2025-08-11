@@ -9,5 +9,5 @@ const routes = Router();
 
 routes.use(``, [baseAuth], analysisRouter);
 routes.use(``, [baseAuth], problemCodeRouter);
-routes.use(/problem, [baseAuth], problemRouter);
+routes.use(``, [baseAuth], problemRouter);
 export { routes as apiV1Routes };
