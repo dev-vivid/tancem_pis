@@ -21,7 +21,7 @@
 		"body": [
 			"model ${1:ModelName} {",
 			"  //? Primary Key",
-			"  id   String @id @unique @default(cuid())  @db.VarChar(36)",
+			"  id   String @id @unique @default(uuid())  @db.VarChar(36)",
 			"  //? Readable reference Key",
 			"  code Int    @unique @default(autoincrement())",
 			"",

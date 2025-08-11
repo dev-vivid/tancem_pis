@@ -1,5 +1,5 @@
 model Analysis {
-  id           String   @id @unique @default(cuid()) @db.VarChar(36)
+  id           String   @id @unique @default(uuid()) @db.VarChar(36)
   code         Int      @unique @default(autoincrement())
   analysisCode String   @map("analysis_code") @db.VarChar(10)
   type         String   @db.VarChar(50)
@@ -21,7 +21,7 @@ model Analysis {
 
 model Problem {
 	//? Primary Key
-  id          String   @id @unique @default(cuid()) @db.VarChar(36)
+  id          String   @id @unique @default(uuid()) @db.VarChar(36)
 	//? Readable reference Key
   code        Int      @unique @default(autoincrement())
 
@@ -41,14 +41,15 @@ model Problem {
 	ProblemCode ProblemCode[]
 
 	@@index([departmentId])
-
+	@@index([code])
 	//? Table name in DB
 	@@map("problem")
 }
 
 model ProblemCode {
 	//? Primary Key
-	id   String @id @unique @default(cuid())  @db.VarChar(36)
+	id   String @id @unique @default(uuid())  @db.VarChar(36)
+
 	//? Readable reference Key
 	code Int    @unique @default(autoincrement())
 
