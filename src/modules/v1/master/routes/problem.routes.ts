@@ -32,7 +32,7 @@ problemRouter.put(
 );
 
 problemRouter.patch(
- "/deleteProblem",
+ "/deleteProblem/:id",
  validateRequest(deleteProblemParamsSchema, "params"),
  deleteProblem
 );
