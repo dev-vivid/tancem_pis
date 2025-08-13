@@ -24,6 +24,7 @@ export const getAllProblems = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			isActive: true
 		},
 	});
 	const data = problems.map(item => ({
@@ -201,7 +202,7 @@ export const createProblem = async (
             problem: problem,
             sortOrder: sortOrder || 0,
             createdById: user,
-            updatedById: user
+						createdAt: new Date()
         },
    });
 };
