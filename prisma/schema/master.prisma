@@ -389,27 +389,27 @@ model StoppageProblem {
 
 model Adjustment {
   //? Primary Key
-  id              String           @id @unique @default(uuid()) @db.VarChar(36)
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
   //? Readable reference Key
-  code            Int              @unique @default(autoincrement())
-  transactionType transaction_type @map("transaction_type") // enum field
+  code Int    @unique @default(autoincrement())
+  // transactionType transaction_type @map("transaction_type") // enum field
 
   //? Columns
-  toSourceId        String?          @map("to_source_id") @db.VarChar(36)
-  quantity          Decimal          @map("quantity") @db.Decimal(10, 2)
-  remarks           String?          @map("remarks") @db.Text
-  transactionDate   DateTime         @map("transaction_date") @db.Date
+  toSourceId      String?          @map("to_source_id") @db.VarChar(36)
+  quantity        Decimal          @map("quantity") @db.Decimal(10, 2)
+  remarks         String?          @map("remarks") @db.Text
+  transactionDate DateTime         @map("transaction_date") @db.Date
   // fromSourceId String? @db.VarChar(36) @map("from_source_id")
-  materialId        String?          @map("material_id") @db.VarChar(36)
-  transactionTypeId String           @map("transaction_type_id") @db.VarChar(36)
+  materialId      String?          @map("material_id") @db.VarChar(36)
+  // transactionTypeId String           @map("transaction_type_id") @db.VarChar(36)
   // New Enum Field
-  type              transaction_type @map("type")
+  transactionType transaction_type @map("type")
   //? Default columns
-  createdAt         DateTime         @default(now()) @map("created_at")
-  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at")
-  createdById       String?          @map("created_by_id") @db.VarChar(36)
-  updatedById       String?          @map("updated_by_id") @db.VarChar(36)
-  isActive          Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
+  createdById     String?          @map("created_by_id") @db.VarChar(36)
+  updatedById     String?          @map("updated_by_id") @db.VarChar(36)
+  isActive        Boolean          @default(true) @map("is_active")
 
   //? Indexing
   @@index([materialId])
@@ -433,6 +433,7 @@ model Equipment {
   equipmentId          String         @map("equipment_id") @db.VarChar(36)
   equipmentDescription String         @map("equipment_description") @db.VarChar(36)
   strength             String         @map("strength") @db.VarChar(36)
+  analysis             String?        @map("analysis") @db.VarChar(36)
   quality              String         @map("quality") @db.VarChar(36)
   power                String         @map("power") @db.VarChar(36)
   powerGroup           String         @map("power_group") @db.VarChar(36)
