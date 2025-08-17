@@ -14,7 +14,8 @@ model Analysis {
   isActive     Boolean  @default(true) @map("is_active")
 
   // Relation (back reference)
-  materialAnalyses MaterialAnalysis[]
+  materialAnalysis MaterialAnalysis[]
+  AnalysisLab      AnalysisLab[]
 
   @@index([type])
   @@index([materialId])
@@ -262,33 +263,6 @@ model AnnualMaterialBudget {
   //? Table name in DB
   @@map("annual_material_budget")
 }
-
-// model Power {
-//   //? Primary Key
-//   id   String @id @unique @default(uuid())
-//   //? Readable reference Key
-//   code Int    @unique @default(autoincrement())
-
-//   //? Columns
-//   transactionDate DateTime @map("transaction_date") @db.Date
-//   equipmentId     String   @map("equipment_id") @db.VarChar(36)
-//   units           Decimal  @map("units") @db.Decimal(7, 2)
-
-//   //? Default columns
-//   createdAt   DateTime @default(now()) @map("created_at")
-//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-//   createdById String?  @map("created_by_id") @db.VarChar(36)
-//   updatedById String?  @map("updated_by_id") @db.VarChar(36)
-//   isActive    Boolean  @default(true) @map("is_active")
-
-//   //? Foreign key references
-
-//   //? Indexing
-//   @@index([equipmentId])
-//   @@index([code])
-//   //? Table name in DB
-//   @@map("power")
-// }
 
 model Bags {
   //? Primary Key
@@ -541,4 +515,85 @@ model Power {
   @@index([code])
   //? Table name in DB
   @@map("power")
+}
+
+// model StrengthLab {
+//   //? Primary Key
+//   id   String @id @unique @default(uuid()) @db.VarChar(36)
+//   //? Readable reference Key
+//   code Int    @unique @default(autoincrement())
+
+//   //? Columns
+//   transactionDate DateTime @map("transaction_date") @db.Date
+//   materialId      String   @map("material_id") @db.VarChar(36)
+
+//   //? Default columns
+//   createdAt   DateTime @default(now()) @map("created_at")
+//   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+//   createdById String?  @map("created_by_id") @db.VarChar(36)
+//   updatedById String?  @map("updated_by_id") @db.VarChar(36)
+//   isActive    Boolean  @default(true) @map("is_active")
+
+//   //? Indexing
+//   // @@index([])
+
+//   //? Table name in DB
+//   @@map("strength_lab")
+// }
+
+model QualityLab {
+  //? Primary Key
+  id   String @id @unique @default(uuid())
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
+
+  //? Columns
+  transactionDate DateTime @map("transaction_date") @db.Date
+  equipmentId     String   @map("equipment_id") @db.VarChar(36)
+  materialId      String   @map("material_id") @db.VarChar(36)
+  ist             String   @map("initial_setting_time") @db.VarChar(36)
+  fst             String   @map("final_setting_time") @db.VarChar(36)
+  blaine          String   @map("blaine") @db.VarChar(36)
+
+  //? Default columns
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+  isActive    Boolean  @default(true) @map("is_active")
+
+  //? Foreign key references
+
+  //? Indexing
+  @@index([equipmentId])
+  @@index([materialId])
+  @@index([code])
+  //? Table name in DB
+  @@map("lab_quality")
+}
+
+model AnalysisLab {
+  //? Primary Key
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
+
+  //? Columns
+  transactionDate  DateTime  @map("transaction_date") @db.Date
+  materialId       String    @map("material_id") @db.VarChar(36)
+  analysisId       String    @map("analysis_id") @db.VarChar(36)
+  MaterialAnalysis Analysis? @relation(fields: [analysisId], references: [id])
+  //? Default columns
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
+  createdById      String?   @map("created_by_id") @db.VarChar(36)
+  updatedById      String?   @map("updated_by_id") @db.VarChar(36)
+  isActive         Boolean   @default(true) @map("is_active")
+
+  //? Indexing
+  // @@index([])
+  @@index([materialId])
+  @@index([code])
+  //? Table name in DB
+  @@map("lab_analysis")
 }
