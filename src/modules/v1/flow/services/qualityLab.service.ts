@@ -15,7 +15,7 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 // 		throw new Error("Invalid analysisId. Analysis record does not exist.");
 // 	}
 
-// 	return await tx.analysisLab.create({
+// 	return await tx.qualityLab.create({
 // 		data: {
 // 			transactionDate: new Date(data.transactionDate),
 // 			materialId: data.materialId,
@@ -25,27 +25,22 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 // 	});
 // };
 
-export const createAnalysisLab = async (data: any, user: string) => {
-	const analysisExists = await prisma.analysis.findUnique({
-		where: { id: data.analysisId },
-	});
-
-	if (!analysisExists) {
-		throw new Error("Provided analysisId does not exist in Analysis table");
-	}
-
-	return await prisma.analysisLab.create({
+export const createQualityLab = async (data: any, user: string) => {
+	return await prisma.qualityLab.create({
 		data: {
 			transactionDate: new Date(data.transactionDate),
 			materialId: data.materialId,
-			analysisId: data.analysisId,
+			equipmentId: data.equipmentId,
+			ist: data.ist,
+			fst: data.fst,
+			blaine: data.blaine,
 			createdById: user,
 		},
 	});
 };
 
 // ✅ Get all with pagination
-export const getAllAnalysisLab = async (
+export const getAllQualityLab = async (
 	pageNumber?: number,
 	pageSize?: number,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -55,9 +50,9 @@ export const getAllAnalysisLab = async (
 		pageSize: pageSize?.toString(),
 	});
 
-	const totalRecords = await tx.analysisLab.count();
+	const totalRecords = await tx.qualityLab.count();
 
-	const labs = await tx.analysisLab.findMany({
+	const labs = await tx.qualityLab.findMany({
 		skip,
 		take,
 		orderBy: { createdAt: "desc" },
@@ -65,7 +60,10 @@ export const getAllAnalysisLab = async (
 			id: true,
 			transactionDate: true,
 			materialId: true,
-			analysisId: true,
+			equipmentId: true,
+			ist: true,
+			fst: true,
+			blaine: true,
 			createdAt: true,
 			createdById: true,
 		},
@@ -83,11 +81,11 @@ export const getAllAnalysisLab = async (
 };
 
 // ✅ Get by ID
-export const getAnalysisLabById = async (
+export const getQualityLabById = async (
 	id: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const item = await tx.analysisLab.findUnique({
+	const item = await tx.qualityLab.findUnique({
 		where: { id },
 	});
 	console.log(item);
@@ -97,37 +95,43 @@ export const getAnalysisLabById = async (
 };
 
 // ✅ Update
-export const updateAnalysisLab = async (
+export const updateQualityLab = async (
 	id: string,
 	data: {
 		transactionDate: Date;
 		materialId: string;
-		analysisId: string;
+		equipmentId: string;
+		ist: string;
+		fst: string;
+		blaine: string;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	return await tx.analysisLab.update({
+	return await tx.qualityLab.update({
 		where: { id },
 		data: {
 			transactionDate: data.transactionDate,
 			materialId: data.materialId,
-			analysisId: data.analysisId,
+			equipmentId: data.equipmentId,
+			ist: data.ist,
+			fst: data.fst,
+			blaine: data.blaine,
 			updatedById: user,
 		},
 	});
 };
 
 // ✅ Delete
-export const deleteAnalysisLab = async (
+export const deleteQualityLab = async (
 	id: string,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	if (!id) {
-		throw new Error("ID is required for deleting analysis.");
+		throw new Error("ID is required for deleting qualityLab.");
 	}
-	await tx.analysis.update({
+	await tx.qualityLab.update({
 		where: {
 			id: id,
 		},

@@ -20,7 +20,7 @@ analysisLabRouter.get(
 	getAllAnalysisLab
 );
 
-analysisLabRouter.get("/analysis/:id", getAnalysisLabById);
+analysisLabRouter.get("/analysisLabById/:id", getAnalysisLabById);
 
 analysisLabRouter.post(
 	"/analysisLabAdd",

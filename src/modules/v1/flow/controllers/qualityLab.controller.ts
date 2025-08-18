@@ -1,16 +1,16 @@
-import * as usecase from "../usecases/analysisLab.usecase";
+import * as usecase from "../usecases/qualityLab.usecase";
 import { Request, Response, NextFunction } from "express";
 import responses from "../../../../shared/utils/responses";
 
 // ✅ Create
-export const createAnalysisLab = async (
+export const createQualityLab = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
 		const user = req.user?.id || "system"; // fallback if auth middleware not set
-		const result = await usecase.createAnalysisLabUsecase(req.body, user);
+		const result = await usecase.createQualityLabUsecase(req.body, user);
 		res.status(201).send(responses.generate("success", { data: result }));
 	} catch (err) {
 		next(err);
@@ -18,14 +18,14 @@ export const createAnalysisLab = async (
 };
 
 // ✅ Get all
-export const getAllAnalysisLab = async (
+export const getAllQualityLab = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
-		const result = await usecase.getAllAnalysisLabUsecase(
+		const result = await usecase.getAllQualityLabUsecase(
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -36,7 +36,7 @@ export const getAllAnalysisLab = async (
 };
 
 // ✅ Get by ID
-// export const getAnalysisLabById = async (
+// export const getQualityLabById = async (
 // 	req: Request,
 // 	res: Response,
 // 	next: NextFunction
@@ -51,13 +51,13 @@ export const getAllAnalysisLab = async (
 // 				message: "ID parameter is required",
 // 			});
 // 		}
-// 		const result = await usecase.getAnalysisLabByIdUsecase(id);
+// 		const result = await usecase.getQualityLabByIdUsecase(id);
 // 		res.send(responses.generate("success", { data: result }));
 // 	} catch (err) {
 // 		next(err);
 // 	}
 // };
-export const getAnalysisLabById = async (
+export const getQualityLabById = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
@@ -74,14 +74,14 @@ export const getAnalysisLabById = async (
 			});
 		}
 
-		const result = await usecase.getAnalysisLabByIdUsecase(id);
+		const result = await usecase.getQualityLabByIdUsecase(id);
 
 		if (!result) {
 			return res.status(404).json({
 				code: "not_found",
 				statusCode: 404,
 				success: false,
-				message: `AnalysisLab with ID ${id} not found`,
+				message: `QualityLab with ID ${id} not found`,
 			});
 		}
 
@@ -92,7 +92,7 @@ export const getAnalysisLabById = async (
 };
 
 // ✅ Update
-export const updateAnalysisLab = async (
+export const updateQualityLab = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
@@ -118,7 +118,7 @@ export const updateAnalysisLab = async (
 			});
 		}
 
-		const result = await usecase.updateAnalysisLabUsecase(id, req.body, user);
+		const result = await usecase.updateQualityLabUsecase(id, req.body, user);
 		res.send(responses.generate("success", { data: result }));
 	} catch (err) {
 		next(err);
@@ -126,7 +126,7 @@ export const updateAnalysisLab = async (
 };
 
 // ✅ Delete (soft delete with updatedById)
-export const deleteAnalysisLab = async (
+export const deleteQualityLab = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
@@ -152,10 +152,10 @@ export const deleteAnalysisLab = async (
 			});
 		}
 
-		await usecase.deleteAnalysisLabUsecase(id, user);
+		await usecase.deleteQualityLabUsecase(id, user);
 
 		const response = responses.generate("success", {
-			message: "AnalysisLab deleted successfully!",
+			message: "QualityLab deleted successfully!",
 			data: null,
 		});
 		res.status(response.statusCode).send(response);
