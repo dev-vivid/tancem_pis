@@ -391,3 +391,33 @@ enum transaction_type {
   Despatch
   consume
 }
+
+model externalLabTestingReport {
+  //? Primary Key
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
+
+  //? Columns
+  transactionDate      DateTime @map("transaction_date") @db.Date
+  despatchDate         DateTime @map("despatch_date") @db.Date
+  reportReceivedDate   DateTime @map("report_received_date") @db.Date
+  testingType          String   @map("testing_type") @db.VarChar(36)
+  materialId           String   @map("material_id") @db.VarChar(36)
+  thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
+  remarks              String   @map("remarks") @db.Text
+  upoloadFile          String   @map("file_name") @db.Text
+  // quantitySent          String   @map("quantity_sent") @db.VarChar(36)
+  //? Default columns
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById          String?  @map("created_by_id") @db.VarChar(36)
+  updatedById          String?  @map("updated_by_id") @db.VarChar(36)
+  isActive             Boolean  @default(true) @map("is_active")
+
+  //? Indexing
+  // @@index([])
+
+  //? Table name in DB
+  @@map("external_lab_testing_report")
+}
