@@ -19,7 +19,7 @@ export const getAllProblems = async (
 			id: true,
 			name: true,
 			description: true,
-			problem: true,
+			problemName: true,
 			departmentId: true,
 			createdAt: true,
 			createdById: true,
@@ -51,7 +51,7 @@ export const getIdProblem = async (
 			id: true,
 			name: true,
 			description: true,
-			problem: true,
+			problemName: true,
 			departmentId: true,
 			createdAt: true,
 			createdById: true,
@@ -199,7 +199,7 @@ export const createProblem = async (
         data: {
             name,
             departmentId: departmentId,
-            problem: problem,
+            problemName: problem,
             sortOrder: sortOrder || 0,
             createdById: user,
 						createdAt: new Date()
@@ -231,7 +231,7 @@ export const updateProblem = async (
             name,
             description,
             departmentId,
-            problem: problem,
+            problemName: problem,
             sortOrder,
             updatedById: user,
             updatedAt: new Date()
