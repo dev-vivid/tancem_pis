@@ -64,7 +64,7 @@ model ProblemCode {
 }
 
 model TransactionType {
-  id          String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code        Int      @unique @default(autoincrement())
   name        String   @db.VarChar(50)
   createdAt   DateTime @default(now()) @map("created_at")
@@ -78,7 +78,7 @@ model TransactionType {
 }
 
 model ProductionCategory {
-  id                  String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code                Int      @unique @default(autoincrement())
   name                String   @db.VarChar(50)
   productCatagoryCode String   @map("product_category_code")
@@ -94,9 +94,9 @@ model ProductionCategory {
 }
 
 model MaterialType {
-  id                   String             @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code                 Int                @unique @default(autoincrement())
-  materialId           String             @map("material_id") @db.VarChar(50)
+  materialId           String             @map("material_id") @db.VarChar(36)
   materialTypeMasterId String             @map("material_type_id") @db.VarChar(36)
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
@@ -111,7 +111,7 @@ model MaterialType {
 }
 
 model MaterialTypeMaster {
-  id               String         @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code             Int            @unique @default(autoincrement())
   name             String         @db.VarChar(50)
   materialTypeCode String         @map("material_type_code")
@@ -127,7 +127,7 @@ model MaterialTypeMaster {
 }
 
 model MaterialAnalysis {
-  id               String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code             Int      @unique @default(autoincrement())
   materialId       String   @map("material_id") @db.VarChar(50)
   analysisId       String   @map("analysis_id") @db.VarChar(50)
@@ -144,7 +144,7 @@ model MaterialAnalysis {
 }
 
 model EquipmentOutputMaterialMapping {
-  id          String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code        Int      @unique @default(autoincrement())
   equipmentId String   @map("equipment_id") @db.VarChar(36)
   materialId  String   @map("material_id") @db.VarChar(36)
@@ -161,7 +161,7 @@ model EquipmentOutputMaterialMapping {
 }
 
 model AnnualMaterialBudget {
-  id            String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code          Int      @unique @default(autoincrement())
   financialYear String   @map("financial_year") @db.VarChar(9)
   month         Int
@@ -180,7 +180,7 @@ model AnnualMaterialBudget {
 }
 
 model Bags {
-  id              String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code            Int      @unique @default(autoincrement())
   transactionDate DateTime @map("transaction_date") @db.Date
   materialId      String   @map("material_id") @db.VarChar(36)
@@ -205,7 +205,7 @@ model Bags {
 }
 
 model Stoppage {
-  id                     String            @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code                   Int               @unique @default(autoincrement())
   transactionDate        DateTime          @map("transaction_date") @db.Date
   departmentId           String            @map("department_id") @db.VarChar(36)
@@ -230,7 +230,8 @@ model Stoppage {
 }
 
 model StoppageProblem {
-  id            String   @id @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
+	code          Int    @unique @default(autoincrement())
   stoppageId    String   @map("stoppage_maintenance_id") @db.VarChar(36)
   problemId     String   @map("problem_id") @db.VarChar(36)
   problemHours  String?  @map("problem_hours") @db.VarChar(5)
@@ -269,7 +270,7 @@ model Adjustment {
 }
 
 model Equipment {
-  id                   String         @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code                 Int            @unique @default(autoincrement())
   equipmentId          String         @map("equipment_id") @db.VarChar(36)
   equipmentDescription String         @map("equipment_description") @db.VarChar(36)
@@ -313,7 +314,7 @@ model SubEquipment {
 }
 
 model PowerTransaction {
-  id              String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code            Int      @unique @default(autoincrement())
   transactionDate DateTime @map("transaction_date") @db.Date
   createdAt       DateTime @default(now()) @map("created_at")
@@ -328,7 +329,7 @@ model PowerTransaction {
 }
 
 model Power {
-  id            String           @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code          Int              @unique @default(autoincrement())
   transactionId String           @map("transaction_id") @db.VarChar(36)
   equipmentId   String           @map("equipment_id") @db.VarChar(36)
@@ -347,7 +348,7 @@ model Power {
 }
 
 model QualityLab {
-  id              String   @id @unique @default(uuid())
+  id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code            Int      @unique @default(autoincrement())
   transactionDate DateTime @map("transaction_date") @db.Date
   equipmentId     String   @map("equipment_id") @db.VarChar(36)
@@ -417,7 +418,7 @@ model externalLabTestingReport {
 
   //? Indexing
   // @@index([])
-
+	@@index([code])
   //? Table name in DB
   @@map("external_lab_testing_report")
 }
