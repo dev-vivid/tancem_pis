@@ -5,13 +5,15 @@ type TStoppageProblem = {
 	problemHours?: string; 
 	problemId: string; 
 	remarks?: string
+	noOfStoppages: number;
 }
 
 type TUpdateStoppageProblem = {
 	id: string,
 	problemHours?: string; 
 	problemId?: string; 
-	remarks?: string
+	remarks?: string;
+	noOfStoppages?: number,
 }
 
 type TStoppage = {

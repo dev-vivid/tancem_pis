@@ -17,14 +17,13 @@ export const createStoppage = async (
   data: {
     transactionDate: Date;
     departmentId: string;
-    equipmentId: string;
     equipmentMainId: string;
     equipmentSubGroupId: string;
-    equipmentSubSubGroupId: string;
     problems: {
       problemId: string;
       problemHours?: string; // HH:MM
       remarks?: string;
+			noOfStoppages?: number;
     }[];
   },
   user: string,
@@ -54,10 +53,8 @@ export const createStoppage = async (
     data: {
       transactionDate: new Date(data.transactionDate),
       departmentId: data.departmentId,
-      equipmentId: data.equipmentId,
       equipmentMainId: data.equipmentMainId,
       equipmentSubGroupId: data.equipmentSubGroupId,
-      equipmentSubSubGroupId: data.equipmentSubSubGroupId,
       runningHours,
       stoppageHours,
       totalHours,
@@ -65,8 +62,9 @@ export const createStoppage = async (
       stoppageproblems: {
         create: data.problems.map((p) => ({
           problemId: p.problemId,
-          problemHours: p.problemHours ?? null,
-          remarks: p.remarks ?? null,
+          problemHours: p.problemHours,
+          remarks: p.remarks,
+					noOfStoppages: p.noOfStoppages,
           createdById: user,
         })),
       },
@@ -79,69 +77,65 @@ export const updateStoppage = async (
   data: {
     transactionDate?: Date;
     departmentId?: string;
-    equipmentId?: string;
     equipmentMainId?: string;
     equipmentSubGroupId?: string;
-    equipmentSubSubGroupId?: string;
     problems?: {
       id: string;
       problemId?: string;
       problemHours?: string; // HH:MM
       remarks?: string;
+      noOfStoppages?: number;
     }[];
   },
   user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-  // If problems exist → recalc hours
-  let stoppageHours: string | undefined;
-  let runningHours: string | undefined;
-  const totalHours = "24:00";
-
-  if (data.problems && data.problems.length > 0) {
-    const totalProblemMinutes = data.problems.reduce((sum, p) => {
-      if (p.problemHours) return sum + timeStringToMinutes(p.problemHours);
-      return sum;
-    }, 0);
-
-    stoppageHours = minutesToTimeString(totalProblemMinutes);
-    const totalMinutes = 24 * 60;
-    const runningMinutes = Math.max(totalMinutes - totalProblemMinutes, 0);
-    runningHours = minutesToTimeString(runningMinutes);
+  // Update problems if provided
+  if (data.problems?.length) {
+    for (const p of data.problems) {
+      await tx.stoppageProblem.update({
+        where: { id: p.id },
+        data: {
+          ...(p.problemId && { problemId: p.problemId }),
+          ...(p.problemHours && { problemHours: p.problemHours }),
+          ...(p.remarks && { remarks: p.remarks }),
+          ...(p.noOfStoppages !== undefined && { noOfStoppages: p.noOfStoppages }),
+          updatedById: user,
+        },
+      });
+    }
   }
 
-  const updatedStoppage = await tx.stoppage.update({
+  // Get all active problems for this stoppage
+  const problems = await tx.stoppageProblem.findMany({
+    where: { stoppageId: id, isActive: true },
+    select: { problemHours: true },
+  });
+
+  // Recalculate totals
+  const totalProblemMinutes = problems.reduce(
+    (sum, p) => sum + (p.problemHours ? timeStringToMinutes(p.problemHours) : 0),
+    0
+  );
+  const stoppageHours = minutesToTimeString(totalProblemMinutes);
+  const runningHours = minutesToTimeString(Math.max(24 * 60 - totalProblemMinutes, 0));
+
+  // Update main stoppage
+  return tx.stoppage.update({
     where: { id },
     data: {
       transactionDate: data.transactionDate ? new Date(data.transactionDate) : undefined,
       departmentId: data.departmentId,
-      equipmentId: data.equipmentId,
       equipmentMainId: data.equipmentMainId,
       equipmentSubGroupId: data.equipmentSubGroupId,
-      equipmentSubSubGroupId: data.equipmentSubSubGroupId,
       stoppageHours,
       runningHours,
-      totalHours,
+      totalHours: "24:00",
       updatedById: user,
-
-      stoppageproblems: data.problems
-        ? {
-            update: data.problems.map((p) => ({
-              where: { id: p.id },
-              data: {
-                ...(p.problemId !== undefined && { problemId: p.problemId }),
-                ...(p.problemHours !== undefined && { problemHours: p.problemHours }),
-                ...(p.remarks !== undefined && { remarks: p.remarks }),
-                updatedById: user,
-              },
-            })),
-          }
-        : undefined,
     },
   });
-
-  return updatedStoppage;
 };
+
 
 
 export const getAllStoppage = async (

@@ -1,5 +1,5 @@
 import express from 'express';
-import { createStoppageController, getAllStoppageController} from '../controllers/stoppage.controller';
+import { createStoppageController, getAllStoppageController, stoppageByIdController, updateStoppageController, deleteStoppageController} from '../controllers/stoppage.controller';
 import { validateRequest } from '@middleware/validateRequest';
 import { createStoppageBodySchema, stoppageFilterQuerySchema, updateStoppageBodySchema, updateStoppageParamsSchema, deleteStoppageParamsSchema,
 	getStoppageParamsSchema
@@ -9,14 +9,14 @@ const stoppageRouter = express.Router();
 
 stoppageRouter.post('/createStoppage', validateRequest(createStoppageBodySchema, "body"), createStoppageController);
 stoppageRouter.get('/allStoppages', validateRequest(stoppageFilterQuerySchema, "query"), getAllStoppageController);
-stoppageRouter.get('/stoppageById/:id', validateRequest(getStoppageParamsSchema, "params"), );
+stoppageRouter.get('/stoppageById/:id', validateRequest(getStoppageParamsSchema, "params"), stoppageByIdController);
 
 stoppageRouter.put('/stoppageUpdate/:id', 
 	validateRequest(updateStoppageParamsSchema, "params"), 
 	validateRequest(updateStoppageBodySchema, "body"), 
-	getAllStoppageController);
+	updateStoppageController);
 
-stoppageRouter.patch('/deleteStoppage/:id', validateRequest(deleteStoppageParamsSchema, "query"), getAllStoppageController);
+stoppageRouter.patch('/deleteStoppage/:id', validateRequest(deleteStoppageParamsSchema, "params"), deleteStoppageController);
 
 
 export default stoppageRouter;

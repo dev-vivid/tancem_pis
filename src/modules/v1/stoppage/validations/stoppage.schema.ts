@@ -22,6 +22,7 @@ export const createStoppageBodySchema = Joi.object({
             "string.pattern.base":
               "problemHours must be in HH:MM format (e.g., 02:30)",
           }),
+				noOfStoppages: Joi.number().optional(),
         problemId: Joi.string().required(),
         remarks: Joi.string().optional(),
       })
@@ -48,6 +49,7 @@ export const updateStoppageBodySchema = Joi.object({
             "string.pattern.base":
               "problemHours must be in HH:MM format (e.g., 02:30)",
           }),
+				noOfStoppages: Joi.number().optional(),
         problemId: Joi.string().optional(),
         remarks: Joi.string().optional(),
       })
