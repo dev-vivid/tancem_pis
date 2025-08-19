@@ -34,6 +34,6 @@ analysisRouter.put(
 	updateAnalysis
 );
 
-analysisRouter.post("/analysisDelete/:id", deleteAnalysis);
+analysisRouter.patch("/analysisDelete/:id", deleteAnalysis);
 
 export default analysisRouter;

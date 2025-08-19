@@ -34,6 +34,6 @@ problemCodeRouter.put(
 	updateproblemCode
 );
 
-problemCodeRouter.post("/problemCodeDelete/:id", deleteproblemCode);
+problemCodeRouter.patch("/problemCodeDelete/:id", deleteproblemCode);
 
 export default problemCodeRouter;

@@ -34,6 +34,6 @@ analysisLabRouter.put(
 	updateAnalysisLab
 );
 
-analysisLabRouter.post("/analysisLabsDelete/:id", deleteAnalysisLab);
+analysisLabRouter.patch("/analysisLabsDelete/:id", deleteAnalysisLab);
 
 export default analysisLabRouter;
