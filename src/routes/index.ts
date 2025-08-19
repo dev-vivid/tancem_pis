@@ -18,6 +18,8 @@ import stoppageRouter from "@module/v1/stoppage/routes/stoppage.routes";
 import materialAnalysisRouter from "@module/v1/master/routes/materialAnalysis.routes";
 import materialTypeRouter from "@module/v1/master/routes/materialType.routes";
 import annualMaterialBudgetRouter from "@module/v1/master/routes/annualMaterialBudget.routes";
+import analysisLabRouter from "@module/v1/flow/routes/analysisLab.routes";
+import qualityLabRouter from "@module/v1/flow/routes/qualityLab.routes";
 
 routes.use(``, [baseAuth], analysisRouter);
 routes.use(``, [baseAuth], problemCodeRouter);
@@ -34,5 +36,7 @@ routes.use(``, [baseAuth], stoppageRouter);
 routes.use(``, [baseAuth], materialAnalysisRouter);
 routes.use(``, [baseAuth], materialTypeRouter);
 routes.use(``, [baseAuth], annualMaterialBudgetRouter);
+routes.use(``, [baseAuth], analysisLabRouter);
+routes.use(``, [baseAuth], qualityLabRouter);
 
 export { routes as apiV1Routes };
