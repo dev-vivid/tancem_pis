@@ -209,10 +209,10 @@ model Stoppage {
   code                   Int               @unique @default(autoincrement())
   transactionDate        DateTime          @map("transaction_date") @db.Date
   departmentId           String            @map("department_id") @db.VarChar(36)
-  equipmentId            String            @map("equipment_id") @db.VarChar(36)
+  // equipmentId            String            @map("equipment_id") @db.VarChar(36)
   equipmentMainId        String            @map("equipment_main_id") @db.VarChar(36)
   equipmentSubGroupId    String            @map("equipment_sub_group_id") @db.VarChar(36)
-  equipmentSubSubGroupId String            @map("equipment_sub_Sub_group_id") @db.VarChar(36)
+  // equipmentSubSubGroupId String            @map("equipment_sub_Sub_group_id") @db.VarChar(36)
   runningHours           String?           @map("running_hours") @db.VarChar(5)
   stoppageHours          String?           @map("stoppage_hours") @db.VarChar(5)
   totalHours             String?           @map("total_hours") @db.VarChar(5)
@@ -223,7 +223,7 @@ model Stoppage {
   isActive               Boolean           @default(true) @map("is_active")
   stoppageproblems       StoppageProblem[]
 
-  @@index([equipmentId])
+  // @@index([equipmentId])
   @@index([departmentId])
   @@index([code])
   @@map("stoppage")
@@ -394,12 +394,8 @@ enum transaction_type {
 }
 
 model externalLabTestingReport {
-  //? Primary Key
   id   String @id @unique @default(uuid()) @db.VarChar(36)
-  //? Readable reference Key
   code Int    @unique @default(autoincrement())
-
-  //? Columns
   transactionDate      DateTime @map("transaction_date") @db.Date
   despatchDate         DateTime @map("despatch_date") @db.Date
   reportReceivedDate   DateTime @map("report_received_date") @db.Date
@@ -408,8 +404,6 @@ model externalLabTestingReport {
   thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
   remarks              String   @map("remarks") @db.Text
   upoloadFile          String   @map("file_name") @db.Text
-  // quantitySent          String   @map("quantity_sent") @db.VarChar(36)
-  //? Default columns
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
   createdById          String?  @map("created_by_id") @db.VarChar(36)
@@ -421,4 +415,100 @@ model externalLabTestingReport {
 	@@index([code])
   //? Table name in DB
   @@map("external_lab_testing_report")
+}
+
+model Despatch {
+  id              String   @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int      @unique @default(autoincrement())
+  transactionDate DateTime @map("transaction_date") @db.Date
+  materialId      String   @map("material_id") @db.VarChar(36)
+  railQuantity    Decimal  @map("quantity") @db.Decimal(10, 2)
+  roadQuantity    Decimal  @map("road_quantity") @db.Decimal(10, 2)
+  exportQuantity  Decimal  @map("export_quantity") @db.Decimal(10, 2)
+  inlandQuantity  Decimal  @map("inland_quantity") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById     String?  @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean  @default(true) @map("is_active")
+  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+
+  @@index([code])
+  @@index([materialId])
+  @@map("despatch")
+}
+
+model ReceiptConsumption {
+  id              String   @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int      @unique @default(autoincrement())
+  transactionDate DateTime @map("transaction_date") @db.Date
+  materialType    String   @map("material_type") @db.VarChar(36)
+  materialId      String   @map("material_id") @db.VarChar(36)
+  transactionType String   @map("transaction_type") @db.VarChar(36)
+  quantity        Decimal  @map("quantity") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById     String?  @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean  @default(true) @map("is_active")
+  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+
+  @@index([materialType])
+  @@index([materialId])
+  @@map("receipt_consumption")
+}
+
+model Production {
+  id              String   @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int      @unique @default(autoincrement())
+  transactionDate DateTime @map("transaction_date") @db.Date
+  equipmentId     String   @map("material_type") @db.VarChar(36)
+  materialId      String   @map("material_id") @db.VarChar(36)
+  runningHours    String?  @map("running_hours") @db.VarChar(5)
+  quantity        Decimal  @map("quantity") @db.Decimal(10, 2)
+  fuelConsumption Decimal  @map("fuelConsumption") @db.Decimal(10, 2)
+  remarks         String?  @map("remarks") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById     String?  @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean  @default(true) @map("is_active")
+  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+
+  @@index([equipmentId])
+  @@index([materialId])
+  @@map("production")
+}
+
+model MaterialMappingMaster {
+
+  id   				String @id @unique @default(uuid()) @db.VarChar(36)
+	code        Int    @unique @default(autoincrement())
+  materialId  String   @map("material_id") @db.VarChar(36)
+  sourceId    String   @map("source_id")   @db.VarChar(36)
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("material_mapping_master")  
+}
+
+model budget {
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  code Int    @unique @default(autoincrement())
+  financialYear   String   @map("financial_year") @db.VarChar(36)
+  transactionDate DateTime @map("transaction_date") @db.Date
+  materialId      String   @map("material_id") @db.VarChar(36)
+  budgetCode      String   @map("budget_code") @db.VarChar(36)
+  budgetValue     Float    @map("budget_value")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+  isActive    Boolean  @default(true) @map("is_active")
+
+  // ? Indexing
+  // @@index([])
+  @@index([code])
+
+  // ? Table name in DB
+  @@map("budget")
 }

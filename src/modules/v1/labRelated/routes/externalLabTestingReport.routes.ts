@@ -13,11 +13,11 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 export const externalLabTestingReportRouter = Router();
 
 // Create
-externalLabTestingReportRouter.post(
-	"/externalLabTestingReportAdd",
-	upload.single("file"),
-	createExternalLabTestingReport
-);
+// externalLabTestingReportRouter.post(
+// 	"/externalLabTestingReportAdd",
+// 	upload.single("file"),
+// 	createExternalLabTestingReport
+// );
 
 // Get all
 externalLabTestingReportRouter.get(
@@ -32,14 +32,14 @@ externalLabTestingReportRouter.get(
 );
 
 // Update
-externalLabTestingReportRouter.put(
-	"/externalLabTestingReportEdit/:id",
-	upload.single("file"),
-	updateExternalLabTestingReport
-);
+// externalLabTestingReportRouter.put(
+// 	"/externalLabTestingReportEdit/:id",
+// 	upload.single("file"),
+// 	updateExternalLabTestingReport
+// );
 
 // Delete
-externalLabTestingReportRouter.delete(
+externalLabTestingReportRouter.patch(
 	"/externalLabTestingReportDelete/:id",
 	deleteExternalLabTestingReport
 );

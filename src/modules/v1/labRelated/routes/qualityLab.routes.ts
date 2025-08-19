@@ -34,6 +34,6 @@ qualityLabRouter.put(
 	updateQualityLab
 );
 
-qualityLabRouter.post("/qualityLabDelete/:id", deleteQualityLab);
+qualityLabRouter.patch("/qualityLabDelete/:id", deleteQualityLab);
 
 export default qualityLabRouter;
