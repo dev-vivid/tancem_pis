@@ -27,26 +27,32 @@ export const getAllAdjustments = async (
 		select: {
 			id: true,
 			//	code: true,
-			 remarks: true,
-    createdAt: true,
-    updatedAt: true,
-    createdById: true,
-    updatedById: true,
+			remarks: true,
+			createdAt: true,
+			updatedAt: true,
+			createdById: true,
+			updatedById: true,
 		},
 	});
 
-	const data = records.map(item => ({
-  uuid: item.id,
-  remarks: item.remarks,
-  createdAt: item.createdAt
-    ? new Date(item.createdAt).toISOString().replace("T", " ").substring(0, 19)
-    : null,
-  createdById: item.createdById,
-  updatedAt: item.updatedAt
-    ? new Date(item.updatedAt).toISOString().replace("T", " ").substring(0, 19)
-    : null,
-  updatedById: item.updatedById,
-}));
+	const data = records.map((item) => ({
+		uuid: item.id,
+		remarks: item.remarks,
+		createdAt: item.createdAt
+			? new Date(item.createdAt)
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19)
+			: null,
+		createdById: item.createdById,
+		updatedAt: item.updatedAt
+			? new Date(item.updatedAt)
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19)
+			: null,
+		updatedById: item.updatedById,
+	}));
 
 	return {
 		totalRecords,
@@ -70,7 +76,7 @@ export const getAdjustmentById = async (
 			remarks: true,
 			transactionDate: true,
 			materialId: true,
-		//	transactionTypeId: true,
+			//	transactionTypeId: true,
 			//type: true, // enum field
 			createdAt: true,
 			updatedAt: true,
@@ -98,7 +104,7 @@ export const getAdjustmentById = async (
 					.substring(0, 19)
 			: null,
 		materialId: item.materialId,
-	
+
 		createdAt: item.createdAt
 			? new Date(item.createdAt)
 					.toISOString()
@@ -161,7 +167,7 @@ export const createAdjustment = async (
 		quantity: string;
 		remarks?: string;
 		transactionDate: Date;
-    transactionType: transaction_type,
+		transactionType: transaction_type;
 		materialId?: string;
 
 		type: transaction_type;
@@ -169,8 +175,14 @@ export const createAdjustment = async (
 	userId: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { toSourceId, quantity, remarks, transactionDate, materialId, transactionType } =
-		adjustmentData;
+	const {
+		toSourceId,
+		quantity,
+		remarks,
+		transactionDate,
+		materialId,
+		transactionType,
+	} = adjustmentData;
 
 	if (!quantity || !transactionDate || !transactionType) {
 		throw new Error(
@@ -185,7 +197,7 @@ export const createAdjustment = async (
 			remarks,
 			transactionDate: new Date(transactionDate),
 			materialId,
-      transactionType,
+			transactionType,
 			createdById: userId,
 		},
 	});
@@ -219,8 +231,8 @@ export const updateAdjustment = async (
 		data: {
 			...adjustmentData,
 			transactionDate: adjustmentData.transactionDate
-        ? new Date(adjustmentData.transactionDate)
-        : undefined, // optional handling, 
+				? new Date(adjustmentData.transactionDate)
+				: undefined, // optional handling,
 			updatedById: userId,
 		},
 	});
@@ -250,7 +262,7 @@ export const deleteAdjustment = async (
 		data: {
 			isActive: false,
 			updatedById: userId,
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		},
 	});
 };
