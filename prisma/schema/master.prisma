@@ -209,10 +209,10 @@ model Stoppage {
   code                   Int               @unique @default(autoincrement())
   transactionDate        DateTime          @map("transaction_date") @db.Date
   departmentId           String            @map("department_id") @db.VarChar(36)
-  equipmentId            String            @map("equipment_id") @db.VarChar(36)
+  // equipmentId            String            @map("equipment_id") @db.VarChar(36)
   equipmentMainId        String            @map("equipment_main_id") @db.VarChar(36)
   equipmentSubGroupId    String            @map("equipment_sub_group_id") @db.VarChar(36)
-  equipmentSubSubGroupId String            @map("equipment_sub_Sub_group_id") @db.VarChar(36)
+  // equipmentSubSubGroupId String            @map("equipment_sub_Sub_group_id") @db.VarChar(36)
   runningHours           String?           @map("running_hours") @db.VarChar(5)
   stoppageHours          String?           @map("stoppage_hours") @db.VarChar(5)
   totalHours             String?           @map("total_hours") @db.VarChar(5)
@@ -223,7 +223,7 @@ model Stoppage {
   isActive               Boolean           @default(true) @map("is_active")
   stoppageproblems       StoppageProblem[]
 
-  @@index([equipmentId])
+  // @@index([equipmentId])
   @@index([departmentId])
   @@index([code])
   @@map("stoppage")
