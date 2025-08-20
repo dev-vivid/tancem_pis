@@ -497,8 +497,8 @@ model budget {
   financialYear   String   @map("financial_year") @db.VarChar(36)
   transactionDate DateTime @map("transaction_date") @db.Date
   materialId      String   @map("material_id") @db.VarChar(36)
-  budgetCode      String   @map("budget_code") @db.VarChar(36)
-  budgetValue     Float    @map("budget_value")
+  budgetCode      String?   @map("budget_code") @db.VarChar(36)
+  budgetValue     Decimal    @map("budget_value") @db.Decimal(10, 2) 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   createdById String?  @map("created_by_id") @db.VarChar(36)
