@@ -5,32 +5,30 @@ type TStoppageProblem = {
 	problemHours?: string; 
 	problemId: string; 
 	remarks?: string
+	noOfStoppages: number;
 }
 
 type TUpdateStoppageProblem = {
 	id: string,
 	problemHours?: string; 
 	problemId?: string; 
-	remarks?: string
+	remarks?: string;
+	noOfStoppages?: number,
 }
 
 type TStoppage = {
 	transactionDate: Date;
 	departmentId: string,
-  equipmentId: string;
   equipmentMainId: string;
   equipmentSubGroupId: string;
-  equipmentSubSubGroupId: string;
   problems: TStoppageProblem[];   
 }
 
 type TUpdateStoppage = {
 	transactionDate?: Date;
 	departmentId?: string,
-  equipmentId?: string;
   equipmentMainId?: string;
   equipmentSubGroupId?: string;
-  equipmentSubSubGroupId?: string;
   problems?: TUpdateStoppageProblem[];   
 }
 

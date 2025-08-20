@@ -8,10 +8,8 @@ export const stoppageFilterQuerySchema = Joi.object({
 export const createStoppageBodySchema = Joi.object({
   transactionDate: Joi.date().required(),
   departmentId: Joi.string().required(),
-  equipmentId: Joi.string().required(),
   equipmentMainId: Joi.string().required(),
   equipmentSubGroupId: Joi.string().required(),
-  equipmentSubSubGroupId: Joi.string().required(),
   problems: Joi.array()
     .items(
       Joi.object({
@@ -22,6 +20,7 @@ export const createStoppageBodySchema = Joi.object({
             "string.pattern.base":
               "problemHours must be in HH:MM format (e.g., 02:30)",
           }),
+				noOfStoppages: Joi.number().optional(),
         problemId: Joi.string().required(),
         remarks: Joi.string().optional(),
       })
@@ -32,11 +31,8 @@ export const createStoppageBodySchema = Joi.object({
 export const updateStoppageBodySchema = Joi.object({
   transactionDate: Joi.date().optional(),
   departmentId: Joi.string().optional(),
-  equipmentId: Joi.string().optional(),
   equipmentMainId: Joi.string().optional(),
   equipmentSubGroupId: Joi.string().optional(),
-  equipmentSubSubGroupId: Joi.string().optional(),
-
   problems: Joi.array()
     .items(
       Joi.object({
@@ -48,6 +44,7 @@ export const updateStoppageBodySchema = Joi.object({
             "string.pattern.base":
               "problemHours must be in HH:MM format (e.g., 02:30)",
           }),
+				noOfStoppages: Joi.number().optional(),
         problemId: Joi.string().optional(),
         remarks: Joi.string().optional(),
       })
