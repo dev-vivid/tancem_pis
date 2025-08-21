@@ -1,7 +1,6 @@
 model Analysis {
   id               String             @id @unique @default(uuid()) @db.VarChar(36)
   code             Int                @unique @default(autoincrement())
-  analysisCode     String             @map("analysis_code") @db.VarChar(10)
   type             String             @db.VarChar(50)
   description      String?            @db.VarChar(200)
   requestId        String?            @map("wf_request_id") @db.VarChar(36)

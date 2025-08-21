@@ -3,37 +3,35 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 
 export const createMaterialAnalysis = async (
 	materialAnalysisData: {
-		materialId: string,
-		analysisId: string,
+		materialId: string;
+		analysisId: string;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-
-	const {materialId, analysisId} = materialAnalysisData;
+	const { materialId, analysisId } = materialAnalysisData;
 
 	const create = await tx.materialAnalysis.create({
 		data: {
 			materialId,
 			analysisId,
 			createdById: user,
-			createdAt: new Date()
-		}
+		},
 	});
 };
 
 export const updateMaterialAnalysis = async (
 	id: string,
 	updateMaterialTypeData: {
-		materialId: string,
-		analysisId: string,
+		materialId: string;
+		analysisId: string;
 	},
 	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const {materialId, analysisId} = updateMaterialTypeData;
+	const { materialId, analysisId } = updateMaterialTypeData;
 
-	if(!user){
+	if (!user) {
 		throw new Error("User is not Authorized");
 	}
 
@@ -42,16 +40,16 @@ export const updateMaterialAnalysis = async (
 		data: {
 			materialId,
 			analysisId,
-      updatedById: user,
-			updatedAt: new Date()
-		}
-	})
-}
+			updatedById: user,
+			updatedAt: new Date(),
+		},
+	});
+};
 
 export const getAllMaterialAnalysis = async (
 	pageNumber?: string,
 	pageSize?: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
@@ -69,22 +67,21 @@ export const getAllMaterialAnalysis = async (
 		},
 	});
 
-	const data = result.map(item => ({
-        ...item,
-        createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
-   }));
+	const data = result.map((item) => ({
+		...item,
+		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
+		updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19),
+	}));
 
 	return data;
-
-}
+};
 
 export const getByID = async (
 	id: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const result = await tx.materialAnalysis.findUnique({
-		where: {id},
+		where: { id },
 		select: {
 			id: true,
 			materialId: true,
@@ -92,39 +89,45 @@ export const getByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
-		}
+		},
 	});
 
-	if(!result) {throw new Error("materialType not found");}
+	if (!result) {
+		throw new Error("materialType not found");
+	}
 
-	const data = { 
-        ...result,
-        createdAt: result.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: result.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+	const data = {
+		...result,
+		createdAt: result.createdAt
+			.toISOString()
+			.replace("T", " ")
+			.substring(0, 19),
+		updatedAt: result.updatedAt
+			.toISOString()
+			.replace("T", " ")
+			.substring(0, 19),
 	};
 
 	return {
-		data
+		data,
 	};
-
 };
 
 export const deleteMaterialAnalysis = async (
 	id: string,
 	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if(!id) {throw new Error("ID is required for deleting.");}
+	if (!id) {
+		throw new Error("ID is required for deleting.");
+	}
 
 	await tx.materialAnalysis.update({
-		where: {id},
+		where: { id },
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		},
 	});
-
-
 };
-

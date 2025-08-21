@@ -35,28 +35,6 @@ export const getAllAnalysisLab = async (
 	}
 };
 
-// ✅ Get by ID
-// export const getAnalysisLabById = async (
-// 	req: Request,
-// 	res: Response,
-// 	next: NextFunction
-// ) => {
-// 	try {
-// 		const { id } = req.params;
-// 		if (!id) {
-// 			return res.status(400).json({
-// 				code: "bad_request",
-// 				statusCode: 400,
-// 				success: false,
-// 				message: "ID parameter is required",
-// 			});
-// 		}
-// 		const result = await usecase.getAnalysisLabByIdUsecase(id);
-// 		res.send(responses.generate("success", { data: result }));
-// 	} catch (err) {
-// 		next(err);
-// 	}
-// };
 export const getAnalysisLabById = async (
 	req: Request,
 	res: Response,
