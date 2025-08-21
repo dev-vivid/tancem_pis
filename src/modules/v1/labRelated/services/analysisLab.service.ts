@@ -68,6 +68,11 @@ export const getAllAnalysisLab = async (
 			analysisId: true,
 			createdAt: true,
 			createdById: true,
+			MaterialAnalysis: {
+				select: {
+					description: true,
+				},
+			},
 		},
 	});
 

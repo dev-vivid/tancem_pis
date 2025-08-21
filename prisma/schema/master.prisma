@@ -1,7 +1,6 @@
 model Analysis {
   id               String             @id @unique @default(uuid()) @db.VarChar(36)
   code             Int                @unique @default(autoincrement())
-  analysisCode     String             @map("analysis_code") @db.VarChar(10)
   type             String             @db.VarChar(50)
   description      String?            @db.VarChar(200)
   requestId        String?            @map("wf_request_id") @db.VarChar(36)
@@ -497,8 +496,8 @@ model budget {
   financialYear   String   @map("financial_year") @db.VarChar(36)
   transactionDate DateTime @map("transaction_date") @db.Date
   materialId      String   @map("material_id") @db.VarChar(36)
-  budgetCode      String   @map("budget_code") @db.VarChar(36)
-  budgetValue     Float    @map("budget_value")
+  budgetCode      String?   @map("budget_code") @db.VarChar(36)
+  budgetValue     Decimal    @map("budget_value") @db.Decimal(10, 2) 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   createdById String?  @map("created_by_id") @db.VarChar(36)
