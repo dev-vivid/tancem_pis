@@ -10,7 +10,7 @@ export const createExternalLabTestingReport = async (
 		materialId: string;
 		thirdPartyVendorName: string;
 		remarks: string;
-		uploadFile: string;
+		// uploadFile: string;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma

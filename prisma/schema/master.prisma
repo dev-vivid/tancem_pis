@@ -419,7 +419,7 @@ model externalLabTestingReport {
   materialId           String   @map("material_id") @db.VarChar(36)
   thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
   remarks              String   @map("remarks") @db.Text
-  upoloadFile          String   @map("file_name") @db.Text
+  upoloadFile          String?   @map("file_name") @db.Text
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
   createdById          String?  @map("created_by_id") @db.VarChar(36)
