@@ -1,29 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
-
-// ✅ Create AnalysisLab record
-// export const createAnalysisLab = async (
-// 	data: any,
-// 	user: string,
-// 	tx: IPrismaTransactionClient | typeof prisma = prisma
-// ) => {
-// 	const analysisExists = await prisma.analysis.findUnique({
-// 		where: { id: data.analysisId },
-// 	});
-
-// 	if (!analysisExists) {
-// 		throw new Error("Invalid analysisId. Analysis record does not exist.");
-// 	}
-
-// 	return await tx.analysisLab.create({
-// 		data: {
-// 			transactionDate: new Date(data.transactionDate),
-// 			materialId: data.materialId,
-// 			analysisId: data.analysisId,
-// 			createdById: user,
-// 		},
-// 	});
-// };
+import * as api from "../../../../common/api";
 
 export const createAnalysisLab = async (data: any, user: string) => {
 	const analysisExists = await prisma.analysis.findUnique({
@@ -76,10 +53,22 @@ export const getAllAnalysisLab = async (
 		},
 	});
 
-	const data = labs.map((item) => ({
-		...item,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-	}));
+	const data = await Promise.all(
+		labs.map(async (item) => {
+			const materialName = item.materialId
+				? await api.getMaterialName(item.materialId)
+				: null;
+
+			return {
+				...item,
+				materialName,
+				createdAt: item.createdAt
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19),
+			};
+		})
+	);
 
 	return {
 		totalRecords,
@@ -97,7 +86,9 @@ export const getAnalysisLabById = async (
 	});
 	console.log(item);
 	if (!item) throw new Error("Analysis Lab not found.");
-
+	const materialName = item.materialId
+		? await api.getMaterialName(item.materialId)
+		: null;
 	return item;
 };
 

@@ -1,5 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import * as api from "../../../../common/api";
 
 // ✅ Create AnalysisLab record
 // export const createAnalysisLab = async (
@@ -69,10 +70,25 @@ export const getAllQualityLab = async (
 		},
 	});
 
-	const data = labs.map((item) => ({
-		...item,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-	}));
+	const data = await Promise.all(
+		labs.map(async (item) => {
+			const materialName = item.materialId
+				? await api.getMaterialName(item.materialId)
+				: null;
+			const equipmentName = item.equipmentId
+				? await api.getEquipmentName(item.equipmentId)
+				: null;
+			return {
+				...item,
+				materialName,
+				equipmentName,
+				createdAt: item.createdAt
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19),
+			};
+		})
+	);
 
 	return {
 		totalRecords,
@@ -90,7 +106,12 @@ export const getQualityLabById = async (
 	});
 	console.log(item);
 	if (!item) throw new Error("Analysis Lab not found.");
-
+	const materialName = item.materialId
+		? await api.getMaterialName(item.materialId)
+		: null;
+	const equipmentName = item.equipmentId
+		? await api.getEquipmentName(item.equipmentId)
+		: null;
 	return item;
 };
 
