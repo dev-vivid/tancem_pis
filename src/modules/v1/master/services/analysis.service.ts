@@ -18,31 +18,31 @@ export const getAllanalysis = async (
 		skip,
 		take,
 		orderBy: {
-			created_at: "desc",
+			createdAt: "desc",
 		},
 		select: {
 			id: true,
-			analysis_code: true,
-			analysis_type: true,
+			code: true,
+			type: true,
 			description: true,
-			created_at: true,
-			created_by: true,
+			createdAt: true,
+			createdById: true,
 		},
 	});
 
 	// Convert snake_case to camelCase in the result
 	const data = analysis.map((item) => ({
 		uuid: item.id,
-		analysisCode: item.analysis_code,
-		analysisType: item.analysis_type,
+		analysisCode: item.code,
+		analysisType: item.type,
 		description: item.description,
-		createdAt: item.created_at
-			? new Date(item.created_at)
+		createdAt: item.createdAt
+			? new Date(item.createdAt)
 					.toISOString()
 					.replace("T", " ")
 					.substring(0, 19)
 			: null,
-		createdBy: item.created_by,
+		createdBy: item.createdById,
 	}));
 
 	return {
@@ -61,11 +61,11 @@ export const getIdanalysis = async (
 		},
 		select: {
 			id: true,
-			analysis_code: true,
-			analysis_type: true,
+			code: true,
+			type: true,
 			description: true,
-			created_at: true,
-			created_by: true,
+			createdAt: true,
+			createdById: true,
 		},
 	});
 
@@ -75,16 +75,16 @@ export const getIdanalysis = async (
 
 	const data = {
 		uuid: item.id,
-		analysisCode: item.analysis_code,
-		analysisType: item.analysis_type,
+		analysisCode: item.code,
+		analysisType: item.type,
 		description: item.description,
-		createdAt: item.created_at
-			? new Date(item.created_at)
+		createdAt: item.createdAt
+			? new Date(item.createdAt)
 					.toISOString()
 					.replace("T", " ")
 					.substring(0, 19)
 			: null,
-		createdBy: item.created_by,
+		createdBy: item.createdById,
 	};
 
 	return {
@@ -106,9 +106,9 @@ export const createAnalysis = async (
 
 	await tx.analysis.create({
 		data: {
-			analysis_type: analysisType,
+			type: analysisType,
 			description: description || null,
-			created_by: user,
+			createdById: user,
 		},
 	});
 };
@@ -134,9 +134,9 @@ export const updateAnalysis = async (
 			id: id,
 		},
 		data: {
-			analysis_type: analysisType,
+			type: analysisType,
 			description: description || null,
-			updated_by: user,
+			updatedById: user,
 		},
 	});
 };
@@ -154,8 +154,8 @@ export const deleteAnalysis = async (
 			id: id,
 		},
 		data: {
-			is_active: false,
-			updated_by: user,
+			isActive: false,
+			updatedById: user,
 		},
 	});
 };
