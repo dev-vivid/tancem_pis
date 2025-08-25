@@ -15,7 +15,9 @@ const uploadFileToLocal = async (file: Express.Multer.File, folder = "") => {
 	const filePath = path.join(uploadDir, fileName);
 
 	// Write the file to disk
-	await fs.promises.writeFile(filePath, file.buffer);
+	// await fs.promises.writeFile(filePath, file.buffer);
+
+	await fs.promises.rename(file.path, filePath);
 
 	return {
 		location: filePath,

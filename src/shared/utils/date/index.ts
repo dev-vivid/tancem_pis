@@ -68,7 +68,7 @@ export function extractDateTime(
 	const seconds = date.getSeconds().toString().padStart(2, "0");
 
 	// Format the date and time
-	const formattedDate = `${year}-${month}-${day}`;
+	const formattedDate = `${day}-${month}-${year}`;
 	const formattedTime = `${hours}:${minutes}:${seconds}`;
 
 	// Return the appropriate value based on the type
@@ -99,4 +99,27 @@ export function getEndOfYear(year?: number): Date {
 
 export function getCurrentQuarter(date: Date): number {
 	return Math.floor(date.getMonth() / 3) + 1;
+}
+
+export function parseDateOnly(input: string | Date): Date {
+	if (input instanceof Date) {
+		return new Date(
+			Date.UTC(input.getFullYear(), input.getMonth(), input.getDate())
+		);
+	}
+
+	let day: number, month: number, year: number;
+
+	if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+		[year, month, day] = input.split("-").map(Number); // YYYY-MM-DD
+	} else if (/^\d{2}-\d{2}-\d{4}$/.test(input)) {
+		[day, month, year] = input.split("-").map(Number); // DD-MM-YYYY
+	} else if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {
+		[day, month, year] = input.split("/").map(Number); // DD/MM/YYYY
+	} else {
+		throw new Error(`Invalid date format: ${input}`);
+	}
+
+	// always midnight UTC → prevents timezone shift
+	return new Date(Date.UTC(year, month - 1, day));
 }

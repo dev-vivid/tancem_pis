@@ -23,6 +23,7 @@ import qualityLabRouter from "@module/v1/labRelated/routes/qualityLab.routes";
 import despatchRouter from "@module/v1/productionRelated/routes/despatch.routes";
 import productionRouter from "@module/v1/productionRelated/routes/production.routes";
 import receiptRouter from "@module/v1/productionRelated/routes/receipt.routes";
+import labReport from "@module/v1/labRelated/routes/externalLabTestingReport.routes";
 
 routes.use(``, [baseAuth], analysisRouter);
 routes.use(``, [baseAuth], problemCodeRouter);
@@ -44,5 +45,6 @@ routes.use(``, [baseAuth], qualityLabRouter);
 routes.use(``, [baseAuth], despatchRouter);
 routes.use(``, [baseAuth], productionRouter);
 routes.use(``, [baseAuth], receiptRouter);
+routes.use(``, [baseAuth], labReport);
 
 export { routes as apiV1Routes };

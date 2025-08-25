@@ -30,11 +30,12 @@ export const DATABASE_URL = getEnvVariable("DATABASE_URL");
 export const PORT = getEnvVariable("APP_PORT", { defaultValue: "3000" });
 export const ENV = getEnvVariable("NODE_ENV", { defaultValue: "development" });
 export const BASE_PATH = getEnvVariable("APP_BASE_PATH");
+export const BASE_URL = getEnvVariable("BASE_URL");
 
 export const MICROSERVICE_BASE_URL = getEnvVariable("MICROSERVICE_BASE_URL");
 export const SESSION_VALIDATION_URL = getEnvVariable("SESSION_VALIDATION_URL");
 export const INVENTORY_URL = getEnvVariable("INVENTORY_URL");
 export const ASSET_URL = getEnvVariable("ASSET_URL");
 
-export const UPLOAD_PATH = "tancem_pis_files/public";
+export const UPLOAD_PATH = getEnvVariable("UPLOAD_PATH");
 export const V1_BASE_PATH = `/${BASE_PATH}/v1`;

@@ -1,35 +1,13 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import * as api from "../../../../common/api";
-
-// ✅ Create AnalysisLab record
-// export const createAnalysisLab = async (
-// 	data: any,
-// 	user: string,
-// 	tx: IPrismaTransactionClient | typeof prisma = prisma
-// ) => {
-// 	const analysisExists = await prisma.analysis.findUnique({
-// 		where: { id: data.analysisId },
-// 	});
-
-// 	if (!analysisExists) {
-// 		throw new Error("Invalid analysisId. Analysis record does not exist.");
-// 	}
-
-// 	return await tx.qualityLab.create({
-// 		data: {
-// 			transactionDate: new Date(data.transactionDate),
-// 			materialId: data.materialId,
-// 			analysisId: data.analysisId,
-// 			createdById: user,
-// 		},
-// 	});
-// };
+import { parseDateOnly } from "../../../../shared/utils/date";
 
 export const createQualityLab = async (data: any, user: string) => {
-	return await prisma.qualityLab.create({
+	await prisma.qualityLab.create({
 		data: {
-			transactionDate: new Date(data.transactionDate),
+			transactionDate: parseDateOnly(data.transactionDate),
+			// transactionDate: new Date(data.transactionDate),
 			materialId: data.materialId,
 			equipmentId: data.equipmentId,
 			ist: data.ist,
