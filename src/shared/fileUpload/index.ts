@@ -8,7 +8,7 @@ export type TUploadFileResult = {
 	mimetype: string;
 	originalname: string;
 };
-export const uploadFile = uploadFileToLocal;
+// export const uploadFile = uploadFileToLocal;
 
 export async function uploadFiles(
 	folder: string,
@@ -18,7 +18,7 @@ export async function uploadFiles(
 	if (files && Object.keys(files).length > 0) {
 		for (const fieldName in files) {
 			for (const file of files[fieldName]) {
-				const fileResult = await uploadFile(file, folder);
+				const fileResult = await uploadFileToLocal(file, folder);
 				uploadedFileResult.push({ ...fileResult, name: fieldName });
 			}
 		}

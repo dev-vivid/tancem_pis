@@ -25,7 +25,7 @@ export const getAllTransactionTypes = async (
 		},
 		select: {
 			id: true,
-		//	code: true,
+			//	code: true,
 			name: true,
 			createdAt: true,
 			updatedAt: true,
@@ -34,29 +34,37 @@ export const getAllTransactionTypes = async (
 		},
 	});
 
-	const data = records.map((item:{ 
-	id: string;
-// code: number;
-	name: string;
-	createdAt: Date;
-	createdById: string | null;
-	updatedAt:Date
-	updatedById:string|null;
-}) => ({
-		uuid: item.id,
-		createdAt: item.createdAt
-			? new Date(item.createdAt).toISOString().replace("T", " ").substring(0, 19)
-			: null,
-		updatedAt:item.updatedAt
-			?  new Date(item.updatedAt).toISOString().replace("T"," ").substring(0,19)
-			: null
-	}));
- 	return {
+	const data = records.map(
+		(item: {
+			id: string;
+			// code: number;
+			name: string;
+			createdAt: Date;
+			createdById: string | null;
+			updatedAt: Date;
+			updatedById: string | null;
+		}) => ({
+			uuid: item.id,
+			name: item.name,
+			createdAt: item.createdAt
+				? new Date(item.createdAt)
+						.toISOString()
+						.replace("T", " ")
+						.substring(0, 19)
+				: null,
+			updatedAt: item.updatedAt
+				? new Date(item.updatedAt)
+						.toISOString()
+						.replace("T", " ")
+						.substring(0, 19)
+				: null,
+		})
+	);
+	return {
 		totalRecords,
- 		data,
- 	};
+		data,
+	};
 };
-
 
 // 2. Get transaction type by ID
 export const getTransactionTypeById = async (
@@ -67,7 +75,7 @@ export const getTransactionTypeById = async (
 		where: { id },
 		select: {
 			id: true,
-		   //	code: true,
+			//	code: true,
 			name: true,
 			createdAt: true,
 			createdById: true,
@@ -83,7 +91,10 @@ export const getTransactionTypeById = async (
 		//code: item.code,
 		name: item.name,
 		createdAt: item.createdAt
-			? new Date(item.createdAt).toISOString().replace("T", " ").substring(0, 19)
+			? new Date(item.createdAt)
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19)
 			: null,
 		createdById: item.createdById,
 	};
@@ -93,7 +104,6 @@ export const getTransactionTypeById = async (
 		data,
 	};
 };
-
 
 // 3. Create transaction type
 export const createTransactionType = async (
@@ -114,8 +124,6 @@ export const createTransactionType = async (
 		},
 	});
 };
-
-
 
 // 4. Update transaction type
 export const updateTransactionType = async (
@@ -143,7 +151,6 @@ export const updateTransactionType = async (
 	});
 };
 
-
 // 5. Soft delete transaction type
 export const deleteTransactionType = async (
 	id: string,
@@ -162,8 +169,3 @@ export const deleteTransactionType = async (
 		},
 	});
 };
-
-
-
-
-

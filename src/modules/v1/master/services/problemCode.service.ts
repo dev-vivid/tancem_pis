@@ -12,12 +12,13 @@ export const getAllProblemCode = async (
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-	const totalRecords = await tx.problemCode.count();
+	// const totalRecords = await tx.problemCode.count();
 
 	const problemCodes = await tx.problemCode.findMany({
 		skip,
 		take,
 		orderBy: { createdAt: "desc" },
+		where: { isActive: true },
 		select: {
 			id: true,
 			problemId: true,
@@ -26,9 +27,10 @@ export const getAllProblemCode = async (
 			problemcode: true,
 			createdAt: true,
 			createdById: true,
+			isActive: true,
 		},
 	});
-
+	const totalRecords = problemCodes.length;
 	return {
 		totalRecords,
 		data: problemCodes.map((item) => ({
