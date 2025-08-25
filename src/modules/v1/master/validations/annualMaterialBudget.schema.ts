@@ -3,6 +3,7 @@ import Joi from "joi";
 export const annualMaterialBudgetFilterQuerySchema = Joi.object({
 	pageNumber: Joi.string().optional(),
 	pageSize: Joi.string().optional(),
+	status: Joi.string().optional()
 });
 
 export const createAnnualMaterialBudgetBodySchema = Joi.object({

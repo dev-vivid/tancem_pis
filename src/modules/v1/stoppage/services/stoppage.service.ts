@@ -1,5 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
 
 
 function timeStringToMinutes(time: string): number {
@@ -51,7 +52,7 @@ export const createStoppage = async (
   // 5. Create Stoppage with Problems
   return tx.stoppage.create({
     data: {
-      transactionDate: new Date(data.transactionDate),
+      transactionDate: parseDateOnly(data.transactionDate),
       departmentId: data.departmentId,
       equipmentMainId: data.equipmentMainId,
       equipmentSubGroupId: data.equipmentSubGroupId,
@@ -121,10 +122,10 @@ export const updateStoppage = async (
   const runningHours = minutesToTimeString(Math.max(24 * 60 - totalProblemMinutes, 0));
 
   // Update main stoppage
-  return tx.stoppage.update({
+  await tx.stoppage.update({
     where: { id },
     data: {
-      transactionDate: data.transactionDate ? new Date(data.transactionDate) : undefined,
+      transactionDate: data.transactionDate ? parseDateOnly(data.transactionDate) : undefined,
       departmentId: data.departmentId,
       equipmentMainId: data.equipmentMainId,
       equipmentSubGroupId: data.equipmentSubGroupId,
@@ -145,7 +146,11 @@ export const getAllStoppage = async (
 ) => {
 	const { skip, take } = pageConfig({pageNumber, pageSize});
 
-	return tx.stoppage.findMany({
+	const totalRecords = await tx.stoppage.count({
+    where: { isActive: true },
+  });
+
+	const transactions = await tx.stoppage.findMany({
 		skip,
 		take,
 		where: { isActive: true, },
@@ -157,6 +162,20 @@ export const getAllStoppage = async (
 			}
 		}
 	});
+
+	const data = transactions.map(item => ({
+    ...item,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+    createdAt: extractDateTime(item.createdAt, "both"),
+    updatedAt: extractDateTime(item.updatedAt, "both"),
+    stoppageproblems: item.stoppageproblems.map(detail => ({
+      ...detail,
+      createdAt: extractDateTime(detail.createdAt, "both"),
+      updatedAt: extractDateTime(detail.updatedAt, "both"),
+    })),
+  }));
+
+	return { totalRecords, data };
 };
 
 
@@ -177,7 +196,19 @@ export const getStoppageById = async (
 
 	if(!stoppageById){throw new Error(`Id not found 404`)};
 
-	return stoppageById;
+
+	return {
+		...stoppageById,
+		transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
+    createdAt: extractDateTime(stoppageById.createdAt, "both"),
+    updatedAt: extractDateTime(stoppageById.updatedAt, "both"),
+    stoppageproblems: stoppageById.stoppageproblems.map(detail => ({
+      ...detail,
+      createdAt: extractDateTime(detail.createdAt, "both"),
+      updatedAt: extractDateTime(detail.updatedAt, "both"),
+    })),
+  };
+
 };
 
 export const deleteStoppage = async (

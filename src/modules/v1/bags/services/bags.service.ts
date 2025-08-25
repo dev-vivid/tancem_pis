@@ -1,5 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
 
 // Get all bags
 export const getAllBags = async (
@@ -40,9 +41,9 @@ export const getAllBags = async (
 
 	const data = bags.map(item => ({
 		...item,
-		transactionDate: item.transactionDate.toISOString().substring(0, 10),
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both")
 	}));
 
 	return { totalRecords, data };
@@ -81,9 +82,9 @@ export const getIdBags = async (
 
 	const data = {
 		...bag,
-		transactionDate: bag.transactionDate.toISOString().substring(0, 10),
-		createdAt: bag.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: bag.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		transactionDate: extractDateTime(bag.transactionDate, "date"),
+		createdAt: extractDateTime(bag.createdAt, "both"),
+		updatedAt: extractDateTime(bag.updatedAt, "both")
 	};
 
 	return { data };
@@ -110,9 +111,8 @@ export const createBags = async (
 	await tx.bags.create({
 		data: {
 			...bagsData,
-			transactionDate: new Date(bagsData.transactionDate),
+			transactionDate: parseDateOnly(bagsData.transactionDate),
 			createdById: user,
-			createdAt: new Date()
 		}
 	});
 };
@@ -142,9 +142,8 @@ export const updateBags = async (
 		where: { id },
 		data: {
 			...bagsData,
-			transactionDate: new Date(bagsData.transactionDate),
-			updatedById: user,
-			updatedAt: new Date()
+			transactionDate: parseDateOnly(bagsData.transactionDate),
+			updatedById: user
 		}
 	});
 };
@@ -162,7 +161,6 @@ export const deleteBags = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date()
 		}
 	});
 };

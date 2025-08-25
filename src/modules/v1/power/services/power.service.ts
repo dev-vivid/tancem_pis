@@ -1,5 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
 
 export const getAllPowerTransactions = async (
   pageNumber?: string,
@@ -8,7 +9,11 @@ export const getAllPowerTransactions = async (
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-  return tx.powerTransaction.findMany({
+	const totalRecords = await tx.powerTransaction.count({
+    where: { isActive: true },
+  });
+
+  const transactions = await tx.powerTransaction.findMany({
     skip,
     take,
     where: { isActive: true },
@@ -20,6 +25,20 @@ export const getAllPowerTransactions = async (
       },
     },
   });
+
+	const data = transactions.map(item => ({
+    ...item,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+    createdAt: extractDateTime(item.createdAt, "both"),
+    updatedAt: extractDateTime(item.updatedAt, "both"),
+    powerDetails: item.powerDetails.map(detail => ({
+      ...detail,
+      createdAt: extractDateTime(detail.createdAt, "both"),
+      updatedAt: extractDateTime(detail.updatedAt, "both"),
+    })),
+  }));
+
+	return { totalRecords, data };
 };
 
 export const getPowerTransactionById = async (
@@ -28,6 +47,7 @@ export const getPowerTransactionById = async (
 ) => {
   const getPowerTransactionById = await tx.powerTransaction.findFirst({
     where: { id, isActive: true },
+		orderBy: {createdAt: "desc"},
     include: {
       powerDetails: {
         where: { isActive: true },
@@ -40,7 +60,17 @@ export const getPowerTransactionById = async (
 		throw new Error(`Id not found 404`);
 	}
 
-	return getPowerTransactionById;
+	return {
+		...getPowerTransactionById,
+		transactionDate: extractDateTime(getPowerTransactionById.transactionDate, "date"),
+    createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
+    updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
+    powerDetails: getPowerTransactionById.powerDetails.map(detail => ({
+      ...detail,
+      createdAt: extractDateTime(detail.createdAt, "both"),
+      updatedAt: extractDateTime(detail.updatedAt, "both"),
+    })),
+  };
 };
 
 export const createPowerTransaction = async (
@@ -54,9 +84,9 @@ export const createPowerTransaction = async (
 	user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma,
 ) => {
-  return tx.powerTransaction.create({
+  await tx.powerTransaction.create({
     data: {
-      transactionDate: new Date(data.transactionDate),
+      transactionDate: parseDateOnly(data.transactionDate),
       createdById: user,
       powerDetails: {
         create: data.powerDetails.map((p) => ({
@@ -86,7 +116,7 @@ export const updatePowerTransaction = async (
   const updatedTransaction = await tx.powerTransaction.update({
     where: { id },
     data: {
-      transactionDate: new Date(data.transactionDate),
+      transactionDate: parseDateOnly(data.transactionDate),
       updatedById: user,
     },
   });

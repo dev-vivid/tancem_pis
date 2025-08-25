@@ -1,5 +1,6 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { Status } from "@prisma/client";
 
 export const createAnnualMaterialBudget = async (
 	annualMaterialBudgetData: {
@@ -20,7 +21,6 @@ export const createAnnualMaterialBudget = async (
 			year,
 			materialId,
 			createdById: user,
-			createdAt: new Date()
 		}
 	});
 
@@ -34,11 +34,12 @@ export const updateAnnualMaterialBudget = async (
 		month: number,
 		year: number,
 		materialId: string,
+		status: Status,
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId } = updateAnnualMaterialBudgetData;
+	const { financialYear, month, year, materialId, status } = updateAnnualMaterialBudgetData;
 
 	if (!user) {
 		throw new Error("User is not Authorized");
@@ -51,8 +52,8 @@ export const updateAnnualMaterialBudget = async (
 			month,
 			year,
 			materialId,
+			status,
 			updatedById: user,
-			updatedAt: new Date()
 		}
 	});
 };
@@ -60,13 +61,20 @@ export const updateAnnualMaterialBudget = async (
 export const getAllAnnualMaterialBudget = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	const whereClause: any = {
+		isActive: true,
+		...(status ? {status: status as Status} : {})
+	}
+
 	const result = await tx.annualMaterialBudget.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
@@ -77,6 +85,8 @@ export const getAllAnnualMaterialBudget = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		},
 	});
 
@@ -104,6 +114,8 @@ export const getAnnualMaterialBudgetByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		}
 	});
 
@@ -130,7 +142,6 @@ export const deleteAnnualMaterialBudget = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date()
 		},
 	});
 };

@@ -1,5 +1,8 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { Status } from "@prisma/client";
+import { extractDateTime } from "../../../../shared/utils/date/index";
+
 
 export const createMaterialAnalysis = async (
 	materialAnalysisData: {
@@ -25,11 +28,12 @@ export const updateMaterialAnalysis = async (
 	updateMaterialTypeData: {
 		materialId: string;
 		analysisId: string;
+		status: Status;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { materialId, analysisId } = updateMaterialTypeData;
+	const { materialId, analysisId, status } = updateMaterialTypeData;
 
 	if (!user) {
 		throw new Error("User is not Authorized");
@@ -40,8 +44,8 @@ export const updateMaterialAnalysis = async (
 		data: {
 			materialId,
 			analysisId,
+			status,
 			updatedById: user,
-			updatedAt: new Date(),
 		},
 	});
 };
@@ -49,13 +53,19 @@ export const updateMaterialAnalysis = async (
 export const getAllMaterialAnalysis = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	const whereClause: any = {
+		isActive: true,
+		...(status ? {status: status as Status} : {})
+	}
 	const result = await tx.materialAnalysis.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
@@ -64,13 +74,15 @@ export const getAllMaterialAnalysis = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		},
 	});
 
 	const data = result.map((item) => ({
 		...item,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19),
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
 	}));
 
 	return data;
@@ -89,6 +101,8 @@ export const getByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		},
 	});
 
@@ -98,14 +112,8 @@ export const getByID = async (
 
 	const data = {
 		...result,
-		createdAt: result.createdAt
-			.toISOString()
-			.replace("T", " ")
-			.substring(0, 19),
-		updatedAt: result.updatedAt
-			.toISOString()
-			.replace("T", " ")
-			.substring(0, 19),
+		createdAt: extractDateTime(result.createdAt, "both"),
+		updatedAt: extractDateTime(result.updatedAt, "both"),
 	};
 
 	return {
@@ -127,7 +135,6 @@ export const deleteMaterialAnalysis = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date(),
 		},
 	});
 };

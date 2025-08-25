@@ -1,36 +1,48 @@
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
 
 export const getAllProblems = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
-	
-	const totalRecords = await tx.problem.count();
+
+	const whereClause: any = {
+		isActive: true,
+		...(status ? { status: status as Status } : {})
+	}
+	const totalRecords = await tx.problem.count({
+		where: whereClause
+	});
 	
 	const problems = await tx.problem.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
-			name: true,
-			description: true,
 			problemName: true,
 			departmentId: true,
 			createdAt: true,
 			createdById: true,
+			updatedById: true,
 			updatedAt: true,
+			status: true,
 			isActive: true
 		},
 	});
-	const data = problems.map(item => ({
-        ...item,
-        createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+	const data = problems.map(({departmentId, problemName, createdAt, updatedAt, ...rest}) => ({
+        ...rest,
+				plantDepartmentId: departmentId,
+				problemDescription: problemName,
+        createdAt: extractDateTime(createdAt, "both"),
+        updatedAt: extractDateTime(updatedAt, "both"),
     }));
 	
 	return {
@@ -50,26 +62,32 @@ export const getIdProblem = async (
 		select: {
 			id: true,
 			name: true,
-			description: true,
 			problemName: true,
 			departmentId: true,
 			createdAt: true,
 			createdById: true,
+			updatedById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		},
 	});
 
 	if(!problem) throw new Error("Problem not found");
+
+	const {departmentId, problemName, createdAt, updatedAt, ...rest } = problem;
 	
 	const data = { 
-        ...problem,
-        createdAt: problem.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: problem.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+        ...rest,
+				plantDepartmentId: departmentId,
+				problemDescription: problemName,
+        createdAt: extractDateTime(createdAt, "both"),
+        updatedAt: extractDateTime(updatedAt, "both"),
 	};
 	return {
 		data
-		}
-	};
+	}
+};
 
 // export const getAllProblems = async (
 //     pageNumber?: number,
@@ -181,28 +199,28 @@ export const createProblem = async (
     problemData: { 
         name: string; 
         description?: string; 
-        departmentId: string; 
-        problem: string;
+        plantDepartmentId: string; 
+        problemDescription: string;
         sortOrder?: number;
     },
     user: string,
     tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-    const { name, description, departmentId, problem, sortOrder } = problemData;
+    const { name, description, plantDepartmentId, problemDescription, sortOrder } = problemData;
 
     // Validation
     if (!name) throw new Error("Problem name is required.");
-    if (!problem) throw new Error("Problem code is required.");
+    if (!problemDescription) throw new Error("Problem Name is required.");
 
     // Create using Prisma's ORM
    const create =  await tx.problem.create({
         data: {
             name,
-            departmentId: departmentId,
-            problemName: problem,
+						description,
+            departmentId: plantDepartmentId,
+            problemName: problemDescription,
             sortOrder: sortOrder || 0,
-            createdById: user,
-						createdAt: new Date()
+            createdById: user
         },
    });
 };
@@ -213,14 +231,15 @@ export const updateProblem = async (
     problemData: { 
         name?: string; 
         description?: string; 
-        departmentId: string; 
-        problem: string;
+        plantDepartmentId: string; 
+        problemDescription: string;
         sortOrder?: number;
+				status: Status;
     },
     user: string,
     tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-    const { name, description, departmentId, problem, sortOrder } = problemData;
+    const { name, description, plantDepartmentId, problemDescription, sortOrder, status } = problemData;
 
     if (!id) throw new Error("ID is required for updating problem.");
 
@@ -230,11 +249,11 @@ export const updateProblem = async (
         data: {
             name,
             description,
-            departmentId,
-            problemName: problem,
+            departmentId: plantDepartmentId,
+            problemName: problemDescription,
             sortOrder,
+						status,
             updatedById: user,
-            updatedAt: new Date()
         },
     });
 };
@@ -254,7 +273,6 @@ export const deleteProblem = async (
         data: {
             isActive: false,
             updatedById: user,
-            updatedAt: new Date()
         },
     });
 };

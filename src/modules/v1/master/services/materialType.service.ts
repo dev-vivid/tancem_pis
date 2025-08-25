@@ -1,5 +1,7 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "../../../../shared/utils/date/index";
+
 
 export const createMaterialType = async (
 	materialTypeData: {
@@ -17,7 +19,6 @@ export const createMaterialType = async (
 			materialId,
 			materialTypeMasterId,
 			createdById: user,
-			createdAt: new Date()
 		}
 	});
 };
@@ -42,8 +43,7 @@ export const updateMaterialType = async (
 		data: {
 			materialId,
 			materialTypeMasterId,
-      updatedById: user,
-			updatedAt: new Date()
+      updatedById: user
 		}
 	});
 }
@@ -70,8 +70,8 @@ export const getAllMaterialType = async (
 
 	const data = result.map(item => ({
         ...item,
-        createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+        createdAt: extractDateTime(item.createdAt, "both"),
+        updatedAt: extractDateTime(item.updatedAt, "both")
    }));
 
 	return data;
@@ -97,8 +97,8 @@ export const getByID = async (
 
 	const data = { 
         ...result,
-        createdAt: result.createdAt.toISOString().replace("T", " ").substring(0, 19),
-        updatedAt: result.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+        createdAt: extractDateTime(result.createdAt, "both"),
+        updatedAt: extractDateTime(result.updatedAt, "both")
 	};
 
 	return {
@@ -119,7 +119,6 @@ export const deleteMaterialType = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date()
 		},
 	});
 
