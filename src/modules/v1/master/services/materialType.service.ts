@@ -1,6 +1,7 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
+import { Status } from "@prisma/client";
 
 
 export const createMaterialType = async (
@@ -28,11 +29,12 @@ export const updateMaterialType = async (
 	updateMaterialTypeData: {
 		materialId: string,
 		materialTypeMasterId: string,
+		status: Status;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma 
 ) => {
-	const {materialId, materialTypeMasterId} = updateMaterialTypeData;
+	const {materialId, materialTypeMasterId, status} = updateMaterialTypeData;
 
 	if(!user){
 		throw new Error("User is not Authorized");
@@ -43,6 +45,7 @@ export const updateMaterialType = async (
 		data: {
 			materialId,
 			materialTypeMasterId,
+			status,
       updatedById: user
 		}
 	});
@@ -51,20 +54,30 @@ export const updateMaterialType = async (
 export const getAllMaterialType = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma 
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	const whereClause: any = {
+		isActive: true,
+		...(status ? { status: status as Status } : {})
+	}
+
 	const result = await tx.materialType.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
 			materialId: true,
+			status: true,
+			updatedAt: true,
 			createdAt: true,
 			createdById: true,
-			updatedAt: true,
+			updatedById: true,
+			isActive: true,
 		},
 	});
 
@@ -90,6 +103,9 @@ export const getByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			updatedById: true,
+			status: true,
+			isActive: true
 		}
 	});
 

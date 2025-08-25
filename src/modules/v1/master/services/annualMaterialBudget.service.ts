@@ -1,6 +1,8 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { Status } from "@prisma/client";
+import { extractDateTime } from "../../../../shared/utils/date/index";
+
 
 export const createAnnualMaterialBudget = async (
 	annualMaterialBudgetData: {
@@ -8,16 +10,18 @@ export const createAnnualMaterialBudget = async (
 		month: number,
 		year: number,
 		materialId: string,
+		value: number,
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId } = annualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value } = annualMaterialBudgetData;
 
 	const create = await tx.annualMaterialBudget.create({
 		data: {
 			financialYear,
 			month,
+			value,
 			year,
 			materialId,
 			createdById: user,
@@ -34,12 +38,13 @@ export const updateAnnualMaterialBudget = async (
 		month: number,
 		year: number,
 		materialId: string,
+		value: number;
 		status: Status,
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId, status } = updateAnnualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value, status } = updateAnnualMaterialBudgetData;
 
 	if (!user) {
 		throw new Error("User is not Authorized");
@@ -53,6 +58,7 @@ export const updateAnnualMaterialBudget = async (
 			year,
 			materialId,
 			status,
+			value,
 			updatedById: user,
 		}
 	});
@@ -82,6 +88,7 @@ export const getAllAnnualMaterialBudget = async (
 			month: true,
 			year: true,
 			materialId: true,
+			value: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
@@ -92,8 +99,8 @@ export const getAllAnnualMaterialBudget = async (
 
 	const data = result.map(item => ({
 		...item,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both")
 	}));
 
 	return data;
@@ -111,6 +118,7 @@ export const getAnnualMaterialBudgetByID = async (
 			month: true,
 			year: true,
 			materialId: true,
+			value: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
@@ -123,8 +131,8 @@ export const getAnnualMaterialBudgetByID = async (
 
 	const data = {
 		...result,
-		createdAt: result.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: result.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		createdAt: extractDateTime(result.createdAt, "both"),
+		updatedAt: extractDateTime(result.updatedAt, "both")
 	};
 
 	return { data };

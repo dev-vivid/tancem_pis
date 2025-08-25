@@ -25,6 +25,7 @@ type TAnnualMaterialBudgetData = {
 	month: number;
 	year: number;
 	materialId: string;
+	value: number;
 };
 
 type TUpdateAnnualMaterialBudgetData = {
@@ -32,6 +33,7 @@ type TUpdateAnnualMaterialBudgetData = {
 	month: number;
 	year: number;
 	materialId: string;
+	value: number;
 	status: Status;
 };
 

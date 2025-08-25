@@ -1,10 +1,13 @@
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "../../../../shared/utils/date/index";
 import path from "path";
 
 export const getAllanalysis = async (
 	pageNumber?: number,
 	pageSize?: number,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({
@@ -12,11 +15,17 @@ export const getAllanalysis = async (
 		pageSize: pageSize?.toString(),
 	});
 
+	const whereClause: any = {
+			isActive: true,
+			...(status ? { status: status as Status } : {})
+	}
+
 	const totalRecords = await tx.analysis.count();
 
 	const analysis = await tx.analysis.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: {
 			createdAt: "desc",
 		},
@@ -25,8 +34,13 @@ export const getAllanalysis = async (
 			code: true,
 			type: true,
 			description: true,
+			materialId: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			status: true,
+			isActive: true
 		},
 	});
 
@@ -36,13 +50,13 @@ export const getAllanalysis = async (
 		analysisCode: item.code,
 		analysisType: item.type,
 		description: item.description,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		materialId: item.materialId,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedId: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
+		updatedBy: item.updatedById,
+		status: item.status,
+		isActive: item.isActive
 	}));
 
 	return {
@@ -64,8 +78,14 @@ export const getIdanalysis = async (
 			code: true,
 			type: true,
 			description: true,
+			materialId: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			status: true,
+			isActive: true
+
 		},
 	});
 
@@ -78,27 +98,26 @@ export const getIdanalysis = async (
 		analysisCode: item.code,
 		analysisType: item.type,
 		description: item.description,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		materialId: item.materialId,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedId: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
+		updatedBy: item.updatedById,
+		status: item.status,
+		isActive: item.isActive
 	};
 
 	return {
-		totalRecords: 1,
-		data,
+		data
 	};
 };
 
 export const createAnalysis = async (
-	analysisData: { analysisType: string; description?: string },
+	analysisData: { analysisType: string; description?: string; materialId: string },
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { analysisType, description } = analysisData;
+	const { analysisType, description, materialId} = analysisData;
 
 	if (!analysisType) {
 		throw new Error("Analysis type is required.");
@@ -108,6 +127,7 @@ export const createAnalysis = async (
 		data: {
 			type: analysisType,
 			description: description || null,
+			materialId,
 			createdById: user,
 		},
 	});

@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	analysisFilterQuerySchema,
 	analysisFormSchema,
+	updateanalysisFormSchema
 } from "../validations/analysis.schema";
 
 const analysisRouter = express.Router();
@@ -30,7 +31,7 @@ analysisRouter.post(
 
 analysisRouter.put(
 	"/analysisEdit/:id",
-	validateRequest(analysisFormSchema, "body"),
+	validateRequest(updateanalysisFormSchema, "body"),
 	updateAnalysis
 );
 

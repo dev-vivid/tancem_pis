@@ -1,6 +1,8 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import path from "path";
+import { Status } from "@prisma/client";
+import { extractDateTime } from "../../../../shared/utils/date/index";
 
 const formatDate = (date?: Date | null) =>
 	date ? date.toISOString().replace("T", " ").substring(0, 19) : null;
@@ -8,17 +10,22 @@ const formatDate = (date?: Date | null) =>
 export const getAllProblemCode = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
 	// const totalRecords = await tx.problemCode.count();
+	const whereClause: any = {
+			isActive: true,
+			...(status ? { status: status as Status } : {})
+	}
 
 	const problemCodes = await tx.problemCode.findMany({
 		skip,
 		take,
 		orderBy: { createdAt: "desc" },
-		where: { isActive: true },
+		where: whereClause,
 		select: {
 			id: true,
 			problemId: true,
@@ -27,6 +34,9 @@ export const getAllProblemCode = async (
 			problemcode: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			status: true,
 			isActive: true,
 		},
 	});
@@ -39,8 +49,12 @@ export const getAllProblemCode = async (
 			equipmentId: item.equipmentId,
 			departmentId: item.departmentId,
 			problemCode: item.problemcode,
-			createdAt: formatDate(item.createdAt),
+			createdAt: extractDateTime(item.createdAt, "both"),
 			createdBy: item.createdById,
+			updatedAt: extractDateTime(item.updatedAt, "both"),
+			updatedBy: item.updatedById,
+			status: item.status,
+			isActive: item.isActive,
 		})),
 	};
 };
@@ -59,6 +73,10 @@ export const getIdProblemCode = async (
 			problemcode: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			status: true,
+			isActive: true
 		},
 	});
 
@@ -72,7 +90,10 @@ export const getIdProblemCode = async (
 			equipmentId: item.equipmentId,
 			departmentId: item.departmentId,
 			problemCode: item.problemcode,
-			createdAt: formatDate(item.createdAt),
+			createdAt: extractDateTime(item.createdAt, "both"),
+			updatedAt: extractDateTime(item.updatedAt, "both"),
+			status: item.status,
+			isActive: item.isActive,
 			createdBy: item.createdById,
 		},
 	};
@@ -117,11 +138,12 @@ export const updateProblemCode = async (
 		problemId: string;
 		equipmentId: string;
 		departmentId: string;
+		status: Status;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { problemId, equipmentId, departmentId } = problemCodeData;
+	const { problemId, equipmentId, departmentId, status } = problemCodeData;
 
 	if (!id) throw new Error("ID is required.");
 	if (!problemId) throw new Error("problemId is required.");
@@ -134,6 +156,7 @@ export const updateProblemCode = async (
 			problemId,
 			equipmentId,
 			departmentId,
+			status,
 			updatedById: user,
 		},
 	});
