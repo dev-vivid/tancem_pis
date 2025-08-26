@@ -1,16 +1,24 @@
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "@shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
 // 1. Get all transaction types (with pagination)
 export const getAllTransactionTypes = async (
 	pageNumber?: number,
 	pageSize?: number,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({
 		pageNumber: pageNumber?.toString(),
 		pageSize: pageSize?.toString(),
 	});
+
+	const whereClause: any = {
+			isActive: true,
+			...(status ? { status: status as Status } : {})
+	}
 
 	const totalRecords = await tx.transactionType.count({
 		where: { isActive: true },
@@ -19,47 +27,30 @@ export const getAllTransactionTypes = async (
 	const records = await tx.transactionType.findMany({
 		skip,
 		take,
-		where: { isActive: true },
+		where: whereClause,
 		orderBy: {
 			createdAt: "desc",
 		},
 		select: {
 			id: true,
-			//	code: true,
+			code: true,
 			name: true,
 			createdAt: true,
 			updatedAt: true,
 			createdById: true,
 			updatedById: true,
+			status: true,
+			isActive: true
 		},
 	});
+	
+		const data = records.map(({createdAt, updatedAt, ...rest}) => ({
+        ...rest,
+        createdAt: extractDateTime(createdAt, "both"),
+        updatedAt: extractDateTime(updatedAt, "both"),
+    }));
 
-	const data = records.map(
-		(item: {
-			id: string;
-			// code: number;
-			name: string;
-			createdAt: Date;
-			createdById: string | null;
-			updatedAt: Date;
-			updatedById: string | null;
-		}) => ({
-			uuid: item.id,
-			name: item.name,
-			createdAt: item.createdAt
-				? new Date(item.createdAt)
-						.toISOString()
-						.replace("T", " ")
-						.substring(0, 19)
-				: null,
-			updatedAt: item.updatedAt
-				? new Date(item.updatedAt)
-						.toISOString()
-						.replace("T", " ")
-						.substring(0, 19)
-				: null,
-		})
-	);
+
 	return {
 		totalRecords,
 		data,
@@ -75,10 +66,14 @@ export const getTransactionTypeById = async (
 		where: { id },
 		select: {
 			id: true,
-			//	code: true,
+			code: true,
 			name: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			status: true,
+			isActive: true
 		},
 	});
 
@@ -88,20 +83,18 @@ export const getTransactionTypeById = async (
 
 	const data = {
 		uuid: item.id,
-		//code: item.code,
+		code: item.code,
 		name: item.name,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		createdAt: extractDateTime(item.createdAt, "both"),
 		createdById: item.createdById,
+		updatedAt: item.updatedAt,
+		updatedById: item.updatedById,
+		status: item.status,
+		isActive: item.isActive
 	};
 
 	return {
-		totalRecords: 1,
-		data,
+		data
 	};
 };
 
@@ -128,11 +121,11 @@ export const createTransactionType = async (
 // 4. Update transaction type
 export const updateTransactionType = async (
 	id: string,
-	transactionTypeData: { name: string },
+	transactionTypeData: { name: string, status: Status },
 	userId: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { name } = transactionTypeData;
+	const { name, status } = transactionTypeData;
 
 	if (!id) {
 		throw new Error("ID is required for updating.");
@@ -146,6 +139,7 @@ export const updateTransactionType = async (
 		where: { id },
 		data: {
 			name,
+			status,
 			updatedById: userId,
 		},
 	});

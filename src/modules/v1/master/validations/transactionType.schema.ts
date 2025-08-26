@@ -4,6 +4,7 @@ import Joi from "joi";
 export const transactionTypeFilterQuerySchema = Joi.object({
   pageNumber: Joi.string().optional(),
   pageSize: Joi.string().optional(),
+	status: Joi.string().valid("active", "inActive").optional(),
 });
 
 // Create
@@ -28,7 +29,8 @@ export const updateTransactionTypeBodySchema = Joi.object({
       "string.base": "Transaction Type name must be a string",
       "string.max": "Transaction Type name must be at most 50 characters",
     }),
-}).min(1); // at least 1 field required
+	status: Joi.string().valid("active", "inActive").optional(),
+});
 
 // Params for update/get/delete
 export const transactionTypeParamsSchema = Joi.object({

@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import { 
   getAllTransactionTypes, 
   getTransactionTypeById, 
@@ -9,12 +10,13 @@ import {
 // Usecase: Get all transaction types with optional pagination
 export const getAllTransactionTypesUsecase = async (
   pageNumber?: string,
-  pageSize?: string
+  pageSize?: string,
+	status?: string
 ) => {
   // Converts pageNumber and pageSize to numbers (if provided)
   const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
   const size = pageSize ? parseInt(pageSize, 10) : undefined;
-  return await getAllTransactionTypes(page, size);
+  return await getAllTransactionTypes(page, size, status);
 };
 
 // Usecase: Get a transaction type by ID
@@ -25,6 +27,11 @@ export const getTransactionTypeByIdUsecase = async (id: string) => {
 // Input data type
 type TTransactionTypeData = {
   name: string;
+};
+
+type TUpdateTransactionTypeData = {
+  name: string;
+	status: Status;
 };
 
 // Usecase: Create a transaction type
@@ -38,10 +45,10 @@ export const createTransactionTypeUsecase = async (
 // Usecase: Update a transaction type
 export const updateTransactionTypeUsecase = async (
   id: string,
-  transactionTypeData: TTransactionTypeData,
+  updateTransactionTypeData: TUpdateTransactionTypeData,
   userId: string
 ) => {
-  return await updateTransactionType(id, transactionTypeData, userId);
+  return await updateTransactionType(id, updateTransactionTypeData, userId);
 };
 
 // Usecase: Delete a transaction type

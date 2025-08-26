@@ -38,6 +38,11 @@ export const getAllProblemCode = async (
 			updatedById: true,
 			status: true,
 			isActive: true,
+			ProblemMaster :{
+				select: {
+					problemName: true
+				}
+			}
 		},
 	});
 	const totalRecords = problemCodes.length;
@@ -46,6 +51,7 @@ export const getAllProblemCode = async (
 		data: problemCodes.map((item) => ({
 			uuid: item.id,
 			problemId: item.problemId,
+			problemName: item.ProblemMaster?.problemName,
 			equipmentId: item.equipmentId,
 			departmentId: item.departmentId,
 			problemCode: item.problemcode,
@@ -76,17 +82,22 @@ export const getIdProblemCode = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
+			ProblemMaster: {
+				select: {
+					problemName: true,
+				}
+			}
 		},
 	});
 
 	if (!item) throw new Error("Problem code not found.");
 
 	return {
-		totalRecords: 1,
 		data: {
 			uuid: item.id,
 			problemId: item.problemId,
+			problemName: item.ProblemMaster?.problemName,
 			equipmentId: item.equipmentId,
 			departmentId: item.departmentId,
 			problemCode: item.problemcode,

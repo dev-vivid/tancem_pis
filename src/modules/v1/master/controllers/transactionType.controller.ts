@@ -1,11 +1,4 @@
-   // src/modules/transactionType/transactionType.controller.ts
-
-
-   import responses from "../../../../shared/utils/responses";
-
-
-
-   // src/modules/v1/master/controllers/transactionType.controller.ts
+import responses from "../../../../shared/utils/responses";
 
 import { Request, Response,NextFunction } from "express";
 import * as transactionTypeUsecase from "../usecases/transactionType.usecase";
@@ -15,7 +8,13 @@ export const getAllTransactionTypes = async (
   req: Request, 
   res: Response,next: NextFunction) => {
 	try {
-		const result = await transactionTypeUsecase.getAllTransactionTypesUsecase();
+		const { pageNumber, pageSize, status } = req.query;
+
+		const result = await transactionTypeUsecase.getAllTransactionTypesUsecase(
+			pageNumber as string | undefined,
+			pageSize as string | undefined,
+			status as string | undefined
+		);
 		const response = responses.generate("success", {
 			data: result,
 		});
@@ -105,7 +104,7 @@ export const deleteTransactionType = async (req: Request, res: Response,next: Ne
 	try {
 		const { id } = req.params;
     	//  Declare userId here
-		const userId: string = req.user?.id  
+		const userId = req.user?.id  
 		// "system" is just a fallback — replace with actual logged-in user ID if available
 		if(!userId){
       return res.status(401).json({

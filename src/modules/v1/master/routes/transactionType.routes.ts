@@ -13,6 +13,7 @@ import {
 	createTransactionTypeBodySchema,
 	transactionTypeFilterQuerySchema,
 	transactionTypeParamsSchema,
+	updateTransactionTypeBodySchema
 } from "../validations/transactionType.schema";
 
 const transactionTypeRouter = express.Router();
@@ -26,28 +27,29 @@ transactionTypeRouter.get(
 
 // GET transaction type by ID
 transactionTypeRouter.get(
-	"/transaction-types/:id",
+	"/transaction-typesById/:id",
 	validateRequest(transactionTypeParamsSchema, "params"),
 	getTransactionTypeById
 );
 
 // CREATE transaction type
 transactionTypeRouter.post(
-	"/transaction-types",
+	"/transaction-typesCreate",
 	validateRequest(createTransactionTypeBodySchema, "body"),
 	createTransactionType
 );
 
 // UPDATE transaction type
 transactionTypeRouter.put(
-	"/transaction-types/:id",
+	"/transaction-typesUpdate/:id",
 	validateRequest(transactionTypeParamsSchema, "params"),
+	validateRequest(updateTransactionTypeBodySchema, "body"),
 	updateTransactionType
 );
 
 // DELETE transaction type
 transactionTypeRouter.patch(
-	"/transaction-types/:id",
+	"/transaction-typesDelete/:id",
 	validateRequest(transactionTypeParamsSchema, "params"),
 	deleteTransactionType
 );
