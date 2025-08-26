@@ -84,7 +84,7 @@ model ProductionCategory {
   id              String           @id @unique @default(uuid()) @db.VarChar(36)
   code                Int      @unique @default(autoincrement())
   name                String   @db.VarChar(50)
-  productCatagoryCode String   @map("product_category_code")
+  // productCatagoryCode String   @map("product_category_code")
   status           Status             @default(active)
 	createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
@@ -93,7 +93,7 @@ model ProductionCategory {
   isActive            Boolean  @default(true) @map("is_active")
 
   @@index([code])
-  @@index([productCatagoryCode])
+  // @@index([productCatagoryCode])
   @@map("production_category")
 }
 
