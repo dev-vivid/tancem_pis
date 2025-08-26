@@ -494,20 +494,6 @@ model Production {
   @@map("production")
 }
 
-model MaterialMappingMaster {
-
-  id   				String @id @unique @default(uuid()) @db.VarChar(36)
-	code        Int    @unique @default(autoincrement())
-  materialId  String   @map("material_id") @db.VarChar(36)
-  sourceId    String   @map("source_id")   @db.VarChar(36)
-  createdById String?  @map("created_by_id") @db.VarChar(36)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedById String?  @map("updated_by_id") @db.VarChar(36)
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@map("material_mapping_master")  
-}
-
 model budget {
   id   String @id @unique @default(uuid()) @db.VarChar(36)
   code Int    @unique @default(autoincrement())
@@ -528,4 +514,54 @@ model budget {
 
   // ? Table name in DB
   @@map("budget")
+}
+
+model MaterialMappingMaster {
+  id               String   @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int      @unique @default(autoincrement())
+  materialMasterId String   @map("material_id") @db.VarChar(36)
+  sourceId         String   @map("source_id") @db.VarChar(36)
+  createdById      String?  @map("created_by_id") @db.VarChar(36)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedById      String?  @map("updated_by_id") @db.VarChar(36)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  status           Status   @default(active)
+  isActive         Boolean  @default(true) @map("is_active")
+
+  material Material @relation(fields: [materialMasterId], references: [id])
+
+  @@map("material_mapping_master")
+}
+
+model Material {
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  code Int    @unique @default(autoincrement())
+
+  materialTypeId      String   @map("material_type") @db.VarChar(36)
+  materialDescription String   @map("material_description") @db.VarChar(200)
+  strength            YesNo
+  analysis            YesNo
+  quality             YesNo
+  glCode              String   @map("gl_code") @db.VarChar(50)
+  orderOfAppearance   String   @map("order_of_appearance")
+  isActive            Boolean  @default(true) @map("is_active")
+  status              Status   @default(active)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById         String?  @map("created_by_id") @db.VarChar(36)
+  updatedById         String?  @map("updated_by_id") @db.VarChar(36)
+
+
+  //? Indexing
+  @@index([code])
+
+  materialMappings MaterialMappingMaster[]
+
+  //? Table name in DB
+  @@map("material")
+}
+
+enum YesNo {
+  Yes
+  No
 }
