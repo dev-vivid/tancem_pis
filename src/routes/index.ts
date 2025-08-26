@@ -24,7 +24,9 @@ import despatchRouter from "@module/v1/productionRelated/routes/despatch.routes"
 import productionRouter from "@module/v1/productionRelated/routes/production.routes";
 import receiptRouter from "@module/v1/productionRelated/routes/receipt.routes";
 import labReport from "@module/v1/labRelated/routes/externalLabTestingReport.routes";
+import budgetRouter from "@module/v1/budget/routes/budget.routes";
 
+routes.use(``, [baseAuth], budgetRouter);
 routes.use(``, [baseAuth], analysisRouter);
 routes.use(``, [baseAuth], problemCodeRouter);
 routes.use(``, [baseAuth], problemRouter);
