@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import { getAllanalysis } from "../services/analysis.service";
 import { getIdanalysis } from "../services/analysis.service";
 import { createAnalysis } from "../services/analysis.service";
@@ -6,11 +7,12 @@ import { deleteAnalysis } from "../services/analysis.service";
 
 export const getAllanalysisUsecase = async (
 	pageNumber?: string,
-	pageSize?: string
+	pageSize?: string,
+	status?: string,
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllanalysis(page, size);
+	return await getAllanalysis(page, size, status);
 };
 
 export const getIdanalysisUsecase = async (id: string) => {
@@ -20,7 +22,16 @@ export const getIdanalysisUsecase = async (id: string) => {
 type TAnalysisData = {
 	analysisType: string;
 	description?: string;
+	materialId: string;
 };
+
+type TUpdateAnalysisData = {
+	analysisType: string;
+	description?: string;
+	materialId: string;
+	status: Status;
+};
+
 export const createAnalysisUsecase = async (
 	analysisData: TAnalysisData,
 	user: string
@@ -30,10 +41,10 @@ export const createAnalysisUsecase = async (
 
 export const updateAnalysisUsecase = async (
 	id: string,
-	analysisData: TAnalysisData,
+	updateAnalysisData: TUpdateAnalysisData,
 	user: string
 ) => {
-	return await updateAnalysis(id, analysisData, user);
+	return await updateAnalysis(id, updateAnalysisData, user);
 };
 
 export const deleteAnalysisUsecase = async (id: string, user: string) => {

@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import { 
 	createMaterialAnalysis as createMaterialAnalysisService,
 	updateMaterialAnalysis as updateMaterialAnalysisService,
@@ -8,9 +9,10 @@ import {
 
 export const getAllMaterialAnalysisUsecase = async (
 	pageNumber?: string,
-	pageSize?: string
+	pageSize?: string,
+	status?: string,
 ) => {
-	return await getAllService(pageNumber, pageSize);
+	return await getAllService(pageNumber, pageSize, status);
 };
 
 export const getIdMaterialAnalysisUsecase = async (id: string) => {
@@ -23,6 +25,12 @@ type TMaterialAnalysisData = {
 	analysisId: string;
 };
 
+type TUpdateMaterialAnalysisData = {
+	materialId: string;
+	analysisId: string;
+	status: Status;
+};
+
 export const createMaterialAnalysisUsecase = async (
 	materialAnalysisData: TMaterialAnalysisData,
 	user: string
@@ -32,10 +40,10 @@ export const createMaterialAnalysisUsecase = async (
 
 export const updateMaterialAnalysisUsecase = async (
 	id: string,
-	materialAnalysisData: TMaterialAnalysisData,
+	updateMaterialAnalysisData: TUpdateMaterialAnalysisData,
 	user: string
 ) => {
-	return await updateMaterialAnalysisService(id, materialAnalysisData, user);
+	return await updateMaterialAnalysisService(id, updateMaterialAnalysisData, user);
 };
 
 export const deleteMaterialAnalysisUsecase = async (id: string, user: string) => {

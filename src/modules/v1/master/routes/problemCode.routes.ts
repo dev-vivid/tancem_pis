@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	problemCodeFilterQuerySchema,
 	problemCodeFormSchema,
+	updateproblemCodeFormSchema
 } from "../validations/problemCode.schema";
 
 const problemCodeRouter = express.Router();
@@ -30,7 +31,7 @@ problemCodeRouter.post(
 
 problemCodeRouter.put(
 	"/problemCodeEdit/:id",
-	validateRequest(problemCodeFormSchema, "body"),
+	validateRequest(updateproblemCodeFormSchema, "body"),
 	updateproblemCode
 );
 

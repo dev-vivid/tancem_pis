@@ -5,13 +5,15 @@ import {
 	deleteMaterialType as deleteMaterialType,
 	getByID as getByIdService,
 } from "../services/materialType.service";
+import { Status } from "@prisma/client";
 
 // Get all material type use case
 export const getAllMaterialTypeUsecase = async (
 	pageNumber?: string,
-	pageSize?: string
+	pageSize?: string,
+	status?: string
 ) => {
-	return await getAllService(pageNumber, pageSize);
+	return await getAllService(pageNumber, pageSize, status);
 };
 
 // Get problem by ID use case
@@ -25,6 +27,12 @@ type TMaterialTypeData = {
 	materialTypeMasterId: string;
 };
 
+type TUpdateMaterialTypeData = {
+	materialId: string;
+	materialTypeMasterId: string;
+	status: Status;
+};
+
 // Create material Type use case
 export const createMaterialTypeUsecase = async (
 	materialTypeData: TMaterialTypeData,
@@ -36,10 +44,10 @@ export const createMaterialTypeUsecase = async (
 // Update material type use case
 export const updateMaterialTypeUsecase = async (
 	id: string,
-	materialTypeData: TMaterialTypeData,
+	updatematerialTypeData: TUpdateMaterialTypeData,
 	user: string
 ) => {
-	return await updateMaterialTypeService(id, materialTypeData, user);
+	return await updateMaterialTypeService(id, updatematerialTypeData, user);
 };
 
 // Delete (soft delete) material type use case

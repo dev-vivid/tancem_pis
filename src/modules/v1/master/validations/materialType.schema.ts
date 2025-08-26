@@ -3,6 +3,7 @@ import Joi from "joi";
 export const materialTypeFilterQuerySchema = Joi.object({
 	pageNumber: Joi.string().optional(),
 	pageSize: Joi.string().optional(),
+	status: Joi.string().valid("active", "inActive").optional(),
 });
 
 export const createMaterialTypeBodySchema = Joi.object({
@@ -11,8 +12,9 @@ export const createMaterialTypeBodySchema = Joi.object({
 });
 
 export const updateMaterialTypeBodySchema = Joi.object({
-	materialId: Joi.string().required(),
-	materialTypeMasterId: Joi.string().required(),
+	materialId: Joi.string().optional(),
+	materialTypeMasterId: Joi.string().optional(),
+	status: Joi.string().valid("active", "inActive").optional()
 }).min(1);
 
 export const updateMaterialTypeParamsSchema = Joi.object({

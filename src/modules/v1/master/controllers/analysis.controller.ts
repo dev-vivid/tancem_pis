@@ -13,10 +13,11 @@ export const getAllanalysis = async (
 	next: NextFunction
 ) => {
 	try {
-		const { pageNumber, pageSize } = req.query;
+		const { pageNumber, pageSize, status } = req.query;
 		const result = await getAllanalysisUsecase(
 			pageNumber as string | undefined,
-			pageSize as string | undefined
+			pageSize as string | undefined,
+			status as string | undefined
 		);
 		const response = responses.generate("success", {
 			data: result,
@@ -34,7 +35,7 @@ export const getIdanalysis = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const { pageNumber, pageSize } = req.query;
+		// const { pageNumber, pageSize } = req.query;
 		const result = await getIdanalysisUsecase(id);
 		const response = responses.generate("success", {
 			data: result,

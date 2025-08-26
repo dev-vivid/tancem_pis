@@ -7,10 +7,11 @@ import { getAllProblemsUsecase, getIdProblemUsecase, createProblemUsecase, updat
 export const getAllProblem = async (req: Request, res: Response, next: NextFunction) => {
  try {
 
-	const { pageNumber, pageSize } = req.query;
+	const { pageNumber, pageSize, status } = req.query;
 	const result = await getAllProblemsUsecase(
 		pageNumber as string | undefined,
-		pageSize as string | undefined
+		pageSize as string | undefined,
+		status as string | undefined
 	);
 	const response = responses.generate("success", {
 		data: result,

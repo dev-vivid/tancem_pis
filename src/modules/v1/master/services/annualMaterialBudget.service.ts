@@ -1,5 +1,8 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { Status } from "@prisma/client";
+import { extractDateTime } from "../../../../shared/utils/date/index";
+
 
 export const createAnnualMaterialBudget = async (
 	annualMaterialBudgetData: {
@@ -7,20 +10,21 @@ export const createAnnualMaterialBudget = async (
 		month: number,
 		year: number,
 		materialId: string,
+		value: number,
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId } = annualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value } = annualMaterialBudgetData;
 
 	const create = await tx.annualMaterialBudget.create({
 		data: {
 			financialYear,
 			month,
+			value,
 			year,
 			materialId,
 			createdById: user,
-			createdAt: new Date()
 		}
 	});
 
@@ -34,11 +38,13 @@ export const updateAnnualMaterialBudget = async (
 		month: number,
 		year: number,
 		materialId: string,
+		value: number;
+		status: Status,
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId } = updateAnnualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value, status } = updateAnnualMaterialBudgetData;
 
 	if (!user) {
 		throw new Error("User is not Authorized");
@@ -51,8 +57,9 @@ export const updateAnnualMaterialBudget = async (
 			month,
 			year,
 			materialId,
+			status,
+			value,
 			updatedById: user,
-			updatedAt: new Date()
 		}
 	});
 };
@@ -60,13 +67,20 @@ export const updateAnnualMaterialBudget = async (
 export const getAllAnnualMaterialBudget = async (
 	pageNumber?: string,
 	pageSize?: string,
+	status?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	const whereClause: any = {
+		isActive: true,
+		...(status ? {status: status as Status} : {})
+	}
+
 	const result = await tx.annualMaterialBudget.findMany({
 		skip,
 		take,
+		where: whereClause,
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
@@ -74,16 +88,19 @@ export const getAllAnnualMaterialBudget = async (
 			month: true,
 			year: true,
 			materialId: true,
+			value: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		},
 	});
 
 	const data = result.map(item => ({
 		...item,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: item.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both")
 	}));
 
 	return data;
@@ -101,9 +118,12 @@ export const getAnnualMaterialBudgetByID = async (
 			month: true,
 			year: true,
 			materialId: true,
+			value: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			status: true,
+			isActive: true
 		}
 	});
 
@@ -111,8 +131,8 @@ export const getAnnualMaterialBudgetByID = async (
 
 	const data = {
 		...result,
-		createdAt: result.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		updatedAt: result.updatedAt.toISOString().replace("T", " ").substring(0, 19)
+		createdAt: extractDateTime(result.createdAt, "both"),
+		updatedAt: extractDateTime(result.updatedAt, "both")
 	};
 
 	return { data };
@@ -130,7 +150,6 @@ export const deleteAnnualMaterialBudget = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-			updatedAt: new Date()
 		},
 	});
 };

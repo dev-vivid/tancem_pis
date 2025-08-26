@@ -1,4 +1,5 @@
 // problem.usecase.ts
+import { Status } from "@prisma/client";
 import { 
   getAllProblems,
   getIdProblem,
@@ -10,11 +11,12 @@ import {
 // Get all problems use case
 export const getAllProblemsUsecase = async (
   pageNumber?: string,
-  pageSize?: string
+  pageSize?: string,
+	status?: string
 ) => {
   // const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
   // const size = pageSize ? parseInt(pageSize, 10) : undefined;
-  return await getAllProblems(pageNumber, pageSize);
+  return await getAllProblems(pageNumber, pageSize, status);
 };
 
 // Get problem by ID use case
@@ -22,13 +24,23 @@ export const getIdProblemUsecase = async (id: string) => {
   return await getIdProblem(id);
 };
 
-// Problem data type for create/update
+// Problem data type for create
 type TProblemData = {
   name: string;
   description?: string;
-  departmentId: string;
-  problem: string;
+  plantDepartmentId: string;
+  problemDescription: string;
   sortOrder?: number;
+};
+
+// Problem data type for update
+type TUpdateProblemData = {
+  name: string;
+  description?: string;
+  plantDepartmentId: string;
+  problemDescription: string;
+  sortOrder?: number;
+	status: Status;
 };
 
 // Create problem use case
@@ -42,10 +54,10 @@ export const createProblemUsecase = async (
 // Update problem use case
 export const updateProblemUsecase = async (
   id: string,
-  problemData: TProblemData,
+  updateproblemData: TUpdateProblemData,
   user: string
 ) => {
-  return await updateProblemService(id, problemData, user);
+  return await updateProblemService(id, updateproblemData, user);
 };
 
 // Delete (soft delete) problem use case

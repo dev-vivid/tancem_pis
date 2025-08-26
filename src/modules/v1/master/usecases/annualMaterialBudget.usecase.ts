@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import {
 	createAnnualMaterialBudget as createAnnualMaterialBudgetService,
 	updateAnnualMaterialBudget as updateAnnualMaterialBudgetService,
@@ -8,9 +9,10 @@ import {
 
 export const getAllAnnualMaterialBudgetUsecase = async (
 	pageNumber?: string,
-	pageSize?: string
+	pageSize?: string,
+	status?: string,
 ) => {
-	return await getAllService(pageNumber, pageSize);
+	return await getAllService(pageNumber, pageSize, status);
 };
 
 export const getIdAnnualMaterialBudgetUsecase = async (id: string) => {
@@ -23,6 +25,16 @@ type TAnnualMaterialBudgetData = {
 	month: number;
 	year: number;
 	materialId: string;
+	value: number;
+};
+
+type TUpdateAnnualMaterialBudgetData = {
+	financialYear: string;
+	month: number;
+	year: number;
+	materialId: string;
+	value: number;
+	status: Status;
 };
 
 export const createAnnualMaterialBudgetUsecase = async (
@@ -34,10 +46,10 @@ export const createAnnualMaterialBudgetUsecase = async (
 
 export const updateAnnualMaterialBudgetUsecase = async (
 	id: string,
-	annualMaterialBudgetData: TAnnualMaterialBudgetData,
+	updateAnnualMaterialBudgetData: TUpdateAnnualMaterialBudgetData,
 	user: string
 ) => {
-	return await updateAnnualMaterialBudgetService(id, annualMaterialBudgetData, user);
+	return await updateAnnualMaterialBudgetService(id, updateAnnualMaterialBudgetData, user);
 };
 
 export const deleteAnnualMaterialBudgetUsecase = async (
