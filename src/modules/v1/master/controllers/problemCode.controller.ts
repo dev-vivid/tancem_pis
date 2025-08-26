@@ -13,10 +13,11 @@ export const getAllproblemCode = async (
 	next: NextFunction
 ) => {
 	try {
-		const { pageNumber, pageSize } = req.query;
+		const { pageNumber, pageSize, status } = req.query;
 		const result = await getAllProblemCodeUsecase(
 			pageNumber as string | undefined,
-			pageSize as string | undefined
+			pageSize as string | undefined,
+			status as string | undefined
 		);
 		const response = responses.generate("success", {
 			data: result,
