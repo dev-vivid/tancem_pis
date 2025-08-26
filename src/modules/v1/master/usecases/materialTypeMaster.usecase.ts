@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import {
   getAllMaterialTypeMaster,
   getIdMaterialTypeMaster,
@@ -7,10 +8,11 @@ import {
 } from "../services/materialTypeMaster.service";
 
 export const getAllMaterialTypeMasterUsecase = async (
+	status:Status,
   pageNumber?: string,
   pageSize?: string
 ) => {
-  return await getAllMaterialTypeMaster(pageNumber, pageSize);
+  return await getAllMaterialTypeMaster(status ,pageNumber, pageSize);
 };
 
 export const getIdMaterialTypeMasterUsecase = async (id: string) => {
@@ -20,7 +22,13 @@ export const getIdMaterialTypeMasterUsecase = async (id: string) => {
 type TMaterialTypeMasterData = {
   name: string;
   materialTypeCode: string;
+};
+
+type TupdateMaterialTypeMaster= {
+ name: string;
+  materialTypeCode: string;
   isActive?: boolean;
+	status:Status
 };
 
 export const createMaterialTypeMasterUsecase = async (
@@ -32,7 +40,7 @@ export const createMaterialTypeMasterUsecase = async (
 
 export const updateMaterialTypeMasterUsecase = async (
   id: string,
-  materialTypeMasterData: TMaterialTypeMasterData,
+  materialTypeMasterData: TupdateMaterialTypeMaster,
   user: string
 ) => {
   return await updateMaterialTypeMaster(id, materialTypeMasterData, user);

@@ -1,4 +1,5 @@
 // src/modules/subEquipment/usecases/subEquipment.usecases.ts
+import { Status } from "@prisma/client";
 import {
   getAllSubEquipments as getAllService,
   getSubEquipmentById as getByIdService,
@@ -7,8 +8,8 @@ import {
   deleteSubEquipment as deleteService
 } from "../services/subEquipment.service";
 
-export const getAllSubEquipmentUsecase = (pageNumber?: string, pageSize?: string) =>
-  getAllService(pageNumber, pageSize);
+export const getAllSubEquipmentUsecase = (status:Status ,pageNumber?: string, pageSize?: string) =>
+  getAllService(status,pageNumber, pageSize);
 
 export const getIdSubEquipmentUsecase = (id: string) =>
   getByIdService(id);
@@ -30,6 +31,7 @@ export const updateSubEquipmentUsecase = (
     subEquipmentDescription: string;
     equipmentSubGroupId: string;
     eq_id: string;
+		status:Status
   }>,
   user: string
 ) => updateService(id, data, user);

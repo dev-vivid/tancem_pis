@@ -7,11 +7,12 @@ import {
   updateEquipmentUsecase,
   deleteEquipmentUsecase
 } from "../usecases/equipment.usecase";
+import { Status } from "@prisma/client";
 
 export const getAllEquipment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { pageNumber, pageSize } = req.query;
-    const result = await getAllEquipmentUsecase(pageNumber as string, pageSize as string);
+    const { status , pageNumber, pageSize } = req.query;
+    const result = await getAllEquipmentUsecase(status as Status, pageNumber as string, pageSize as string);
     const response = responses.generate("success", { data: result });
     res.status(response.statusCode).send(response);
   } catch (error) {

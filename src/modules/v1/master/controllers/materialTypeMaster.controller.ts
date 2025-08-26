@@ -6,10 +6,24 @@ import {
   updateMaterialTypeMasterUsecase,
   deleteMaterialTypeMasterUsecase,
 } from "../usecases/materialTypeMaster.usecase";
+import { Status } from "@prisma/client";
 
 export const getAllMaterialTypeMaster = async (req: Request, res: Response) => {
-  const { pageNumber, pageSize } = req.query as { pageNumber?: string; pageSize?: string };
-  const result = await getAllMaterialTypeMasterUsecase(pageNumber, pageSize);
+  const { status, pageNumber, pageSize } = req.query as {
+    status?: string;
+    pageNumber?: string;
+    pageSize?: string;
+  };
+
+  // 👇 Convert string to Prisma Status (if provided)
+  const parsedStatus = status as Status | undefined;
+
+  const result = await getAllMaterialTypeMasterUsecase(
+    parsedStatus!,
+    pageNumber,
+    pageSize
+  );
+
   res.json(result);
 };
 

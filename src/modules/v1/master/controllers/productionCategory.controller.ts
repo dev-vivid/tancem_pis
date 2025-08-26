@@ -7,11 +7,12 @@ import {
   updateProductionCategoryUsecase,
   deleteProductionCategoryUsecase
 } from "../usecases/productionCategory.usecases";
+import { Status } from "@prisma/client";
 
 export const getAllProductionCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { pageNumber, pageSize } = req.query;
-    const result = await getAllProductionCategoryUsecase(pageNumber as string, pageSize as string);
+    const { status , pageNumber, pageSize } = req.query;
+    const result = await getAllProductionCategoryUsecase(status as Status, pageNumber as string, pageSize as string);
     const response = responses.generate("success", { data: result });
     res.status(response.statusCode).send(response);
   } catch (error) {

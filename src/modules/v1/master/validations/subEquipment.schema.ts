@@ -2,6 +2,7 @@
 import Joi from "joi";
 
 export const subEquipmentFilterQuerySchema = Joi.object({
+	status: Joi.string().valid('active' ,'inActive').optional(),
   pageNumber: Joi.string().optional(),
   pageSize: Joi.string().optional(),
 });
@@ -17,7 +18,10 @@ export const createSubEquipmentBodySchema = Joi.object({
 export const updateSubEquipmentBodySchema = Joi.object({
   subEquipmentNo: Joi.string().max(36).optional(),
   subEquipmentDescription: Joi.string().max(36).optional(),
-  equipmentSubGroupId: Joi.string().max(36).optional()
+  equipmentSubGroupId: Joi.string().max(36).optional(),
+	eq_id: Joi.string().max(36).optional(),
+	status: Joi.string().valid('active' ,'inActive').optional()
+
 }).min(1);
 
 export const updateSubEquipmentParamsSchema = Joi.object({

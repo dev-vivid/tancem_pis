@@ -1,22 +1,31 @@
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
-const formatDate = (date?: Date | null) =>
-  date ? date.toISOString().replace("T", " ").substring(0, 19) : null;
 
 export const getAllProductionCategory = async (
+  status: Status,
   pageNumber?: string,
   pageSize?: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-  const totalRecords = await tx.productionCategory.count({ where: { isActive: true } });
+  const totalRecords = await tx.productionCategory.count({
+    where: {
+      isActive: true,
+      status, // ✅ now filtering by status
+    },
+  });
 
   const records = await tx.productionCategory.findMany({
     skip,
     take,
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      status, // ✅ added here as well
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -26,12 +35,13 @@ export const getAllProductionCategory = async (
       id: item.id,
       code: item.code,
       name: item.name,
-      categoryCode: item.productCatagoryCode,
-      createdAt: formatDate(item.createdAt),
-      updatedAt: formatDate(item.updatedAt),
+      // categoryCode: item.productCatagoryCode,
+      createdAt:extractDateTime(item.createdAt, "both"),
+      updatedAt:extractDateTime(item.updatedAt, "both"),
       createdById: item.createdById,
       updatedById: item.updatedById,
-      isActive: item.isActive
+      isActive: item.isActive,
+      status: item.status,
     })),
   };
 };
@@ -46,26 +56,42 @@ export const getIdProductionCategory = async (
 };
 
 export const createProductionCategory = async (
-  data: { name: string; productCatagoryCode: string },
+  data: {
+    name: string;
+    // categoryName?: string;
+  },
   user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   if (!data.name) throw new Error("name is required.");
-  if (!data.productCatagoryCode) throw new Error("productCatagoryCode is required.");
+  // if (!data.categoryName) throw new Error("categoryName is required.");
   await tx.productionCategory.create({
-    data: { ...data, createdById: user, isActive: true },
+    data: {
+      name: data.name,
+      // productCatagoryCode: data.categoryName?? null,
+      createdById: user,
+      isActive: true, // keep consistency with delete
+    },
   });
 };
 
 export const updateProductionCategory = async (
   id: string,
-  data: { name?: string; productCatagoryCode?: string },
+  data: {
+		name?: string;
+		// categoryName?: string;
+		status: Status
+	},
   user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   await tx.productionCategory.update({
     where: { id },
-    data: { ...data, updatedById: user },
+    data: {
+      ...data,
+      // productCatagoryCode: data.categoryName?? undefined,
+      updatedById: user,
+    },
   });
 };
 
@@ -76,6 +102,9 @@ export const deleteProductionCategory = async (
 ) => {
   await tx.productionCategory.update({
     where: { id },
-    data: { isActive: false, updatedById: user },
+    data: {
+			isActive: false,
+			updatedById: user
+		},
   });
 };

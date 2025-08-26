@@ -8,11 +8,12 @@ import {
   updateSubEquipmentUsecase,
   deleteSubEquipmentUsecase
 } from "../usecases/subEquipment.usecase";
+import { Status } from "@prisma/client";
 
 export const getAllSubEquipment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { pageNumber, pageSize } = req.query;
-    const result = await getAllSubEquipmentUsecase(pageNumber as string, pageSize as string);
+    const {status, pageNumber, pageSize } = req.query;
+    const result = await getAllSubEquipmentUsecase(status as Status ,pageNumber as string, pageSize as string);
     const response = responses.generate("success", { data: result });
     res.status(response.statusCode).send(response);
   } catch (error) {
@@ -44,7 +45,10 @@ export const createSubEquipment = async (req: Request, res: Response, next: Next
     }
     const data = req.body;
     await createSubEquipmentUsecase(data, user);
-    const response = responses.generate("success", { message: "SubEquipment created successfully!", data: null });
+    const response = responses.generate("success",
+			{
+				message: "SubEquipment created successfully!"
+			});
     res.status(response.statusCode).send(response);
   } catch (error) {
     next(error);
@@ -82,7 +86,10 @@ export const updateSubEquipment = async (req: Request, res: Response, next: Next
     }
 
     await updateSubEquipmentUsecase(id, req.body, user);
-    const response = responses.generate("success", { message: "SubEquipment updated successfully!", data: null });
+    const response = responses.generate("success",
+			{
+				message:"SubEquipment updated successfully!"
+				});
     res.status(response.statusCode).send(response);
   } catch (error) {
     next(error);
@@ -102,7 +109,10 @@ export const deleteSubEquipment = async (req: Request, res: Response, next: Next
     }
     const { id } = req.params;
     await deleteSubEquipmentUsecase(id, user);
-    const response = responses.generate("success", { message: "SubEquipment deleted successfully!", data: null });
+    const response = responses.generate("success",
+			{
+				message: "SubEquipment deleted successfully!"
+			});
     res.status(response.statusCode).send(response);
   } catch (error) {
     next(error);
