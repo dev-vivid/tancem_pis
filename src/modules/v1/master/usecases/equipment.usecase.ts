@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import {
 	getAllEquipment,
 	getEquipmentById,
@@ -7,10 +8,11 @@ import {
 } from "../services/equipment.service";
 
 export const getAllEquipmentUsecase = async (
-	pageNumber?: string,
-	pageSize?: string
-) => {
-	return await getAllEquipment(pageNumber, pageSize);
+status:Status,
+pageNumber?: string,
+pageSize?: string,
+ p0?: string) => {
+	return await getAllEquipment(status , pageNumber, pageSize);
 };
 
 export const getEquipmentByIdUsecase = async (id: string) => {
@@ -28,6 +30,21 @@ type TEquipmentData = {
 	orderOfAppearance: string;
 };
 
+type TUpdateEquipmentData = {
+	equipmentId: string;
+	equipmentDescription: string;
+	strength: string;
+	quality: string;
+	power: string;
+	powerGroup: string;
+	storage: string;
+	orderOfAppearance: string;
+	isActive?: boolean;
+	status:Status
+};
+
+
+
 export const createEquipmentUsecase = async (
 	equipmentData: TEquipmentData,
 	user: string
@@ -37,7 +54,7 @@ export const createEquipmentUsecase = async (
 
 export const updateEquipmentUsecase = async (
 	id: string,
-	equipmentData:TEquipmentData,
+	equipmentData:TUpdateEquipmentData,
 	user: string
 ) => {
 	return await updateEquipment(id, equipmentData, user);

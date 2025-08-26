@@ -1,21 +1,39 @@
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
 export const getAllMaterialTypeMaster = async (
+  status: Status,
   pageNumber?: string,
-  pageSize?: string
+  pageSize?: string,
+  tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
+
+  // ✅ build where clause dynamically
+  const whereClause: any = {
+    isActive: true,
+  };
+  if (status) {
+    whereClause.status = status;
+  }
+
+  const totalRecords = await tx.equipment.count({
+    where: whereClause,
+  });
 
   const data = await prisma.materialTypeMaster.findMany({
     skip,
     take,
+		where: whereClause,
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
       name: true,
       materialTypeCode: true,
       isActive: true,
+			status:true,
       createdAt: true,
       updatedAt: true,
       createdById: true,
@@ -26,7 +44,14 @@ export const getAllMaterialTypeMaster = async (
   // Rename `name` to `materialType`
   return data.map(item => ({
     ...item,
+		totalRecords,
     materialType: item.name,
+		 createdAt:extractDateTime(item.createdAt, "both"),
+		 updatedAt:extractDateTime(item.updatedAt, "both"),
+		 createdById: item.createdById,
+		 updatedById: item.updatedById,
+		 isActive: item.isActive,
+		 status: item.status,
   }));
 };
 
@@ -38,6 +63,7 @@ type TMaterialTypeMasterData = {
   name: string;
   materialTypeCode: string;
   isActive?: boolean;
+
 };
 
 export const createMaterialTypeMaster = async (

@@ -1,15 +1,32 @@
-import prisma from "../../../../shared/prisma";
+import { Status } from "@prisma/client";
+import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
 export const getAllEquipment = async (
+  status?: Status,
   pageNumber?: string,
-  pageSize?: string
+  pageSize?: string,
+  tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-  const data = await prisma.equipment.findMany({
+  // ✅ build where clause dynamically
+  const whereClause: any = {
+    isActive: true,
+  };
+  if (status) {
+    whereClause.status = status;
+  }
+
+  const totalRecords = await tx.equipment.count({
+    where: whereClause,
+  });
+
+  const data = await tx.equipment.findMany({
     skip,
     take,
+    where: whereClause,
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -23,14 +40,32 @@ export const getAllEquipment = async (
       storage: true,
       orderOfAppearance: true,
       isActive: true,
-      createdAt: true,
-      updatedAt: true,
+      status:true,
+      createdAt:true,
+      updatedAt:true,
       createdById: true,
       updatedById: true,
     },
   });
 
-  return data;
+ return data.map(item => ({
+		...item,
+		 totalRecords,
+		 equipmentId: item.equipmentId,
+		 equipmentDescription: item.equipmentDescription,
+		strength: item.strength,
+		quality: item.quality,
+		power: item.power,
+		powerGroup: item.powerGroup,
+		storage: item.storage,
+		orderOfAppearance: item.orderOfAppearance,
+		isActive: item.isActive,
+		status: item.status,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
+		createdById: item.createdById,
+		updatedById: item.updatedById,
+	}));
 };
 
 export const getEquipmentById = async (id: string) => {
@@ -48,6 +83,7 @@ export const getEquipmentById = async (id: string) => {
       storage: true,
       orderOfAppearance: true,
       isActive: true,
+      status: true,
       createdAt: true,
       updatedAt: true,
       createdById: true,
@@ -66,6 +102,7 @@ type TEquipmentData = {
   storage: string;
   orderOfAppearance: string;
   isActive?: boolean;
+  status?: Status;
 };
 
 export const createEquipment = async (data: TEquipmentData, user: string) => {

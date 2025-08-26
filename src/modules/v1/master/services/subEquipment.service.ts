@@ -1,25 +1,32 @@
 // src/modules/subEquipment/services/subEquipment.service.ts
+import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import { extractDateTime } from "@utils/date";
 
-const formatDate = (date?: Date | null) =>
-  date ? date.toISOString().replace("T", " ").substring(0, 19) : null;
 
 export const getAllSubEquipments = async (
+  status?: Status,
   pageNumber?: string,
   pageSize?: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+  // ✅ build where clause dynamically
+  const whereClause: any = {};
+  if (status) {
+    whereClause.status = status;
+  }
+
   const totalRecords = await tx.subEquipment.count({
-    where: { isActive: true },
+    where: whereClause,
   });
 
   const records = await tx.subEquipment.findMany({
     skip,
     take,
-    where: { isActive: true },
+    where: whereClause,
     orderBy: { createdAt: "desc" },
     include: { equipment: true }, // include parent equipment info
   });
@@ -34,11 +41,12 @@ export const getAllSubEquipments = async (
       equipmentSubGroupId: item.equipmentSubGroupId,
       eq_id: item.eq_id,
       equipmentId: item.equipment?.id || null,
-      createdAt: formatDate(item.createdAt),
-      updatedAt: formatDate(item.updatedAt),
+      createdAt:extractDateTime(item.createdAt,"both"),
+      updatedAt:extractDateTime(item.updatedAt,"both"),
       createdById: item.createdById,
       updatedById: item.updatedById,
       isActive: item.isActive,
+      status: item.status,
     })),
   };
 };
@@ -49,7 +57,7 @@ export const getSubEquipmentById = async (
 ) => {
   const item = await tx.subEquipment.findUnique({
     where: { id },
-    include: { equipment: true },
+    // include: { equipment: true },
   });
   if (!item) throw new Error("SubEquipment not found.");
   return { totalRecords: 1, data: item };
@@ -104,6 +112,8 @@ export const updateSubEquipment = async (
     subEquipmentDescription: string;
     equipmentSubGroupId: string;
     equipmentId: string; // allow updating equipment relation
+    status: Status;
+    isActive: boolean;
   }>,
   user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -117,6 +127,8 @@ export const updateSubEquipment = async (
       ...(data.equipmentId
         ? { equipment: { connect: { id: data.equipmentId } } }
         : {}),
+      ...(data.status ? { status: data.status } : {}),
+      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
       updatedById: user,
     },
     include: { equipment: true },

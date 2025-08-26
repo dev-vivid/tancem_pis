@@ -3,6 +3,8 @@ import Joi from "joi";
 export const equipmentFilterQuerySchema = Joi.object({
   pageNumber: Joi.string().optional(),
   pageSize: Joi.string().optional(),
+	status: Joi.string().valid('active' ,'inActive').optional()
+
 });
 
 export const createEquipmentBodySchema = Joi.object({
@@ -25,6 +27,8 @@ export const updateEquipmentBodySchema = Joi.object({
   powerGroup: Joi.string().max(36).optional(),
   storage: Joi.string().max(36).optional(),
   orderOfAppearance: Joi.string().max(36).optional(),
+	status: Joi.string().valid('active' ,'inActive').optional()
+
 }).min(1);
 
 export const updateEquipmentParamsSchema = Joi.object({

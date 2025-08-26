@@ -4,6 +4,8 @@ import Joi from "joi";
 export const materialTypeMasterFilterQuerySchema = Joi.object({
   pageNumber: Joi.string().optional(),
   pageSize: Joi.string().optional(),
+	status: Joi.string().valid('active' ,'inActive').optional()
+
 });
 
 // Create schema
@@ -28,6 +30,9 @@ export const updateMaterialTypeMasterBodySchema = Joi.object({
   name: Joi.string().min(1).optional(),
   materialTypeCode: Joi.string().min(1).optional(),
   isActive: Joi.boolean().optional(),
+	status: Joi.string().valid('active' ,'inActive').optional()
+
+
 }).min(1); // Ensure at least one field is updated
 
 // Params schema for ID

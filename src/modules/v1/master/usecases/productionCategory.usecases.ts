@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import {
   getAllProductionCategory,
   getIdProductionCategory,
@@ -7,10 +8,11 @@ import {
 } from "../services/productionCategory.service";
 
 export const getAllProductionCategoryUsecase = async (
+	  status: Status,
   pageNumber?: string,
   pageSize?: string
 ) => {
-  return await getAllProductionCategory(pageNumber, pageSize);
+  return await getAllProductionCategory(status ,pageNumber, pageSize );
 };
 
 export const getIdProductionCategoryUsecase = async (id: string) => {
@@ -19,23 +21,28 @@ export const getIdProductionCategoryUsecase = async (id: string) => {
 
 type TProductionCategoryData = {
   name: string;
-  productCatagoryCode: string; // ✅ matches Prisma model exactly
-  isActive?: boolean;
+  // categoryName: string; // ✅ matches Prisma model exactly
+};
+
+type TupdateProductionCategoryData = {
+  name: string;
+  // categoryName: string; // ✅ matches Prisma model exactly
+	status:Status
 };
 
 export const createProductionCategoryUsecase = async (
-  productionCategoryData: TProductionCategoryData,
+  name: TProductionCategoryData,
   user: string
 ) => {
-  return await createProductionCategory(productionCategoryData, user);
+  return await createProductionCategory(name, user);
 };
 
 export const updateProductionCategoryUsecase = async (
   id: string,
-  productionCategoryData: TProductionCategoryData,
+  name: TupdateProductionCategoryData,
   user: string
 ) => {
-  return await updateProductionCategory(id, productionCategoryData, user);
+  return await updateProductionCategory(id, name, user);
 };
 
 export const deleteProductionCategoryUsecase = async (

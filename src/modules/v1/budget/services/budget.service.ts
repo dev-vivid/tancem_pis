@@ -1,0 +1,129 @@
+import { extractDateTime, parseDateOnly } from "@utils/date";
+import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
+import { pageConfig } from "../../../../shared/prisma/query.helper";
+
+
+// Get all budgets
+export const getAllBudgets = async (
+	pageNumber?: string,
+	pageSize?: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	const { skip, take } = pageConfig({ pageNumber, pageSize });
+
+	const totalRecords = await tx.budget.count({
+		where: { isActive: true },
+	});
+
+	const budgets = await tx.budget.findMany({
+		skip,
+		take,
+		orderBy: { createdAt: "desc" },
+		where: { isActive: true },
+		select: {
+			id: true,
+			code: true,
+			financialYear: true,
+			transactionDate: true,
+			materialId: true,
+			budgetCode: true,
+			budgetValue: true,
+			createdAt: true,
+			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			isActive: true,
+		},
+	});
+
+	const data = budgets.map((item) => ({
+		...item,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
+	}));
+
+	return { totalRecords, data };
+};
+
+// Get budget by ID
+export const getBudgetById = async (
+	id: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	const budget = await tx.budget.findUnique({
+		where: { id, isActive: true },
+	});
+
+	if (!budget) throw new Error("Budget record not found");
+
+	const data = {
+		...budget,
+		transactionDate: budget.transactionDate.toISOString().substring(0, 10),
+		createdAt: extractDateTime(budget.createdAt , "both"),
+		updatedAt: extractDateTime(budget.updatedAt , "both"),
+	};
+
+	return { data };
+};
+
+// Create budget
+export const createBudget = async (
+	budgetData: {
+		financialYear: string;
+		transactionDate: Date;
+		materialId: string;
+		budgetCode: string;
+		budgetValue: number;
+	},
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	return await tx.budget.create({
+		data: {
+			...budgetData,
+			transactionDate: parseDateOnly(budgetData.transactionDate),
+			createdById: user,
+		},
+	});
+};
+
+// Update budget
+export const updateBudget = async (
+	id: string,
+	budgetData: Partial<{
+		financialYear: string;
+		transactionDate: Date;
+		materialId: string;
+		budgetCode: string;
+		budgetValue: number;
+	}>,
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	return await tx.budget.update({
+		where: { id },
+		data: {
+			...budgetData,
+			transactionDate: budgetData.transactionDate
+				? new Date(budgetData.transactionDate)
+				: undefined,
+			updatedById: user,
+		},
+	});
+};
+
+// Soft delete budget
+export const deleteBudget = async (
+	id: string,
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	return await tx.budget.update({
+		where: { id },
+		data: {
+			isActive: false,
+			updatedById: user,
+		},
+	});
+};
