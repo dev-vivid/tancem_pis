@@ -49,7 +49,7 @@ export const getMaterialName = async (
 
 	try {
 		// ✅ Print the API URL
-		console.log("API URL being called:", apiUrl);
+		// console.log("API URL being called:", apiUrl);
 
 		const response = await fetch(apiUrl, {
 			headers: new Headers({
@@ -95,7 +95,7 @@ export const getEquipmentName = async (
 		);
 
 		const data = await response.json();
-		console.log("API Raw Response:", data);
+		// console.log("API Raw Response:", data);
 
 		// ✅ Check response structure
 		if (data?.data?.list?.name) {
