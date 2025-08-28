@@ -23,6 +23,7 @@ export const createAnalysisLab = async (data: any, user: string) => {
 
 // ✅ Get all with pagination
 export const getAllAnalysisLab = async (
+	accessToken: string,
 	pageNumber?: number,
 	pageSize?: number,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -56,7 +57,7 @@ export const getAllAnalysisLab = async (
 	const data = await Promise.all(
 		labs.map(async (item) => {
 			const materialName = item.materialId
-				? await api.getMaterialName(item.materialId)
+				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
 
 			return {
@@ -79,6 +80,7 @@ export const getAllAnalysisLab = async (
 // ✅ Get by ID
 export const getAnalysisLabById = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const item = await tx.analysisLab.findUnique({
@@ -87,7 +89,7 @@ export const getAnalysisLabById = async (
 	console.log(item);
 	if (!item) throw new Error("Analysis Lab not found.");
 	const materialName = item.materialId
-		? await api.getMaterialName(item.materialId)
+		? await api.getMaterialName(item.materialId, accessToken)
 		: null;
 	return item;
 };

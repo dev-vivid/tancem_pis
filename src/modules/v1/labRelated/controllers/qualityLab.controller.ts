@@ -25,7 +25,9 @@ export const getAllQualityLab = async (
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const accessToken = req.headers.authorization;
 		const result = await usecase.getAllQualityLabUsecase(
+			accessToken as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -64,7 +66,7 @@ export const getQualityLabById = async (
 ) => {
 	try {
 		const { id } = req.params;
-
+		const accessToken = req.headers.authorization;
 		if (!id) {
 			return res.status(400).json({
 				code: "bad_request",
@@ -74,7 +76,10 @@ export const getQualityLabById = async (
 			});
 		}
 
-		const result = await usecase.getQualityLabByIdUsecase(id);
+		const result = await usecase.getQualityLabByIdUsecase(
+			id,
+			accessToken || ""
+		);
 
 		if (!result) {
 			return res.status(404).json({

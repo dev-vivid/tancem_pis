@@ -20,6 +20,7 @@ export const createQualityLab = async (data: any, user: string) => {
 
 // ✅ Get all with pagination
 export const getAllQualityLab = async (
+	accessToken: string,
 	pageNumber?: number,
 	pageSize?: number,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -51,10 +52,10 @@ export const getAllQualityLab = async (
 	const data = await Promise.all(
 		labs.map(async (item) => {
 			const materialName = item.materialId
-				? await api.getMaterialName(item.materialId)
+				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
 			const equipmentName = item.equipmentId
-				? await api.getEquipmentName(item.equipmentId)
+				? await api.getEquipmentName(item.equipmentId, accessToken)
 				: null;
 			return {
 				...item,
@@ -77,6 +78,7 @@ export const getAllQualityLab = async (
 // ✅ Get by ID
 export const getQualityLabById = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const item = await tx.qualityLab.findUnique({
@@ -85,10 +87,11 @@ export const getQualityLabById = async (
 	console.log(item);
 	if (!item) throw new Error("Analysis Lab not found.");
 	const materialName = item.materialId
-		? await api.getMaterialName(item.materialId)
+		? await api.getMaterialName(item.materialId, accessToken)
 		: null;
+	console.log(materialName);
 	const equipmentName = item.equipmentId
-		? await api.getEquipmentName(item.equipmentId)
+		? await api.getEquipmentName(item.equipmentId, accessToken)
 		: null;
 	return item;
 };

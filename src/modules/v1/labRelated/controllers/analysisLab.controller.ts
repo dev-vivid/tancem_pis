@@ -25,7 +25,9 @@ export const getAllAnalysisLab = async (
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const accessToken = req.headers.authorization;
 		const result = await usecase.getAllAnalysisLabUsecase(
+			accessToken as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -42,7 +44,7 @@ export const getAnalysisLabById = async (
 ) => {
 	try {
 		const { id } = req.params;
-
+		const accessToken = req.headers.authorization;
 		if (!id) {
 			return res.status(400).json({
 				code: "bad_request",
@@ -52,7 +54,10 @@ export const getAnalysisLabById = async (
 			});
 		}
 
-		const result = await usecase.getAnalysisLabByIdUsecase(id);
+		const result = await usecase.getAnalysisLabByIdUsecase(
+			id,
+			accessToken || ""
+		);
 
 		if (!result) {
 			return res.status(404).json({
