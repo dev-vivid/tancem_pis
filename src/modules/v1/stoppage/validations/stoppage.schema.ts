@@ -6,7 +6,7 @@ export const stoppageFilterQuerySchema = Joi.object({
 });
 
 export const createStoppageBodySchema = Joi.object({
-  transactionDate: Joi.date().required(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).required(),
   departmentId: Joi.string().required(),
   equipmentMainId: Joi.string().required(),
   equipmentSubGroupId: Joi.string().required(),
@@ -29,7 +29,7 @@ export const createStoppageBodySchema = Joi.object({
 });
 
 export const updateStoppageBodySchema = Joi.object({
-  transactionDate: Joi.date().optional(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).optional(),
   departmentId: Joi.string().optional(),
   equipmentMainId: Joi.string().optional(),
   equipmentSubGroupId: Joi.string().optional(),

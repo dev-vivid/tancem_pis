@@ -1,9 +1,11 @@
+import { getMaterialName } from "common/api";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
 
 // Get all bags
 export const getAllBags = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -16,7 +18,7 @@ export const getAllBags = async (
 		skip,
 		take,
 		orderBy: { createdAt: "desc" },
-		where: { isActive: true, },
+		where: { isActive: true },
 		select: {
 			id: true,
 			code: true,
@@ -35,16 +37,40 @@ export const getAllBags = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
-	const data = bags.map(item => ({
-		...item,
-		transactionDate: extractDateTime(item.transactionDate, "date"),
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedAt: extractDateTime(item.updatedAt, "both")
-	}));
+	const data = await Promise.all(
+		bags.map(async (item) => {
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
+
+			return {
+				uuid: item.id,
+				code: item.code,
+				materialId: item.materialId,
+				materialName, 
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				isActive: item.isActive,
+				opc: item.opc,
+				ppc: item.ppc,
+				src: item.src,
+				burstopc: item.burstopc,
+				burstppc: item.burstppc,
+				burstsrc: item.burstsrc,
+				export: item.export,
+				deport: item.deport,
+				transferQty: item.transferQty,
+			};
+		})
+	);
 
 	return { totalRecords, data };
 };
@@ -52,6 +78,7 @@ export const getAllBags = async (
 // Get bags by ID
 export const getIdBags = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const bag = await tx.bags.findUnique({
@@ -80,11 +107,28 @@ export const getIdBags = async (
 
 	if (!bag) throw new Error("Bags record not found");
 
+	const materialName = bag.materialId && accessToken ? await getMaterialName(bag.materialId, accessToken) : null;
+
 	const data = {
-		...bag,
+		id: bag.id,
+		code: bag.code,
 		transactionDate: extractDateTime(bag.transactionDate, "date"),
+		materialId: bag.materialId,
+		materialName, 
+		opc: bag.opc,
+		ppc: bag.ppc,
+		src: bag.src,
+		burstopc: bag.burstopc,
+		burstppc: bag.burstppc,
+		burstsrc: bag.burstsrc,
+		export: bag.export,
+		deport: bag.deport,
+		transferQty: bag.transferQty,
 		createdAt: extractDateTime(bag.createdAt, "both"),
-		updatedAt: extractDateTime(bag.updatedAt, "both")
+		createdById: bag.createdById,
+		updatedAt: extractDateTime(bag.updatedAt, "both"),
+		updatedById: bag.updatedById,
+		isActive: bag.isActive,
 	};
 
 	return { data };

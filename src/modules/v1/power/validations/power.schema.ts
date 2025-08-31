@@ -6,7 +6,7 @@ export const powerFilterQuerySchema = Joi.object({
 });
 
 export const createPowerTransactionBodySchema = Joi.object({
-  transactionDate: Joi.date().required(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).required(),
   powerDetails: Joi.array()
     .items(
       Joi.object({
@@ -19,7 +19,7 @@ export const createPowerTransactionBodySchema = Joi.object({
 });
 
 export const updatePowerTransactionBodySchema = Joi.object({
-  transactionDate: Joi.date().optional(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).optional(),
   powerDetails: Joi.array()
     .items(
       Joi.object({
