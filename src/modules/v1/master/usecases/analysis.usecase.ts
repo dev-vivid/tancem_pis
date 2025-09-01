@@ -6,17 +6,18 @@ import { updateAnalysis } from "../services/analysis.service";
 import { deleteAnalysis } from "../services/analysis.service";
 
 export const getAllanalysisUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
-	status?: string,
+	status?: string
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllanalysis(page, size, status);
+	return await getAllanalysis(accessToken, page, size, status);
 };
 
-export const getIdanalysisUsecase = async (id: string) => {
-	return await getIdanalysis(id);
+export const getIdanalysisUsecase = async (id: string, accessToken: string) => {
+	return await getIdanalysis(id, accessToken);
 };
 
 type TAnalysisData = {

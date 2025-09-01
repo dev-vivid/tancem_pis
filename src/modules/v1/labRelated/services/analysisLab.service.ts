@@ -61,12 +61,17 @@ export const getAllAnalysisLab = async (
 				: null;
 
 			return {
-				...item,
-				materialName,
+				id: item.id,
+				transactionDate: item.transactionDate,
+				materialId: item.materialId,
+				materialName: materialName.productDescription,
+				analysisId: item.analysisId,
 				createdAt: item.createdAt
 					.toISOString()
 					.replace("T", " ")
 					.substring(0, 19),
+				createdById: item.createdById,
+				analysisName: item.MaterialAnalysis?.description || null,
 			};
 		})
 	);
@@ -77,7 +82,6 @@ export const getAllAnalysisLab = async (
 	};
 };
 
-// ✅ Get by ID
 export const getAnalysisLabById = async (
 	id: string,
 	accessToken: string,
@@ -85,13 +89,29 @@ export const getAnalysisLabById = async (
 ) => {
 	const item = await tx.analysisLab.findUnique({
 		where: { id },
+		include: {
+			MaterialAnalysis: {
+				select: { description: true },
+			},
+		},
 	});
-	console.log(item);
+
 	if (!item) throw new Error("Analysis Lab not found.");
+
 	const materialName = item.materialId
 		? await api.getMaterialName(item.materialId, accessToken)
 		: null;
-	return item;
+
+	return {
+		id: item.id,
+		transactionDate: item.transactionDate,
+		materialId: item.materialId,
+		materialName: materialName.productDescription,
+		analysisId: item.analysisId,
+		analysisName: item.MaterialAnalysis?.description || null,
+		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
+		createdById: item.createdById,
+	};
 };
 
 // ✅ Update
