@@ -8,14 +8,15 @@ import {
 } from "../services/equipment.service";
 
 export const getAllEquipmentUsecase = async (
-status:Status,
-pageNumber?: string,
-pageSize?: string,
- p0?: string) => {
-	return await getAllEquipment(status , pageNumber, pageSize);
+	accessToken: string,
+	pageNumber?: string,
+	pageSize?: string,
+	status?: string,
+	) => {
+	return await getAllEquipment( accessToken, pageNumber, pageSize, status);
 };
 
-export const getEquipmentByIdUsecase = async (id: string) => {
+export const getEquipmentByIdUsecase = async (id: string, accessToken: string) => {
 	return await getEquipmentById(id);
 };
 
@@ -23,6 +24,7 @@ type TEquipmentData = {
 	equipmentId: string;
 	equipmentDescription: string;
 	strength: string;
+	analysis: string;
 	quality: string;
 	power: string;
 	powerGroup: string;
@@ -34,12 +36,12 @@ type TUpdateEquipmentData = {
 	equipmentId: string;
 	equipmentDescription: string;
 	strength: string;
+	analysis: string;
 	quality: string;
 	power: string;
 	powerGroup: string;
 	storage: string;
 	orderOfAppearance: string;
-	isActive?: boolean;
 	status:Status
 };
 

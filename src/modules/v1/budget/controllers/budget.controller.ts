@@ -11,9 +11,17 @@ import {
 export const getAllBudgetsController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllBudgetsUsecase(
-			pageNumber as string | undefined,
-			pageSize as string | undefined
+			accessToken,
+			pageNumber ? String(pageNumber) : undefined,
+			pageSize ? String(pageSize) : undefined
 		);
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
@@ -25,7 +33,14 @@ export const getAllBudgetsController = async (req: Request, res: Response, next:
 export const getBudgetByIdController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { id } = req.params;
-		const result = await getBudgetByIdUsecase(id);
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getBudgetByIdUsecase(id, accessToken);
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
 	} catch (error) {
