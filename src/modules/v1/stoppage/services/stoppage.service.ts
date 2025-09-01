@@ -1,7 +1,7 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
-
+import { getEquipmentName } from "../../../../common/api";
 
 function timeStringToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
@@ -50,7 +50,7 @@ export const createStoppage = async (
   const runningHours = minutesToTimeString(runningMinutes);
 
   // 5. Create Stoppage with Problems
-  return tx.stoppage.create({
+  await tx.stoppage.create({
     data: {
       transactionDate: parseDateOnly(data.transactionDate),
       departmentId: data.departmentId,
@@ -140,15 +140,16 @@ export const updateStoppage = async (
 
 
 export const getAllStoppage = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({pageNumber, pageSize});
 
-	const totalRecords = await tx.stoppage.count({
-    where: { isActive: true },
-  });
+	// const totalRecords = await tx.stoppage.count({
+  //   where: { isActive: true },
+  // });
 
 	const transactions = await tx.stoppage.findMany({
 		skip,
@@ -163,19 +164,53 @@ export const getAllStoppage = async (
 		}
 	});
 
-	const data = transactions.map(item => ({
-    ...item,
-		transactionDate: extractDateTime(item.transactionDate, "date"),
-    createdAt: extractDateTime(item.createdAt, "both"),
-    updatedAt: extractDateTime(item.updatedAt, "both"),
-    stoppageproblems: item.stoppageproblems.map(detail => ({
-      ...detail,
-      createdAt: extractDateTime(detail.createdAt, "both"),
-      updatedAt: extractDateTime(detail.updatedAt, "both"),
-    })),
-  }));
+	// const data = transactions.map(item => ({
+  //   ...item,
+	// 	transactionDate: extractDateTime(item.transactionDate, "date"),
+  //   createdAt: extractDateTime(item.createdAt, "both"),
+  //   updatedAt: extractDateTime(item.updatedAt, "both"),
+  //   stoppageproblems: item.stoppageproblems.map(detail => ({
+  //     ...detail,
+  //     createdAt: extractDateTime(detail.createdAt, "both"),
+  //     updatedAt: extractDateTime(detail.updatedAt, "both"),
+  //   })),
+  // }));
+	const data = await Promise.all(
+    transactions.flatMap(async (item) => {
+  const equipmentName = await getEquipmentName(item.equipmentMainId, accessToken);
 
-	return { totalRecords, data };
+  return item.stoppageproblems.map((problem) => ({
+        stoppageId: item.id,
+        stoppageCode: item.code,
+        transactionDate: extractDateTime(item.transactionDate, "date"),
+        departmentId: item.departmentId,
+        equipmentMainId: item.equipmentMainId,
+        equipmentName: equipmentName,
+        equipmentSubGroupId: item.equipmentSubGroupId,
+        runningHours: item.runningHours,
+        stoppageHours: item.stoppageHours,
+        totalHours: item.totalHours,
+        stoppageCreatedAt: extractDateTime(item.createdAt, "both"),
+        stoppageUpdatedAt: extractDateTime(item.updatedAt, "both"),
+        stoppageCreatedById: item.createdById,
+        stoppageUpdatedById: item.updatedById,
+        stoppageIsActive: item.isActive,
+
+        problemId: problem.id,
+        problemCode: problem.code,
+        problemRefId: problem.problemId,
+        problemHours: problem.problemHours,
+        noOfStoppages: problem.noOfStoppages,
+        remarks: problem.remarks,
+        problemCreatedAt: extractDateTime(problem.createdAt, "both"),
+        problemUpdatedAt: extractDateTime(problem.updatedAt, "both"),
+        problemCreatedById: problem.createdById,
+        problemUpdatedById: problem.updatedById,
+        problemIsActive: problem.isActive,
+      }));
+    })
+  );
+  return { data: data.flat() };
 };
 
 

@@ -8,11 +8,12 @@ import {
 } from "../services/materialAnalysis.service";
 
 export const getAllMaterialAnalysisUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
 ) => {
-	return await getAllService(pageNumber, pageSize, status);
+	return await getAllService(accessToken, pageNumber, pageSize, status);
 };
 
 export const getIdMaterialAnalysisUsecase = async (id: string) => {

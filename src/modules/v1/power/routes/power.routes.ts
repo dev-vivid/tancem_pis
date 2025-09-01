@@ -45,7 +45,7 @@ powerRouter.put(
 );
 
 powerRouter.patch(
-	"/deletePower/:id",
+	"/deletePower/:transactionId",
 	validateRequest(deletePowerTransactionParamsSchema, "params"),
 	deletePower
 );

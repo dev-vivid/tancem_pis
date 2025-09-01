@@ -40,10 +40,11 @@ export const createStoppageUsecase = async (
 };
 
 export const getAllStoppageUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 ) => {
-	return await getAllStoppage(pageNumber, pageSize);
+	return await getAllStoppage(accessToken, pageNumber, pageSize);
 }
 
 export const stoppageByIdUsecase = async (

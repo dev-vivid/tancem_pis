@@ -26,19 +26,33 @@ export const getAllPowerTransactions = async (
     },
   });
 
-	const data = transactions.map(item => ({
-    ...item,
-		transactionDate: extractDateTime(item.transactionDate, "date"),
-    createdAt: extractDateTime(item.createdAt, "both"),
-    updatedAt: extractDateTime(item.updatedAt, "both"),
-    powerDetails: item.powerDetails.map(detail => ({
-      ...detail,
+	// const data = transactions.map(item => ({
+  //   ...item,
+	// 	transactionDate: extractDateTime(item.transactionDate, "date"),
+  //   createdAt: extractDateTime(item.createdAt, "both"),
+  //   updatedAt: extractDateTime(item.updatedAt, "both"),
+  //   powerDetails: item.powerDetails.map(detail => ({
+  //     ...detail,
+  //     createdAt: extractDateTime(detail.createdAt, "both"),
+  //     updatedAt: extractDateTime(detail.updatedAt, "both"),
+  //   })),
+	// }));
+
+		const data = transactions.flatMap(item =>
+    item.powerDetails.map(detail => ({
+      powerDetailsId: detail.id,
+      transactionId: item.id,
+      equipmentId: detail.equipmentId,
+      units: detail.units,
+      transactionDate: extractDateTime(item.transactionDate, "date"),
       createdAt: extractDateTime(detail.createdAt, "both"),
       updatedAt: extractDateTime(detail.updatedAt, "both"),
-    })),
-  }));
-
-	return { totalRecords, data };
+      createdBy: detail.createdById,
+      updatedBy: detail.updatedById,
+      isActive: item.isActive,
+    }))
+  );
+	return data ;
 };
 
 export const getPowerTransactionById = async (

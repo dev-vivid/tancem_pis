@@ -208,10 +208,6 @@ export const createProblem = async (
 ) => {
     const { name, description, plantDepartmentId, problemDescription, sortOrder } = problemData;
 
-    // Validation
-    if (!name) throw new Error("Problem name is required.");
-    if (!problemDescription) throw new Error("Problem Name is required.");
-
     // Create using Prisma's ORM
    const create =  await tx.problem.create({
         data: {
