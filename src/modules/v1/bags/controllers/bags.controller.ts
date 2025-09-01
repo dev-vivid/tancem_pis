@@ -11,9 +11,16 @@ import {
 export const getAllBagsController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+		
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
 		const result = await getAllBagsUsecase(
+			accessToken,
 			pageNumber as string | undefined,
-			pageSize as string | undefined
+			pageSize as string | undefined,
 		);
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
@@ -25,7 +32,14 @@ export const getAllBagsController = async (req: Request, res: Response, next: Ne
 export const getBagsByIdController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { id } = req.params;
-		const result = await getIdBagsUsecase(id);
+		const authHeader = req.headers.authorization;
+		
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
+
+		const result = await getIdBagsUsecase(id, accessToken);
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
 	} catch (error) {

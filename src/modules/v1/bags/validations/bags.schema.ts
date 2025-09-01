@@ -6,7 +6,7 @@ export const bagsFilterQuerySchema = Joi.object({
 });
 
 export const createBagsBodySchema = Joi.object({
-	transactionDate: Joi.date().required(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).required(),
 	materialId: Joi.string().required(),
 	opc: Joi.number().integer().required(),
 	ppc: Joi.number().integer().required(),
@@ -20,7 +20,7 @@ export const createBagsBodySchema = Joi.object({
 });
 
 export const updateBagsBodySchema = Joi.object({
-	transactionDate: Joi.date().optional(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).optional(),
 	materialId: Joi.string().optional(),
 	opc: Joi.number().integer().optional(),
 	ppc: Joi.number().integer().optional(),

@@ -7,14 +7,15 @@ import {
 } from "../../bags/services/bags.service";
 
 export const getAllBagsUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
-	pageSize?: string
+	pageSize?: string,
 ) => {
-	return await getAllBags(pageNumber, pageSize);
+	return await getAllBags(accessToken, pageNumber, pageSize);
 };
 
-export const getIdBagsUsecase = async (id: string) => {
-	return await getIdBags(id);
+export const getIdBagsUsecase = async (id: string, accessToken: string) => {
+	return await getIdBags(id, accessToken);
 };
 
 type TBagsData = {
