@@ -2,6 +2,7 @@ import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { Status } from "@prisma/client";
 import { extractDateTime } from "../../../../shared/utils/date/index";
+import { getMaterialName } from "common/api";
 
 
 export const createMaterialAnalysis = async (
@@ -51,6 +52,7 @@ export const updateMaterialAnalysis = async (
 };
 
 export const getAllMaterialAnalysis = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -69,21 +71,37 @@ export const getAllMaterialAnalysis = async (
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
+			code: true,
 			materialId: true,
 			analysisId: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			updatedById: true,
 			status: true,
 			isActive: true
 		},
 	});
 
-	const data = result.map((item) => ({
-		...item,
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedAt: extractDateTime(item.updatedAt, "both"),
-	}));
+		const data = await Promise.all(
+		result.map(async (item) => {
+			const materialName = item.materialId && accessToken ? await getMaterialName(item.materialId, accessToken): null;
+
+			return {
+				uuid: item.id,
+				code: item.code,
+				materialId: item.materialId,
+				// materialName: materialName,
+				analysisId: item.analysisId, 
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				isActive: item.isActive,
+				status: item.status
+			};
+		})
+	);
 
 	return data;
 };

@@ -1,6 +1,7 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { transaction_type } from "@prisma/client";
 import { pageConfig } from "@shared/prisma/query.helper";
+import { parseDateOnly } from "@utils/date";
 
 // 1. Get all transaction types (with pagination)
 export const getAllAdjustments = async (
@@ -195,7 +196,7 @@ export const createAdjustment = async (
 			toSourceId,
 			quantity,
 			remarks,
-			transactionDate: new Date(transactionDate),
+			transactionDate: parseDateOnly(transactionDate),
 			materialId,
 			transactionType,
 			createdById: userId,

@@ -14,7 +14,9 @@ export const getAllanalysis = async (
 ) => {
 	try {
 		const { pageNumber, pageSize, status } = req.query;
+		const accessToken = req.headers.authorization;
 		const result = await getAllanalysisUsecase(
+			accessToken as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
@@ -35,8 +37,17 @@ export const getIdanalysis = async (
 ) => {
 	try {
 		const { id } = req.params;
+		const accessToken = req.headers.authorization;
 		// const { pageNumber, pageSize } = req.query;
-		const result = await getIdanalysisUsecase(id);
+		if (!id) {
+			return res.status(400).json({
+				code: "bad_request",
+				statusCode: 400,
+				success: false,
+				message: "ID parameter is required",
+			});
+		}
+		const result = await getIdanalysisUsecase(id, accessToken || "");
 		const response = responses.generate("success", {
 			data: result,
 		});

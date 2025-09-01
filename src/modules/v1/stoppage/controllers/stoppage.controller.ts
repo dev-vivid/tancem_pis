@@ -28,9 +28,17 @@ export const createStoppageController = async (req: Request, res: Response, next
 export const getAllStoppageController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+		
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
+		
 		const result = await getAllStoppageUsecase(
+			accessToken,
 			pageNumber as string | undefined, 
-			pageSize as string | undefined
+			pageSize as string | undefined,
 		);
 
 		const response = responses.generate("success", { data: result });

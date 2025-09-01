@@ -51,16 +51,20 @@ export const getAllQualityLab = async (
 
 	const data = await Promise.all(
 		labs.map(async (item) => {
-			const materialName = item.materialId
+			const materialObj = item.materialId
 				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
-			const equipmentName = item.equipmentId
+
+			const equipmentObj = item.equipmentId
 				? await api.getEquipmentName(item.equipmentId, accessToken)
 				: null;
+
+			// console.log("Material API Response:", materialObj);
+
 			return {
 				...item,
-				materialName,
-				equipmentName,
+				materialName: materialObj?.productDescription || "",
+				equipmentName: equipmentObj?.name || "",
 				createdAt: item.createdAt
 					.toISOString()
 					.replace("T", " ")
@@ -93,7 +97,12 @@ export const getQualityLabById = async (
 	const equipmentName = item.equipmentId
 		? await api.getEquipmentName(item.equipmentId, accessToken)
 		: null;
-	return item;
+	return {
+		...item,
+		materialName: materialName?.productDescription || null,
+		equipmentName: equipmentName?.name || null,
+		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
+	};
 };
 
 // ✅ Update

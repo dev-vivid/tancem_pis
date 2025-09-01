@@ -1,8 +1,8 @@
 import Joi from "joi";
 
 export const powerFilterQuerySchema = Joi.object({
-  pageNumber: Joi.string().optional(),
-  pageSize: Joi.string().optional(),
+  pageNumber: Joi.string().optional().pattern(/^[0-9]+$/),
+  pageSize: Joi.string().optional().pattern(/^[0-9]+$/),
 });
 
 export const createPowerTransactionBodySchema = Joi.object({
@@ -36,7 +36,7 @@ export const updatePowerTransactionParamsSchema = Joi.object({
 });
 
 export const deletePowerTransactionParamsSchema = Joi.object({
-  id: Joi.string().required(),
+  transactionId: Joi.string().required(),
 });
 
 export const getPowerTransactionParamsSchema = Joi.object({

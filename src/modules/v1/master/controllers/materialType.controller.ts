@@ -8,7 +8,15 @@ export const getAllMaterialType = async (req: Request, res: Response, next: Next
  try {
 
 	const { pageNumber, pageSize, status } = req.query;
+	const authHeader = req.headers.authorization;
+		
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ message: "Unauthorized: No access token provided" });
+	}
+	const accessToken = authHeader.split(" ")[1];		
+
 	const result = await getAllMaterialTypeUsecase(
+		accessToken,
 		pageNumber as string | undefined,
 		pageSize as string | undefined,
 		status as string | undefined
@@ -25,7 +33,14 @@ export const getAllMaterialType = async (req: Request, res: Response, next: Next
 export const getIdMaterialType = async (req: Request, res: Response, next: NextFunction) => {
  try {
 	const { id } = req.params;
-	const result = await getIdMaterialTypeUsecase(id);
+	const authHeader = req.headers.authorization;
+		
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ message: "Unauthorized: No access token provided" });
+	}
+	const accessToken = authHeader.split(" ")[1];		
+
+	const result = await getIdMaterialTypeUsecase(id, accessToken);
 
 	const response = responses.generate("success", {
 		data: result,

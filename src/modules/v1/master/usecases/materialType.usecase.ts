@@ -9,16 +9,17 @@ import { Status } from "@prisma/client";
 
 // Get all material type use case
 export const getAllMaterialTypeUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string
 ) => {
-	return await getAllService(pageNumber, pageSize, status);
+	return await getAllService(accessToken, pageNumber, pageSize, status);
 };
 
 // Get problem by ID use case
-export const getIdMaterialTypeUsecase = async (id: string) => {
-	return await getByIdService(id);
+export const getIdMaterialTypeUsecase = async (id: string, accessToken: string) => {
+	return await getByIdService(id, accessToken);
 };
 
 // MaterialType master data type for create/update
