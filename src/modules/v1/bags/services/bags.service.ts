@@ -54,11 +54,6 @@ export const getAllBags = async (
 				materialId: item.materialId,
 				materialName, 
 				transactionDate: extractDateTime(item.transactionDate, "date"),
-				createdAt: extractDateTime(item.createdAt, "both"),
-				createdBy: item.createdById,
-				updatedAt: extractDateTime(item.updatedAt, "both"),
-				updatedBy: item.updatedById,
-				isActive: item.isActive,
 				opc: item.opc,
 				ppc: item.ppc,
 				src: item.src,
@@ -68,6 +63,11 @@ export const getAllBags = async (
 				export: item.export,
 				deport: item.deport,
 				transferQty: item.transferQty,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				isActive: item.isActive,
 			};
 		})
 	);

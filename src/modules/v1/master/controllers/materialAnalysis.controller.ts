@@ -8,7 +8,14 @@ export const getAllMaterialAnalysis = async (req: Request, res: Response, next: 
  try {
 
 	const { pageNumber, pageSize, status } = req.query;
+	const authHeader = req.headers.authorization;
+		
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ message: "Unauthorized: No access token provided" });
+	}
+	const accessToken = authHeader.split(" ")[1];		
 	const result = await getAllMaterialAnalysisUsecase(
+		accessToken,
 		pageNumber as string | undefined,
 		pageSize as string | undefined,
 		status as string | undefined

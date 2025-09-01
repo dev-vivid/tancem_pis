@@ -2,6 +2,7 @@ import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import { Status } from "@prisma/client";
+import { getMaterialName } from "common/api";
 
 
 export const createMaterialType = async (
@@ -52,6 +53,7 @@ export const updateMaterialType = async (
 }
 
 export const getAllMaterialType = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -71,7 +73,9 @@ export const getAllMaterialType = async (
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
+			code: true,
 			materialId: true,
+			materialTypeMasterId: true,
 			status: true,
 			updatedAt: true,
 			createdAt: true,
@@ -81,11 +85,28 @@ export const getAllMaterialType = async (
 		},
 	});
 
-	const data = result.map(item => ({
-        ...item,
-        createdAt: extractDateTime(item.createdAt, "both"),
-        updatedAt: extractDateTime(item.updatedAt, "both")
-   }));
+	const data = await Promise.all(
+		result.map(async (item) => {
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
+
+			return {
+				uuid: item.id,
+				code: item.code,
+				materialId: item.materialId,
+				materialName, 
+				materialTypeMasterId: item.materialTypeMasterId,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				isActive: item.isActive,
+				status: item.status
+			};
+		})
+	);
 
 	return data;
 
@@ -93,12 +114,14 @@ export const getAllMaterialType = async (
 
 export const getByID = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma 
 ) => {
 	const result = await tx.materialType.findUnique({
 		where: {id, },
 		select: {
 			id: true,
+			code: true,
 			materialId: true,
 			createdAt: true,
 			createdById: true,
@@ -111,10 +134,19 @@ export const getByID = async (
 
 	if(!result) {throw new Error("materialType not found");}
 
-	const data = { 
-        ...result,
-        createdAt: extractDateTime(result.createdAt, "both"),
-        updatedAt: extractDateTime(result.updatedAt, "both")
+	const materialName = result.materialId && accessToken ? await getMaterialName(result.materialId, accessToken) : null;
+
+		const data = {
+		id: result.id,
+		code: result.code,
+		materialId: result.materialId,
+		materialName, 
+		createdAt: extractDateTime(result.createdAt, "both"),
+		createdById: result.createdById,
+		updatedAt: extractDateTime(result.updatedAt, "both"),
+		updatedById: result.updatedById,
+		isActive: result.isActive,
+		status: result.status
 	};
 
 	return {
