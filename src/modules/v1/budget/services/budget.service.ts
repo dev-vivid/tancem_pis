@@ -1,10 +1,11 @@
 import { extractDateTime, parseDateOnly } from "@utils/date";
+import { getMaterialName } from "common/api";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 
-
 // Get all budgets
 export const getAllBudgets = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -36,12 +37,22 @@ export const getAllBudgets = async (
 		},
 	});
 
-	const data = budgets.map((item) => ({
-		...item,
-		transactionDate: extractDateTime(item.transactionDate, "date"),
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedAt: extractDateTime(item.updatedAt, "both"),
-	}));
+	const data = await Promise.all(
+		budgets.map(async (item) => {
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
+
+			return {
+				...item,
+				materialName,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+			};
+		})
+	);
 
 	return { totalRecords, data };
 };
@@ -49,19 +60,40 @@ export const getAllBudgets = async (
 // Get budget by ID
 export const getBudgetById = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const budget = await tx.budget.findUnique({
 		where: { id, isActive: true },
+		select: {
+			id: true,
+			code: true,
+			financialYear: true,
+			transactionDate: true,
+			materialId: true,
+			budgetCode: true,
+			budgetValue: true,
+			createdAt: true,
+			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			isActive: true,
+		},
 	});
 
 	if (!budget) throw new Error("Budget record not found");
 
+	const materialName =
+		budget.materialId && accessToken
+			? await getMaterialName(budget.materialId, accessToken)
+			: null;
+
 	const data = {
 		...budget,
-		transactionDate: budget.transactionDate.toISOString().substring(0, 10),
-		createdAt: extractDateTime(budget.createdAt , "both"),
-		updatedAt: extractDateTime(budget.updatedAt , "both"),
+		materialName,
+		transactionDate: extractDateTime(budget.transactionDate, "date"),
+		createdAt: extractDateTime(budget.createdAt, "both"),
+		updatedAt: extractDateTime(budget.updatedAt, "both"),
 	};
 
 	return { data };
@@ -106,7 +138,7 @@ export const updateBudget = async (
 		data: {
 			...budgetData,
 			transactionDate: budgetData.transactionDate
-				? new Date(budgetData.transactionDate)
+				? parseDateOnly(budgetData.transactionDate)
 				: undefined,
 			updatedById: user,
 		},

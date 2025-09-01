@@ -9,11 +9,11 @@ import {
   deleteEquipmentParamsSchema
 } from "../validations/equipment.schema";
 import {
-  getAllEquipment,
-  getEquipmentById,
-  createEquipment,
-  updateEquipment,
-  deleteEquipment
+  getAllEquipmentController as getAllEquipment,
+  getEquipmentByIdController as getEquipmentById,
+  createEquipmentController as createEquipment,
+  updateEquipmentController as updateEquipment,
+  deleteEquipmentController as deleteEquipment
 } from "../controllers/equipment.controller";
 
 const equipmentRouter = express.Router();

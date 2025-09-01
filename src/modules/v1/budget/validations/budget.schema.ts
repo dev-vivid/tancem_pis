@@ -7,7 +7,7 @@ export const budgetFilterQuerySchema = Joi.object({
 
 export const createBudgetBodySchema = Joi.object({
 	financialYear: Joi.string().required(),
-	transactionDate: Joi.date().required(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).required(),
 	materialId: Joi.string().required(),
 	budgetCode: Joi.string().required(),
 	budgetValue: Joi.number().required(),
@@ -15,7 +15,7 @@ export const createBudgetBodySchema = Joi.object({
 
 export const updateBudgetBodySchema = Joi.object({
 	financialYear: Joi.string().optional(),
-	transactionDate: Joi.date().optional(),
+	transactionDate: Joi.string().pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/).optional(),
 	materialId: Joi.string().optional(),
 	budgetCode: Joi.string().optional(),
 	budgetValue: Joi.number().optional(),

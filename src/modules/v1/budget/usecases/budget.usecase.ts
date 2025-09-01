@@ -7,14 +7,15 @@ import {
 } from "../services/budget.service";
 
 export const getAllBudgetsUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	return await getAllBudgets(pageNumber, pageSize);
+	return await getAllBudgets(accessToken,pageNumber, pageSize);
 };
 
-export const getBudgetByIdUsecase = async (id: string) => {
-	return await getBudgetById(id);
+export const getBudgetByIdUsecase = async (id: string, accessToken: string) => {
+	return await getBudgetById(id,accessToken);
 };
 
 export const createBudgetUsecase = async (

@@ -10,22 +10,24 @@ export const equipmentFilterQuerySchema = Joi.object({
 export const createEquipmentBodySchema = Joi.object({
   equipmentId: Joi.string().max(36).required(),
   equipmentDescription: Joi.string().max(36).required(),
-  strength: Joi.string().max(36).required(),
-  quality: Joi.string().max(36).required(),
-  power: Joi.string().max(36).required(),
+  strength: Joi.string().valid('Yes' ,'No').required(),
+	analysis: Joi.string().valid('Yes' ,'No').required(),
+  quality: Joi.string().valid('Yes' ,'No').required(),
+  power: Joi.string().valid('Yes' ,'No').required(),
   powerGroup: Joi.string().max(36).required(),
-  storage: Joi.string().max(36).required(),
+  storage: Joi.string().valid('Yes' ,'No').required(),
   orderOfAppearance: Joi.string().max(36).required(),
 });
 
 export const updateEquipmentBodySchema = Joi.object({
   equipmentId: Joi.string().max(36).required(),
   equipmentDescription: Joi.string().max(36).optional(),
-  strength: Joi.string().max(36).optional(),
-  quality: Joi.string().max(36).optional(),
-  power: Joi.string().max(36).optional(),
+  strength:Joi.string().valid('Yes' ,'No').optional(),
+	analysis: Joi.string().valid('Yes' ,'No').optional(),
+  quality:Joi.string().valid('Yes' ,'No').optional(),
+  power: Joi.string().valid('Yes' ,'No').optional(),
   powerGroup: Joi.string().max(36).optional(),
-  storage: Joi.string().max(36).optional(),
+  storage: Joi.string().valid('Yes' ,'No').optional(),
   orderOfAppearance: Joi.string().max(36).optional(),
 	status: Joi.string().valid('active' ,'inActive').optional()
 
