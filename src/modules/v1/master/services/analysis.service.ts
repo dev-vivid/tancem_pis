@@ -2,9 +2,12 @@ import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
+import * as api from "../../../../common/api";
+
 import path from "path";
 
 export const getAllanalysis = async (
+	accessToken: string,
 	pageNumber?: number,
 	pageSize?: number,
 	status?: string,
@@ -16,9 +19,9 @@ export const getAllanalysis = async (
 	});
 
 	const whereClause: any = {
-			isActive: true,
-			...(status ? { status: status as Status } : {})
-	}
+		isActive: true,
+		...(status ? { status: status as Status } : {}),
+	};
 
 	const totalRecords = await tx.analysis.count();
 
@@ -40,24 +43,29 @@ export const getAllanalysis = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
 	// Convert snake_case to camelCase in the result
-	const data = analysis.map((item) => ({
-		uuid: item.id,
-		analysisCode: item.code,
-		analysisType: item.type,
-		description: item.description,
-		materialId: item.materialId,
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedId: extractDateTime(item.updatedAt, "both"),
-		createdBy: item.createdById,
-		updatedBy: item.updatedById,
-		status: item.status,
-		isActive: item.isActive
-	}));
+	const data = await Promise.all(
+		analysis.map(async (item) => {
+			const materialObj = item.materialId
+				? await api.getMaterialName(item.materialId, accessToken)
+				: null;
+			// const equipmentName = item.equipmentId
+			// 	? await api.getEquipmentName(item.equipmentId, accessToken)
+			// 	: null;
+			return {
+				...item,
+				materialName: materialObj?.productDescription || "",
+				createdAt: item.createdAt
+					.toISOString()
+					.replace("T", " ")
+					.substring(0, 19),
+			};
+		})
+	);
 
 	return {
 		totalRecords,
@@ -67,12 +75,13 @@ export const getAllanalysis = async (
 
 export const getIdanalysis = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	// console.log("🔍 Searching for Analysis ID:", id);
+
 	const item = await tx.analysis.findUnique({
-		where: {
-			id: id,
-		},
+		where: { id: id.trim() },
 		select: {
 			id: true,
 			code: true,
@@ -84,14 +93,23 @@ export const getIdanalysis = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
-
+			isActive: true,
 		},
 	});
 
+	// console.log(" Prisma Result:", item);
+
 	if (!item) {
-		throw new Error("Analysis not found.");
+		throw new Error(`Analysis not found for ID: ${id}`);
 	}
+
+	// console.log(" Found Analysis:", item.id);
+
+	const materialName = item.materialId
+		? await api.getMaterialName(item.materialId, accessToken)
+		: null;
+
+	// console.log(" Material Name:", materialName);
 
 	const data = {
 		uuid: item.id,
@@ -99,25 +117,28 @@ export const getIdanalysis = async (
 		analysisType: item.type,
 		description: item.description,
 		materialId: item.materialId,
+		materialName: materialName.productDescription || "",
 		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedId: extractDateTime(item.updatedAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"), // fixed field name
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
 		status: item.status,
-		isActive: item.isActive
+		isActive: item.isActive,
 	};
 
-	return {
-		data
-	};
+	return { data };
 };
 
 export const createAnalysis = async (
-	analysisData: { analysisType: string; description?: string; materialId: string },
+	analysisData: {
+		analysisType: string;
+		description?: string;
+		materialId: string;
+	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { analysisType, description, materialId} = analysisData;
+	const { analysisType, description, materialId } = analysisData;
 
 	if (!analysisType) {
 		throw new Error("Analysis type is required.");
@@ -135,11 +156,15 @@ export const createAnalysis = async (
 
 export const updateAnalysis = async (
 	id: string,
-	analysisData: { analysisType: string; description?: string },
+	analysisData: {
+		analysisType: string;
+		description?: string;
+		materialId: string;
+	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { analysisType, description } = analysisData;
+	const { analysisType, description, materialId } = analysisData;
 
 	if (!id) {
 		throw new Error("ID is required for updating analysis.");
@@ -156,6 +181,7 @@ export const updateAnalysis = async (
 		data: {
 			type: analysisType,
 			description: description || null,
+			materialId,
 			updatedById: user,
 		},
 	});

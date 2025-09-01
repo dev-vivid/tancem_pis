@@ -45,10 +45,8 @@ export const getMaterialName = async (
 	accessToken: string
 ) => {
 	const token = `Bearer ${accessToken}`;
-	const apiUrl = `${INVENTORY_URL}/RawMaterialItemView/${materialId}`;
-
+	const apiUrl = `${INVENTORY_URL}/rawMaterialItemFetch/${materialId}`;
 	try {
-		// ✅ Print the API URL
 		// console.log("API URL being called:", apiUrl);
 
 		const response = await fetch(apiUrl, {
@@ -60,14 +58,12 @@ export const getMaterialName = async (
 		});
 
 		const data = await response.json();
-
-		// console.log("---------------*******************----------------------------");
-		// console.log("API Response:", data);
-		// console.log("-------------------%%%%%%%%%%%%%%%%%%%%%%%------------------------");
-
 		// ✅ Correct way to extract productDescription
-		if (data && data.success && data.data && data.data.list) {
-			return data.data.list.productDescription; // Or productCode, or createdBy, etc.
+		// if (data && data.success && data.data && data.data.list) {
+		// 	return data.data.list; // Or productCode, or createdBy, etc.
+		// }
+		if (data?.success && data?.data?.list) {
+			return data.data.list; // <-- this is the object with productDescription
 		}
 
 		return null;
@@ -98,8 +94,8 @@ export const getEquipmentName = async (
 		// console.log("API Raw Response:", data);
 
 		// ✅ Check response structure
-		if (data?.data?.list?.name) {
-			return data.data.list.name;
+		if (data?.data?.list) {
+			return data.data.list;
 		}
 
 		return null;
