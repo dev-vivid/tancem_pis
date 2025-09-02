@@ -2,9 +2,10 @@ import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "@utils/date";
-
+import { getDepartmentName } from "common/api";
 
 export const getAllProblems = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -37,13 +38,26 @@ export const getAllProblems = async (
 			isActive: true
 		},
 	});
-	const data = problems.map(({departmentId, problemName, createdAt, updatedAt, ...rest}) => ({
+
+  const data = await Promise.all(
+    problems.map(async ({ departmentId, problemName, createdAt, updatedAt, ...rest }) => {
+      const departmentName =
+        departmentId && accessToken
+          ? await getDepartmentName(departmentId, accessToken)
+          : null;
+
+      return {
         ...rest,
-				plantDepartmentId: departmentId,
-				problemDescription: problemName,
+        id: rest.id,
+        problemDescription: problemName,
+        plantDepartmentId: departmentId,
+        // plantDepartmentName: departmentName ? departmentName.name : null,
+				plantDepartmentName: departmentName?.name || null,
         createdAt: extractDateTime(createdAt, "both"),
         updatedAt: extractDateTime(updatedAt, "both"),
-    }));
+      };
+    })
+  );
 	
 	return {
 		totalRecords,

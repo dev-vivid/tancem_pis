@@ -8,7 +8,15 @@ export const getAllProblem = async (req: Request, res: Response, next: NextFunct
  try {
 
 	const { pageNumber, pageSize, status } = req.query;
+	const authHeader = req.headers.authorization;
+		
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ message: "Unauthorized: No access token provided" });
+	}
+	const accessToken = authHeader.split(" ")[1];		
+
 	const result = await getAllProblemsUsecase(
+		accessToken,
 		pageNumber as string | undefined,
 		pageSize as string | undefined,
 		status as string | undefined
