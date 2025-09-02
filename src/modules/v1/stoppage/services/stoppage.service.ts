@@ -1,7 +1,7 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
-import { getEquipmentName } from "../../../../common/api";
+import { getEquipmentName, getDepartmentName, getEquipmentSubGroupName, getOfficeName } from "../../../../common/api";
 
 function timeStringToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
@@ -181,15 +181,21 @@ export const getAllStoppage = async (
 	const data = await Promise.all(
     transactions.flatMap(async (item) => {
   const equipmentName = await getEquipmentName(item.equipmentMainId, accessToken);
+	const equipmentSubGroupName = await getEquipmentSubGroupName(item.equipmentSubGroupId, accessToken);
+	const departmentName = await getDepartmentName(item.departmentId, accessToken);
+
+	const validSubGroup = equipmentSubGroupName && equipmentSubGroupName.equipmentGroupId === item.equipmentMainId ? equipmentSubGroupName : null;
 
   return item.stoppageproblems.map((problem) => ({
         stoppageId: item.id,
         stoppageCode: item.code,
         transactionDate: extractDateTime(item.transactionDate, "date"),
         departmentId: item.departmentId,
+				departmentName: departmentName ? departmentName.name : null,
         equipmentMainId: item.equipmentMainId,
         equipmentMainName: equipmentName ? equipmentName.name : null,
         equipmentSubGroupId: item.equipmentSubGroupId,
+				equipmentSubGroupName: validSubGroup ? validSubGroup.name : null,
         runningHours: item.runningHours,
         stoppageHours: item.stoppageHours,
         totalHours: item.totalHours,
@@ -241,6 +247,10 @@ export const getStoppageById = async (
 
 
   const equipmentName = stoppageById.equipmentMainId && accessToken ? await getEquipmentName(stoppageById.equipmentMainId, accessToken): null;
+	const departmentName = stoppageById.departmentId && accessToken ? await getDepartmentName(stoppageById.departmentId, accessToken): null;
+	const equipmentSubGroupName = stoppageById.equipmentSubGroupId && accessToken ? await getEquipmentSubGroupName(stoppageById.equipmentSubGroupId, accessToken): null;
+	const validSubGroup = equipmentSubGroupName && equipmentSubGroupName.equipmentGroupId === stoppageById.equipmentMainId ? equipmentSubGroupName : null;
+
 
   const stoppageProblems = stoppageById.stoppageproblems.map((problem) => ({
     ...problem,
@@ -254,9 +264,11 @@ export const getStoppageById = async (
     stoppageCode: stoppageById.code,
     transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
     departmentId: stoppageById.departmentId,
+		departmentName: departmentName ? departmentName.name : null,
     equipmentMainId: stoppageById.equipmentMainId,
     equipmentMainName: equipmentName ? equipmentName.name : null,
     equipmentSubGroupId: stoppageById.equipmentSubGroupId,
+		equipmentSubGroupName: validSubGroup ? validSubGroup.name : null,
     runningHours: stoppageById.runningHours,
     stoppageHours: stoppageById.stoppageHours,
     totalHours: stoppageById.totalHours,

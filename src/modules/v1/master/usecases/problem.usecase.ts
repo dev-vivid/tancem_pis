@@ -10,13 +10,14 @@ import {
 
 // Get all problems use case
 export const getAllProblemsUsecase = async (
+	accessToken: string,
   pageNumber?: string,
   pageSize?: string,
 	status?: string
 ) => {
   // const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
   // const size = pageSize ? parseInt(pageSize, 10) : undefined;
-  return await getAllProblems(pageNumber, pageSize, status);
+  return await getAllProblems(accessToken, pageNumber, pageSize, status);
 };
 
 // Get problem by ID use case

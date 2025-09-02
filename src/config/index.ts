@@ -36,6 +36,7 @@ export const MICROSERVICE_BASE_URL = getEnvVariable("MICROSERVICE_BASE_URL");
 export const SESSION_VALIDATION_URL = getEnvVariable("SESSION_VALIDATION_URL");
 export const INVENTORY_URL = getEnvVariable("INVENTORY_URL");
 export const ASSET_URL = getEnvVariable("ASSET_URL");
+export const USER_MANAGEMENT_URL = getEnvVariable("USER_MANAGEMENT_URL");
 
 export const UPLOAD_PATH = getEnvVariable("UPLOAD_PATH");
 export const V1_BASE_PATH = `/${BASE_PATH}/v1`;
