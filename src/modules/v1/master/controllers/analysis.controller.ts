@@ -13,10 +13,11 @@ export const getAllanalysis = async (
 	next: NextFunction
 ) => {
 	try {
-		const { pageNumber, pageSize, status } = req.query;
+		const { pageNumber, pageSize, status, materialId } = req.query;
 		const accessToken = req.headers.authorization;
 		const result = await getAllanalysisUsecase(
 			accessToken as string,
+			materialId as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
@@ -173,3 +174,26 @@ export const deleteAnalysis = async (
 		next(error);
 	}
 };
+
+// export const getMaterialAnalysis = async (
+// 	req: Request,
+// 	res: Response,
+// 	next: NextFunction
+// ) => {
+// 	try {
+// 		const { materialId } = req.query;
+// 		// const accessToken = req.headers.authorization;
+// 		const result = await getMaterialAnalysisUsecase(
+// 			materialId as string
+// 			// pageNumber as string | undefined,
+// 			// pageSize as string | undefined,
+// 			// status as string | undefined
+// 		);
+// 		const response = responses.generate("success", {
+// 			data: result,
+// 		});
+// 		res.status(response.statusCode).send(response);
+// 	} catch (error) {
+// 		next(error);
+// 	}
+// };

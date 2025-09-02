@@ -8,5 +8,5 @@ export const analysisLabFilterQuerySchema = Joi.object({
 export const analysisLabFormSchema = Joi.object({
 	transactionDate: Joi.string().required(),
 	materialId: Joi.string().required(),
-	analysisId: Joi.string().optional(),
+	analysisId: Joi.array().items(Joi.string()).min(1).required(), // expects ["id1", "id2"]
 });

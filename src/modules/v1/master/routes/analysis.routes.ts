@@ -10,7 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	analysisFilterQuerySchema,
 	analysisFormSchema,
-	updateanalysisFormSchema
+	updateanalysisFormSchema,
 } from "../validations/analysis.schema";
 
 const analysisRouter = express.Router();
@@ -20,6 +20,12 @@ analysisRouter.get(
 	validateRequest(analysisFilterQuerySchema, "query"),
 	getAllanalysis
 );
+
+// analysisRouter.get(
+// 	"/getMaterialAnalysis",
+// 	validateRequest(analysisFilterQuerySchema, "query"),
+// 	getMaterialAnalysis
+// );
 
 analysisRouter.get("/analysis/:id", getIdanalysis);
 

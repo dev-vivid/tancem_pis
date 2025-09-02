@@ -1,27 +1,119 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import * as api from "../../../../common/api";
+import {
+	extractDateTime,
+	parseDateOnly,
+} from "../../../../shared/utils/date/index";
 
-export const createAnalysisLab = async (data: any, user: string) => {
-	const analysisExists = await prisma.analysis.findUnique({
-		where: { id: data.analysisId },
-	});
+// export const createAnalysisLab = async (data: any, user: string) => {
+// 	const analysisExists = await prisma.analysis.findUnique({
+// 		where: { id: data.analysisId },
+// 	});
 
-	if (!analysisExists) {
-		throw new Error("Provided analysisId does not exist in Analysis table");
-	}
+// 	if (!analysisExists) {
+// 		throw new Error("Provided analysisId does not exist in Analysis table");
+// 	}
 
-	return await prisma.analysisLab.create({
+// 	return await prisma.analysisLab.create({
+// 		data: {
+// 			transactionDate: new Date(data.transactionDate),
+// 			materialId: data.materialId,
+// 			// analysisId: data.analysisId,
+// 			createdById: user,
+// 		},
+// 	});
+// };
+
+// ✅ Get all with pagination
+
+export const createAnalysisLab = async (
+	data: any,
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	// return await prisma.$transaction(async (tx) => {
+	const lab = await tx.analysisLab.create({
 		data: {
-			transactionDate: new Date(data.transactionDate),
+			transactionDate: parseDateOnly(data.transactionDate),
 			materialId: data.materialId,
-			analysisId: data.analysisId,
 			createdById: user,
 		},
 	});
+
+	if (data.analysisId && data.analysisId.length > 0) {
+		await tx.labAnalysisTypes.createMany({
+			data: data.analysisId.map((analysisId: string) => ({
+				AnalysisLabId: lab.id,
+				analysisId,
+				createdById: user,
+			})),
+		});
+	}
+
+	// // 3️⃣ Return lab with analyses
+	// return tx.analysisLab.findUnique({
+	// 	where: { id: lab.id },
+	// 	include: {
+	// 		analyses: {
+	// 			include: { MaterialAnalysis: true },
+	// 		},
+	// 	},
+	// });
+	// });
 };
 
-// ✅ Get all with pagination
+export const updateAnalysisLab = async (
+	id: string,
+	data: any,
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	const lab = await tx.analysisLab.update({
+		where: { id },
+		data: {
+			transactionDate: parseDateOnly(data.transactionDate),
+			materialId: data.materialId,
+			updatedById: user,
+		},
+	});
+
+	const existing = await tx.labAnalysisTypes.findMany({
+		where: { AnalysisLabId: id },
+		select: { analysisId: true },
+	});
+
+	const existingIds = existing.map((e) => e.analysisId);
+	const newIds: string[] = data.analysisId || [];
+
+	const toAdd = newIds.filter((x) => !existingIds.includes(x));
+	const toRemove = existingIds.filter((x) => !newIds.includes(x));
+
+	if (toRemove.length > 0) {
+		await tx.labAnalysisTypes.updateMany({
+			where: {
+				AnalysisLabId: id,
+				analysisId: { in: toRemove },
+			},
+			data: {
+				isActive: false,
+				updatedById: user,
+				updatedAt: new Date(),
+			},
+		});
+	}
+
+	if (toAdd.length > 0) {
+		await tx.labAnalysisTypes.createMany({
+			data: toAdd.map((analysisId: string) => ({
+				AnalysisLabId: id,
+				analysisId,
+				createdById: user,
+			})),
+		});
+	}
+};
+
 export const getAllAnalysisLab = async (
 	accessToken: string,
 	pageNumber?: number,
@@ -33,22 +125,26 @@ export const getAllAnalysisLab = async (
 		pageSize: pageSize?.toString(),
 	});
 
-	const totalRecords = await tx.analysisLab.count();
+	const totalRecords = await tx.analysisLab.count({
+		where: { isActive: true },
+	});
 
 	const labs = await tx.analysisLab.findMany({
 		skip,
 		take,
+		where: { isActive: true },
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
 			transactionDate: true,
 			materialId: true,
-			analysisId: true,
 			createdAt: true,
 			createdById: true,
-			MaterialAnalysis: {
+			_count: {
 				select: {
-					description: true,
+					LabAnalysisTypes: {
+						where: { isActive: true }, // ✅ count only active ones
+					},
 				},
 			},
 		},
@@ -62,16 +158,15 @@ export const getAllAnalysisLab = async (
 
 			return {
 				id: item.id,
-				transactionDate: item.transactionDate,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
-				materialName: materialName.productDescription,
-				analysisId: item.analysisId,
+				materialName: materialName?.productDescription ?? null,
+				analysisTypeCount: item._count.LabAnalysisTypes,
 				createdAt: item.createdAt
 					.toISOString()
 					.replace("T", " ")
 					.substring(0, 19),
 				createdById: item.createdById,
-				analysisName: item.MaterialAnalysis?.description || null,
 			};
 		})
 	);
@@ -90,8 +185,17 @@ export const getAnalysisLabById = async (
 	const item = await tx.analysisLab.findUnique({
 		where: { id },
 		include: {
-			MaterialAnalysis: {
-				select: { description: true },
+			LabAnalysisTypes: {
+				where: { isActive: true },
+				include: {
+					MaterialAnalysis: {
+						select: {
+							id: true,
+							type: true,
+							description: true,
+						},
+					},
+				},
 			},
 		},
 	});
@@ -104,36 +208,17 @@ export const getAnalysisLabById = async (
 
 	return {
 		id: item.id,
-		transactionDate: item.transactionDate,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
-		materialName: materialName.productDescription,
-		analysisId: item.analysisId,
-		analysisName: item.MaterialAnalysis?.description || null,
+		materialName: materialName?.productDescription || null,
+		analysis: item.LabAnalysisTypes.map((a) => ({
+			id: a.MaterialAnalysis.id,
+			type: a.MaterialAnalysis.type,
+			name: a.MaterialAnalysis.description,
+		})),
 		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
 		createdById: item.createdById,
 	};
-};
-
-// ✅ Update
-export const updateAnalysisLab = async (
-	id: string,
-	data: {
-		transactionDate: Date;
-		materialId: string;
-		analysisId: string;
-	},
-	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma
-) => {
-	return await tx.analysisLab.update({
-		where: { id },
-		data: {
-			transactionDate: data.transactionDate,
-			materialId: data.materialId,
-			analysisId: data.analysisId,
-			updatedById: user,
-		},
-	});
 };
 
 // ✅ Delete
@@ -145,9 +230,18 @@ export const deleteAnalysisLab = async (
 	if (!id) {
 		throw new Error("ID is required for deleting analysis.");
 	}
-	await tx.analysis.update({
+
+	await tx.analysisLab.update({
+		where: { id },
+		data: {
+			isActive: false,
+			updatedById: user,
+		},
+	});
+
+	await tx.labAnalysisTypes.updateMany({
 		where: {
-			id: id,
+			AnalysisLabId: id, // foreign key
 		},
 		data: {
 			isActive: false,
