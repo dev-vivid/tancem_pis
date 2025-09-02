@@ -160,6 +160,9 @@ export const getAllStoppage = async (
 			stoppageproblems: {
 				where: { isActive: true},
 				orderBy: { createdAt: "desc"},
+				include: {
+					ProblemFk: true,
+				}
 			}
 		}
 	});
@@ -185,7 +188,7 @@ export const getAllStoppage = async (
         transactionDate: extractDateTime(item.transactionDate, "date"),
         departmentId: item.departmentId,
         equipmentMainId: item.equipmentMainId,
-        equipmentName: equipmentName,
+        equipmentMainName: equipmentName ? equipmentName.name : null,
         equipmentSubGroupId: item.equipmentSubGroupId,
         runningHours: item.runningHours,
         stoppageHours: item.stoppageHours,
@@ -196,9 +199,10 @@ export const getAllStoppage = async (
         stoppageUpdatedById: item.updatedById,
         stoppageIsActive: item.isActive,
 
-        problemId: problem.id,
+        stoppageproblemId: problem.id,
         problemCode: problem.code,
-        problemRefId: problem.problemId,
+        problemId: problem.problemId,
+				problemName: problem.ProblemFk.problemName || null,
         problemHours: problem.problemHours,
         noOfStoppages: problem.noOfStoppages,
         remarks: problem.remarks,
@@ -216,6 +220,7 @@ export const getAllStoppage = async (
 
 export const getStoppageById = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const stoppageById = await tx.stoppage.findFirst({
@@ -225,6 +230,9 @@ export const getStoppageById = async (
 			stoppageproblems: {
 				where: { isActive: true},
 				orderBy: { createdAt: "desc"},
+				include: {
+					ProblemFk: true,
+				}
 			}
 		}
 	});
@@ -232,18 +240,47 @@ export const getStoppageById = async (
 	if(!stoppageById){throw new Error(`Id not found 404`)};
 
 
-	return {
-		...stoppageById,
-		transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
-    createdAt: extractDateTime(stoppageById.createdAt, "both"),
-    updatedAt: extractDateTime(stoppageById.updatedAt, "both"),
-    stoppageproblems: stoppageById.stoppageproblems.map(detail => ({
-      ...detail,
-      createdAt: extractDateTime(detail.createdAt, "both"),
-      updatedAt: extractDateTime(detail.updatedAt, "both"),
+  const equipmentName = stoppageById.equipmentMainId && accessToken ? await getEquipmentName(stoppageById.equipmentMainId, accessToken): null;
+
+  const stoppageProblems = stoppageById.stoppageproblems.map((problem) => ({
+    ...problem,
+    problemName: problem.ProblemFk?.problemName || null,
+    createdAt: extractDateTime(problem.createdAt, "both"),
+    updatedAt: extractDateTime(problem.updatedAt, "both"),
+  }));
+
+  return {
+    stoppageId: stoppageById.id,
+    stoppageCode: stoppageById.code,
+    transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
+    departmentId: stoppageById.departmentId,
+    equipmentMainId: stoppageById.equipmentMainId,
+    equipmentMainName: equipmentName ? equipmentName.name : null,
+    equipmentSubGroupId: stoppageById.equipmentSubGroupId,
+    runningHours: stoppageById.runningHours,
+    stoppageHours: stoppageById.stoppageHours,
+    totalHours: stoppageById.totalHours,
+    stoppageCreatedAt: extractDateTime(stoppageById.createdAt, "both"),
+    stoppageUpdatedAt: extractDateTime(stoppageById.updatedAt, "both"),
+    stoppageCreatedById: stoppageById.createdById,
+    stoppageUpdatedById: stoppageById.updatedById,
+    stoppageIsActive: stoppageById.isActive,
+
+    stoppageproblems: stoppageById.stoppageproblems.map((problem) => ({
+      stoppageproblemId: problem.id,
+      problemCode: problem.code,
+      problemId: problem.problemId,
+      problemName: problem.ProblemFk?.problemName || null, 
+      problemHours: problem.problemHours,
+      noOfStoppages: problem.noOfStoppages,
+      remarks: problem.remarks,
+      problemCreatedAt: extractDateTime(problem.createdAt, "both"),
+      problemUpdatedAt: extractDateTime(problem.updatedAt, "both"),
+      problemCreatedById: problem.createdById,
+      problemUpdatedById: problem.updatedById,
+      problemIsActive: problem.isActive,
     })),
   };
-
 };
 
 export const deleteStoppage = async (

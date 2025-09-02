@@ -11,7 +11,14 @@ import {
 export const getAllPower = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+		
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
 		const result = await getAllPowerTransactionsUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -25,7 +32,13 @@ export const getAllPower = async (req: Request, res: Response, next: NextFunctio
 export const getPowerById = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { id } = req.params;
-		const result = await getPowerTransactionByIdUsecase(id);
+		const authHeader = req.headers.authorization;
+		
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
+		const result = await getPowerTransactionByIdUsecase(id, accessToken);
 
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);

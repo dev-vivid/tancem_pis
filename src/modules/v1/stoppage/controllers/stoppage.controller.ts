@@ -51,9 +51,15 @@ export const getAllStoppageController = async (req: Request, res: Response, next
 
 export const stoppageByIdController = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { id } = req.params
+		const { id } = req.params;
+		const authHeader = req.headers.authorization;
 		
-		const result = await stoppageByIdUsecase(id);
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];		
+		
+		const result = await stoppageByIdUsecase(id, accessToken);
 
 		const response = responses.generate("success", { data: result });
 		

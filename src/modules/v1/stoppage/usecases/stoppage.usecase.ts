@@ -48,9 +48,10 @@ export const getAllStoppageUsecase = async (
 }
 
 export const stoppageByIdUsecase = async (
-	id: string
+	id: string,
+	accessToken: string,
 ) => {
-	return await getStoppageById(id);
+	return await getStoppageById(id, accessToken);
 };
 
 export const updateStoppageUsecase = async (
