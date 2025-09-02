@@ -46,7 +46,7 @@ export const getAllBudgets = async (
 
 			return {
 				...item,
-				materialName,
+        materialName: materialName?.productDescription || null,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),

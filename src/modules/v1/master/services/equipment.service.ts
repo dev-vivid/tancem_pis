@@ -11,11 +11,11 @@ import { extractDateTime } from "@utils/date";
 // }
 
 // ✅ helper for validating string values
-const validateYesNo = (value: string | undefined, field: string) => {
-  if (value && !Object.values(YesNo).includes(value as YesNo)) {
-    throw new Error(`Invalid value for ${field}. Allowed: Yes / No`);
-  }
-};
+// const validateYesNo = (value: string | undefined, field: string) => {
+//   if (value && !Object.values(YesNo).includes(value as YesNo)) {
+//     throw new Error(`Invalid value for ${field}. Allowed: Yes / No`);
+//   }
+// };
 
 export const getAllEquipment = async (
 	accessToken: string,
@@ -74,7 +74,7 @@ export const getAllEquipment = async (
 
 				return {
 					...item,
-					equipmentName,
+					equipmentName: equipmentName?.name||null,
 					createdAt: extractDateTime(item.createdAt, "both"),
 					updatedAt: extractDateTime(item.updatedAt, "both"),
 				};
@@ -126,11 +126,11 @@ type TEquipmentData = {
 
 export const createEquipment = async (data: TEquipmentData, user: string) => {
   // ✅ validate enum-like fields
-  validateYesNo(data.analysis, "analysis");
-  validateYesNo(data.strength, "strength");
-  validateYesNo(data.quality, "quality");
-  validateYesNo(data.power, "power");
-  validateYesNo(data.storage, "storage");
+  // validateYesNo(data.analysis, "analysis");
+  // validateYesNo(data.strength, "strength");
+  // validateYesNo(data.quality, "quality");
+  // validateYesNo(data.power, "power");
+  // validateYesNo(data.storage, "storage");
 
   return await prisma.equipment.create({
     data: {
@@ -146,11 +146,11 @@ export const updateEquipment = async (
   user: string
 ) => {
   // ✅ validate enum-like fields
-  validateYesNo(data.analysis, "analysis");
-  validateYesNo(data.strength, "strength");
-  validateYesNo(data.quality, "quality");
-  validateYesNo(data.power, "power");
-  validateYesNo(data.storage, "storage");
+  // validateYesNo(data.analysis, "analysis");
+  // validateYesNo(data.strength, "strength");
+  // validateYesNo(data.quality, "quality");
+  // validateYesNo(data.power, "power");
+  // validateYesNo(data.storage, "storage");
 
   return await prisma.equipment.update({
     where: { id },
