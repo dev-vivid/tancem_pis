@@ -8,6 +8,7 @@ import path from "path";
 
 export const getAllanalysis = async (
 	accessToken: string,
+	materialId?: string,
 	pageNumber?: number,
 	pageSize?: number,
 	status?: string,
@@ -21,10 +22,12 @@ export const getAllanalysis = async (
 	const whereClause: any = {
 		isActive: true,
 		...(status ? { status: status as Status } : {}),
+		...(materialId ? { materialId } : {}),
 	};
 
-	const totalRecords = await tx.analysis.count();
-
+	const totalRecords = await tx.analysis.count({
+		where: whereClause,
+	});
 	const analysis = await tx.analysis.findMany({
 		skip,
 		take,
@@ -72,6 +75,73 @@ export const getAllanalysis = async (
 		data,
 	};
 };
+
+// export const getMaterialAnalysis = async (
+// 	materialId: string,
+// 	// pageNumber?: number,
+// 	// pageSize?: number,
+// 	// status?: string,
+// 	tx: IPrismaTransactionClient | typeof prisma = prisma
+// ) => {
+// 	// const { skip, take } = pageConfig({
+// 	// 	pageNumber: pageNumber?.toString(),
+// 	// 	pageSize: pageSize?.toString(),
+// 	// });
+
+// 	const whereClause: any = {
+// 		isActive: true,
+// 		...(status ? { status: status as Status } : {}),
+// 	};
+
+// 	const totalRecords = await tx.analysis.count();
+
+// 	const analysis = await tx.analysis.findMany({
+// 		// skip,
+// 		// take,
+// 		where: whereClause,
+// 		orderBy: {
+// 			createdAt: "desc",
+// 		},
+// 		select: {
+// 			id: true,
+// 			code: true,
+// 			type: true,
+// 			description: true,
+// 			materialId: true,
+// 			createdAt: true,
+// 			createdById: true,
+// 			updatedAt: true,
+// 			updatedById: true,
+// 			status: true,
+// 			isActive: true,
+// 		},
+// 	});
+
+// 	// Convert snake_case to camelCase in the result
+// 	const data = await Promise.all(
+// 		analysis.map(async (item) => {
+// 			const materialObj = item.materialId
+// 				? await api.getMaterialName(item.materialId, accessToken)
+// 				: null;
+// 			// const equipmentName = item.equipmentId
+// 			// 	? await api.getEquipmentName(item.equipmentId, accessToken)
+// 			// 	: null;
+// 			return {
+// 				...item,
+// 				materialName: materialObj?.productDescription || "",
+// 				createdAt: item.createdAt
+// 					.toISOString()
+// 					.replace("T", " ")
+// 					.substring(0, 19),
+// 			};
+// 		})
+// 	);
+
+// 	return {
+// 		totalRecords,
+// 		data,
+// 	};
+// };
 
 export const getIdanalysis = async (
 	id: string,

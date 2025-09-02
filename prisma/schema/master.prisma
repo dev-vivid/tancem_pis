@@ -12,7 +12,7 @@ model Analysis {
   createdById      String?            @map("created_by_id") @db.VarChar(36)
   isActive         Boolean            @default(true) @map("is_active")
   updatedById      String?            @map("updated_by_id") @db.VarChar(36)
-  AnalysisLab      AnalysisLab[]
+  AnalysisLab      LabAnalysisTypes[]
   materialAnalysis MaterialAnalysis[]
 
   @@index([type])
@@ -381,22 +381,51 @@ model QualityLab {
 }
 
 model AnalysisLab {
-  id               String   @id @unique @default(uuid()) @db.VarChar(36)
-  code             Int      @unique @default(autoincrement())
-  transactionDate  DateTime @map("transaction_date") @db.Date
-  materialId       String   @map("material_id") @db.VarChar(36)
-  analysisId       String   @map("analysis_id") @db.VarChar(36)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById      String?  @map("created_by_id") @db.VarChar(36)
-  updatedById      String?  @map("updated_by_id") @db.VarChar(36)
-  isActive         Boolean  @default(true) @map("is_active")
-  MaterialAnalysis Analysis @relation(fields: [analysisId], references: [id])
+  id               String             @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int                @unique @default(autoincrement())
+  transactionDate  DateTime           @map("transaction_date") @db.Date
+  materialId       String             @map("material_id") @db.VarChar(36)
+  // analysisId       String   @map("analysis_id") @db.VarChar(36)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById      String?            @map("created_by_id") @db.VarChar(36)
+  updatedById      String?            @map("updated_by_id") @db.VarChar(36)
+  isActive         Boolean            @default(true) @map("is_active")
+  // MaterialAnalysis Analysis @relation(fields: [analysisId], references: [id])
+  // analyses         LabAnalysisTypes[] @relation("LabToTypes")
+  LabAnalysisTypes LabAnalysisTypes[]
 
   @@index([materialId])
   @@index([code])
-  @@index([analysisId], map: "lab_analysis_analysis_id_fkey")
+  // @@index([analysisId])
+  // @@index([materialId,analysisId])
   @@map("lab_analysis")
+}
+
+model LabAnalysisTypes {
+  //? Primary Key
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
+
+  //? Columns
+  AnalysisLabId    String      @map("analysis_lab_id") @db.VarChar(36)
+  analysisId       String      @map("analysis_id") @db.VarChar(36)
+  MaterialAnalysis Analysis    @relation(fields: [analysisId], references: [id])
+  //? Default columns
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @default(now()) @updatedAt @map("updated_at")
+  createdById      String?     @map("created_by_id") @db.VarChar(36)
+  updatedById      String?     @map("updated_by_id") @db.VarChar(36)
+  isActive         Boolean     @default(true) @map("is_active")
+  lab              AnalysisLab @relation(fields: [AnalysisLabId], references: [id])
+
+  //? Indexing
+  // @@index([])
+  @@index([code])
+  @@index([analysisId])
+  //? Table name in DB
+  @@map("lab_analysis_types")
 }
 
 enum transaction_type {

@@ -58,10 +58,7 @@ export const getMaterialName = async (
 		});
 
 		const data = await response.json();
-		// ✅ Correct way to extract productDescription
-		// if (data && data.success && data.data && data.data.list) {
-		// 	return data.data.list; // Or productCode, or createdBy, etc.
-		// }
+		// console.log("API data:", data);
 		if (data?.success && data?.data?.list) {
 			return data.data.list; // <-- this is the object with productDescription
 		}

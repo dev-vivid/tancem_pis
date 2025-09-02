@@ -7,14 +7,26 @@ import { deleteAnalysis } from "../services/analysis.service";
 
 export const getAllanalysisUsecase = async (
 	accessToken: string,
+	materialId: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllanalysis(accessToken, page, size, status);
+	return await getAllanalysis(accessToken, materialId, page, size, status);
 };
+
+// export const getMaterialAnalysisUsecase = async (
+// 	materialId: string
+// 	// pageNumber?: string,
+// 	// pageSize?: string,
+// 	// status?: string
+// ) => {
+// 	// const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
+// 	// const size = pageSize ? parseInt(pageSize, 10) : undefined;
+// 	return await getMaterialAnalysis(materialId);
+// };
 
 export const getIdanalysisUsecase = async (id: string, accessToken: string) => {
 	return await getIdanalysis(id, accessToken);
