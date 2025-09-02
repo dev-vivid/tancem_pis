@@ -1,8 +1,10 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
+import { getEquipmentName } from "common/api";
 
 export const getAllPowerTransactions = async (
+	accessToken: string,
   pageNumber?: string,
   pageSize?: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -38,25 +40,59 @@ export const getAllPowerTransactions = async (
   //   })),
 	// }));
 
-		const data = transactions.flatMap(item =>
-    item.powerDetails.map(detail => ({
-      powerDetailsId: detail.id,
-      transactionId: item.id,
-      equipmentId: detail.equipmentId,
-      units: detail.units,
-      transactionDate: extractDateTime(item.transactionDate, "date"),
-      createdAt: extractDateTime(detail.createdAt, "both"),
-      updatedAt: extractDateTime(detail.updatedAt, "both"),
-      createdBy: detail.createdById,
-      updatedBy: detail.updatedById,
-      isActive: item.isActive,
-    }))
-  );
-	return data ;
+	// 	const data = transactions.flatMap(item =>
+  //   item.powerDetails.map(detail => ({
+  //     powerDetailsId: detail.id,
+  //     transactionId: item.id,
+  //     equipmentId: detail.equipmentId,
+  //     units: detail.units,
+  //     transactionDate: extractDateTime(item.transactionDate, "date"),
+  //     createdAt: extractDateTime(detail.createdAt, "both"),
+  //     updatedAt: extractDateTime(detail.updatedAt, "both"),
+  //     createdBy: detail.createdById,
+  //     updatedBy: detail.updatedById,
+  //     isActive: item.isActive,
+  //   }))
+  // );
+
+const data = await Promise.all(
+  transactions.flatMap(async (item) => {
+    return Promise.all(
+      item.powerDetails.map(async (power) => {
+        const equipmentName = await getEquipmentName(power.equipmentId, accessToken);
+
+        return {
+          transactionId: item.id,
+          transactionCode: item.code,
+          transactionDate: extractDateTime(item.transactionDate, "date"),
+          transactionCreatedAt: extractDateTime(item.createdAt, "both"),
+          transactionUpdatedAt: extractDateTime(item.updatedAt, "both"),
+          transactionCreatedById: item.createdById,
+          transactionUpdatedById: item.updatedById,
+          transactionIsActive: item.isActive,
+
+          powerId: power.id,
+          powerCode: power.code,
+          equipmentId: power.equipmentId,
+          equipmentName: equipmentName ? equipmentName.name : null,
+          units: power.units,
+          powerCreatedAt: extractDateTime(power.createdAt, "both"),
+          powerUpdatedAt: extractDateTime(power.updatedAt, "both"),
+          powerCreatedById: power.createdById,
+          powerUpdatedById: power.updatedById,
+          powerIsActive: power.isActive,
+        };
+      })
+    );
+  })
+);
+
+return { data: data.flat() };
 };
 
 export const getPowerTransactionById = async (
   id: string,
+	accessToken: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const getPowerTransactionById = await tx.powerTransaction.findFirst({
@@ -73,17 +109,35 @@ export const getPowerTransactionById = async (
 	if(!getPowerTransactionById){
 		throw new Error(`Id not found 404`);
 	}
+  const powerDetails = await Promise.all(
+    getPowerTransactionById.powerDetails.map(async (detail) => {
+      const equipmentName =
+        detail.equipmentId && accessToken
+          ? await getEquipmentName(detail.equipmentId, accessToken)
+          : null;
 
-	return {
-		...getPowerTransactionById,
-		transactionDate: extractDateTime(getPowerTransactionById.transactionDate, "date"),
+      return {
+				id: detail.id,
+				code: detail.code,
+				transactionId: detail.transactionId,
+				equipmentId: detail.equipmentId,
+        equipmentName: equipmentName ? equipmentName.name : null,
+				units: detail.units,
+        createdAt: extractDateTime(detail.createdAt, "both"),
+        updatedAt: extractDateTime(detail.updatedAt, "both"),
+				createdById: detail.createdById,
+				updatedById: detail.updatedById,
+				isActive: detail.isActive
+      };
+    })
+  );
+
+  return {
+    ...getPowerTransactionById,
+    transactionDate: extractDateTime(getPowerTransactionById.transactionDate, "date"),
     createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
     updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
-    powerDetails: getPowerTransactionById.powerDetails.map(detail => ({
-      ...detail,
-      createdAt: extractDateTime(detail.createdAt, "both"),
-      updatedAt: extractDateTime(detail.updatedAt, "both"),
-    })),
+    powerDetails,
   };
 };
 

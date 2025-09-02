@@ -7,14 +7,15 @@ import {
 } from "../services/power.service";
 
 export const getAllPowerTransactionsUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	return await getAllPowerTransactions(pageNumber, pageSize);
+	return await getAllPowerTransactions(accessToken, pageNumber, pageSize);
 };
 
-export const getPowerTransactionByIdUsecase = async (id: string) => {
-	return await getPowerTransactionById(id);
+export const getPowerTransactionByIdUsecase = async (id: string, accessToken: string) => {
+	return await getPowerTransactionById(id, accessToken);
 };
 
 type TPowerDetail = {
