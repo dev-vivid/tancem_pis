@@ -8,11 +8,12 @@ import {
   deleteSubEquipment as deleteService
 } from "../services/subEquipment.service";
 
-export const getAllSubEquipmentUsecase = (status:Status ,pageNumber?: string, pageSize?: string) =>
-  getAllService(status,pageNumber, pageSize);
+export const getAllSubEquipmentUsecase = (	accessToken: string,
+status:Status ,pageNumber?: string, pageSize?: string) =>
+  getAllService(accessToken,status,pageNumber, pageSize);
 
-export const getIdSubEquipmentUsecase = (id: string) =>
-  getByIdService(id);
+export const getIdSubEquipmentUsecase = (id: string, accessToken: string) =>
+  getByIdService(id,accessToken);
 
 export const createSubEquipmentUsecase = (
   data: {

@@ -10,11 +10,11 @@ import {
   deleteSubEquipmentParamsSchema
 } from "../validations/subEquipment.schema";
 import {
-  getAllSubEquipment,
-  getIdSubEquipment,
-  createSubEquipment,
-  updateSubEquipment,
-  deleteSubEquipment
+	getAllSubEquipmentController as getAllSubEquipment,
+  getIdSubEquipmentController as getIdSubEquipment,
+  createSubEquipmentController as createSubEquipment,
+  updateSubEquipmentController as updateSubEquipment,
+  deleteSubEquipmentController as deleteSubEquipment
 } from "../controllers/subEquipment.controller";
 
 const subEquipmentRouter = express.Router();
