@@ -3,9 +3,11 @@ import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "@utils/date";
+import { getEquipmentSubGroupName } from "common/api";
 
-
+// ✅ Get all subEquipments
 export const getAllSubEquipments = async (
+  accessToken: string,
   status?: Status,
   pageNumber?: string,
   pageSize?: string,
@@ -13,62 +15,83 @@ export const getAllSubEquipments = async (
 ) => {
   const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-  // ✅ build where clause dynamically
   const whereClause: any = {};
-  if (status) {
-    whereClause.status = status;
-  }
+  if (status) whereClause.status = status;
 
   const totalRecords = await tx.subEquipment.count({
     where: whereClause,
   });
 
-  const records = await tx.subEquipment.findMany({
+  const subEquipments = await tx.subEquipment.findMany({
     skip,
     take,
     where: whereClause,
     orderBy: { createdAt: "desc" },
-    include: { equipment: true }, // include parent equipment info
+    include: { equipment: true },
   });
 
-  return {
-    totalRecords,
-    data: records.map((item) => ({
-      id: item.id,
-      code: item.code,
-      subEquipmentNo: item.subEquipmentNo,
-      subEquipmentDescription: item.subEquipmentDescription,
-      equipmentSubGroupId: item.equipmentSubGroupId,
-      eq_id: item.eq_id,
-      equipmentId: item.equipment?.id || null,
-      createdAt:extractDateTime(item.createdAt,"both"),
-      updatedAt:extractDateTime(item.updatedAt,"both"),
-      createdById: item.createdById,
-      updatedById: item.updatedById,
-      isActive: item.isActive,
-      status: item.status,
-    })),
-  };
+  const data = await Promise.all(
+    subEquipments.map(async (item) => {
+      const subGroup =
+        item.equipmentSubGroupId && accessToken
+          ? await getEquipmentSubGroupName(item.equipmentSubGroupId, accessToken)
+          : null;
+
+      return {
+        id: item.id,
+        code: item.code,
+        subEquipmentNo: item.subEquipmentNo,
+        subEquipmentDescription: item.subEquipmentDescription,
+        equipmentSubGroupId: item.equipmentSubGroupId,
+        equipmentSubGroupName: subGroup?.name || null,
+        eq_id: item.eq_id,
+        equipmentId: item.equipment?.id || null,
+        createdAt: extractDateTime(item.createdAt, "both"),
+        updatedAt: extractDateTime(item.updatedAt, "both"),
+        createdById: item.createdById,
+        updatedById: item.updatedById,
+        isActive: item.isActive,
+        status: item.status,
+      };
+    })
+  );
+
+  return { totalRecords, data };
 };
 
+// ✅ Get subEquipment by ID
 export const getSubEquipmentById = async (
   id: string,
+  accessToken: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
   const item = await tx.subEquipment.findUnique({
     where: { id },
-    // include: { equipment: true },
   });
   if (!item) throw new Error("SubEquipment not found.");
-  return { totalRecords: 1, data: item };
+
+  const subGroup =
+    item.equipmentSubGroupId && accessToken
+      ? await getEquipmentSubGroupName(item.equipmentSubGroupId, accessToken)
+      : null;
+
+  const data = {
+    ...item,
+    equipmentSubGroupName: subGroup?.name || null,
+    createdAt: extractDateTime(item.createdAt, "both"),
+    updatedAt: extractDateTime(item.updatedAt, "both"),
+  };
+
+  return { totalRecords: 1, data };
 };
 
+// ✅ Create subEquipment
 export const createSubEquipment = async (
   data: {
     subEquipmentNo: string;
     subEquipmentDescription: string;
     equipmentSubGroupId: string;
-    equipmentId?: string; // optional: caller can pass it
+    equipmentId?: string;
   },
   user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -79,7 +102,6 @@ export const createSubEquipment = async (
 
   let equipmentId = data.equipmentId;
 
-  // If caller didn’t provide equipmentId, auto-pick latest equipment
   if (!equipmentId) {
     const equipment = await tx.equipment.findFirst({
       orderBy: { createdAt: "desc" },
@@ -90,8 +112,7 @@ export const createSubEquipment = async (
     equipmentId = equipment.id;
   }
 
-  // Use Prisma relation connect
-  const subeq = await tx.subEquipment.create({
+  return await tx.subEquipment.create({
     data: {
       subEquipmentNo: data.subEquipmentNo,
       subEquipmentDescription: data.subEquipmentDescription,
@@ -101,17 +122,16 @@ export const createSubEquipment = async (
     },
     include: { equipment: true },
   });
-
-  return subeq;
 };
 
+// ✅ Update subEquipment
 export const updateSubEquipment = async (
   id: string,
   data: Partial<{
     subEquipmentNo: string;
     subEquipmentDescription: string;
     equipmentSubGroupId: string;
-    equipmentId: string; // allow updating equipment relation
+    equipmentId: string;
     status: Status;
     isActive: boolean;
   }>,
@@ -124,9 +144,7 @@ export const updateSubEquipment = async (
       subEquipmentNo: data.subEquipmentNo,
       subEquipmentDescription: data.subEquipmentDescription,
       equipmentSubGroupId: data.equipmentSubGroupId,
-      ...(data.equipmentId
-        ? { equipment: { connect: { id: data.equipmentId } } }
-        : {}),
+      ...(data.equipmentId ? { equipment: { connect: { id: data.equipmentId } } } : {}),
       ...(data.status ? { status: data.status } : {}),
       ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
       updatedById: user,
@@ -135,6 +153,7 @@ export const updateSubEquipment = async (
   });
 };
 
+// ✅ Soft delete subEquipment
 export const deleteSubEquipment = async (
   id: string,
   user: string,
