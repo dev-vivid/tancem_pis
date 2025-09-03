@@ -1,10 +1,14 @@
-import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
+import prisma, {
+	IPrismaTransactionClient,
+	userPrimsa,
+} from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import * as api from "../../../../common/api";
 import {
 	extractDateTime,
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
+import { PrismaClient as DbUserClient } from "../../../../../prisma/schema/generated/client1";
 
 // export const createAnalysisLab = async (data: any, user: string) => {
 // 	const analysisExists = await prisma.analysis.findUnique({
@@ -155,7 +159,16 @@ export const getAllAnalysisLab = async (
 			const materialName = item.materialId
 				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
-
+			const userDetails = await userPrimsa.user.findFirst({
+				where: {
+					id: item.createdById || "",
+				},
+				select: {
+					id: true,
+					first_name: true,
+					last_name: true,
+				},
+			});
 			return {
 				id: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
@@ -167,6 +180,7 @@ export const getAllAnalysisLab = async (
 					.replace("T", " ")
 					.substring(0, 19),
 				createdById: item.createdById,
+				userDetails,
 			};
 		})
 	);
