@@ -1,0 +1,663 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./generated/client1"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource dbUser {
+  provider = "mysql"
+  url      = env("USER_DATABASE_URL")
+}
+
+model app_module {
+  id                    String                  @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                  String?                 @dbUser.VarChar(100)
+  description           String?                 @dbUser.VarChar(36)
+  parent_module_id      String?                 @dbUser.VarChar(36)
+  created_by            String?                 @dbUser.VarChar(36)
+  created_at            DateTime?               @default(now()) @dbUser.Timestamp(0)
+  updated_by            String?                 @dbUser.VarChar(36)
+  updated_at            DateTime?               @default(now()) @dbUser.Timestamp(0)
+  is_active             Boolean?                @default(true)
+  app_module            app_module?             @relation("app_moduleToapp_module", fields: [parent_module_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "app_module_parent_module_fkey")
+  other_app_module      app_module[]            @relation("app_moduleToapp_module")
+  app_module_permission app_module_permission[]
+  work_flow_process     work_flow_process[]
+
+  @@index([parent_module_id], map: "app_module_parent_module_fkey")
+}
+
+model app_module_action_master {
+  id                                             String                          @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                                           String?                         @dbUser.VarChar(36)
+  created_by                                     String?                         @dbUser.VarChar(36)
+  created_at                                     DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  updated_by                                     String?                         @dbUser.VarChar(36)
+  updated_at                                     DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  is_active                                      Boolean?                        @default(true)
+  user_app_module_action_master_created_byTouser user?                           @relation("app_module_action_master_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModuleAction_createdBy")
+  user_app_module_action_master_updated_byTouser user?                           @relation("app_module_action_master_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModuleAction_updatedBy")
+  role_app_module_permission_v2                  role_app_module_permission_v2[]
+
+  @@index([created_by], map: "fk_appModuleAction_createdBy")
+  @@index([updated_by], map: "fk_appModuleAction_updatedBy")
+}
+
+model app_module_permission {
+  id                         String                       @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  action                     String?                      @dbUser.VarChar(100)
+  description                String?                      @dbUser.VarChar(200)
+  app_module_id              String?                      @dbUser.VarChar(36)
+  created_by                 String?                      @dbUser.VarChar(36)
+  created_at                 DateTime?                    @default(now()) @dbUser.Timestamp(0)
+  updated_by                 String?                      @dbUser.VarChar(36)
+  updated_at                 DateTime?                    @default(now()) @dbUser.Timestamp(0)
+  is_active                  Boolean?                     @default(true)
+  app_module                 app_module?                  @relation(fields: [app_module_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "app_module_permission_AppModule_fkey")
+  role_app_module_permission role_app_module_permission[]
+
+  @@index([app_module_id], map: "app_module_permission_AppModule_fkey")
+}
+
+model app_module_v2 {
+  id                                  String                          @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                                String?                         @dbUser.VarChar(36)
+  parent_module_id                    String?                         @dbUser.VarChar(36)
+  type                                app_module_v2_type?
+  created_by                          String?                         @dbUser.VarChar(36)
+  created_at                          DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  updated_by                          String?                         @dbUser.VarChar(36)
+  updated_at                          DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  is_active                           Boolean?                        @default(true)
+  user_app_module_v2_created_byTouser user?                           @relation("app_module_v2_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModule_createdBy")
+  app_module_v2                       app_module_v2?                  @relation("app_module_v2Toapp_module_v2", fields: [parent_module_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModule_parentModule")
+  other_app_module_v2                 app_module_v2[]                 @relation("app_module_v2Toapp_module_v2")
+  user_app_module_v2_updated_byTouser user?                           @relation("app_module_v2_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModule_updatedBy")
+  role_app_module_permission_v2       role_app_module_permission_v2[]
+
+  @@index([created_by], map: "fk_appModule_createdBy")
+  @@index([parent_module_id], map: "fk_appModule_parentModule")
+  @@index([updated_by], map: "fk_appModule_updatedBy")
+}
+
+model designation {
+  id                                String                @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                              String?               @dbUser.VarChar(36)
+  sort_order                        Int?
+  grade_id                          String?               @dbUser.VarChar(36)
+  created_by                        String?               @dbUser.VarChar(36)
+  created_at                        DateTime?             @default(now()) @dbUser.Timestamp(0)
+  updated_by                        String?               @dbUser.VarChar(36)
+  updated_at                        DateTime?             @default(now()) @dbUser.Timestamp(0)
+  is_active                         Boolean?              @default(true)
+  user_designation_created_byTouser user?                 @relation("designation_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "createdBy_designation_fkey")
+  grades                            grades?               @relation(fields: [grade_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "designation_grade_fkey")
+  user_designation_updated_byTouser user?                 @relation("designation_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updatedBy_designation_fkey")
+  section_designation               section_designation[]
+
+  @@index([created_by], map: "createdBy_designation_fkey")
+  @@index([grade_id], map: "designation_grade_fkey")
+  @@index([updated_by], map: "updatedBy_designation_fkey")
+}
+
+model file_meta_data {
+  id            String    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  file_name     String?   @dbUser.VarChar(200)
+  original_name String?   @dbUser.VarChar(200)
+  description   String?   @dbUser.VarChar(36)
+  file_size     Int?
+  file_type     String?   @dbUser.VarChar(36)
+  file_path     String?   @dbUser.VarChar(300)
+  extension     String?   @dbUser.VarChar(20)
+  is_deleted    Boolean?  @default(false)
+  created_by    String?   @dbUser.VarChar(36)
+  created_at    DateTime? @default(now()) @dbUser.Timestamp(0)
+  updated_by    String?   @dbUser.VarChar(36)
+  updated_at    DateTime? @default(now()) @dbUser.Timestamp(0)
+  is_active     Boolean?  @default(true)
+}
+
+model grades {
+  id                           String          @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                         String          @dbUser.VarChar(20)
+  sort_order                   Int?            @default(1) @dbUser.TinyInt
+  is_active                    Boolean?        @default(true)
+  created_at                   DateTime        @default(now()) @dbUser.Timestamp(0)
+  created_by                   String?         @dbUser.VarChar(36)
+  updated_at                   DateTime?       @default(now()) @dbUser.Timestamp(0)
+  updated_by                   String?         @dbUser.VarChar(36)
+  designation                  designation[]
+  user_grades_created_byTouser user?           @relation("grades_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_grades_createdBy_user")
+  user_grades_updated_byTouser user?           @relation("grades_updated_byTouser", fields: [updated_by], references: [id], onUpdate: NoAction, map: "fk_grades_updatedBy_user")
+  grades_shadow                grades_shadow[]
+
+  @@index([created_by], map: "fk_grades_createdBy_user")
+  @@index([updated_by], map: "fk_grades_updatedBy_user")
+}
+
+model grades_shadow {
+  shadow_id                           String               @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  action                              grades_shadow_action
+  actionTimestamp                     DateTime?            @default(now()) @dbUser.Timestamp(0)
+  id                                  String?              @dbUser.VarChar(36)
+  name                                String               @dbUser.VarChar(20)
+  sort_order                          Int?                 @default(1) @dbUser.TinyInt
+  is_active                           Boolean?             @default(true)
+  created_at                          DateTime             @default(now()) @dbUser.Timestamp(0)
+  created_by                          String?              @dbUser.VarChar(36)
+  updated_at                          DateTime?            @default(now()) @dbUser.Timestamp(0)
+  updated_by                          String?              @dbUser.VarChar(36)
+  user_grades_shadow_created_byTouser user?                @relation("grades_shadow_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_grades_shadow_createdBy_user")
+  grades                              grades?              @relation(fields: [id], references: [id], onUpdate: NoAction, map: "fk_grades_shadow_id_grades")
+  user_grades_shadow_updated_byTouser user?                @relation("grades_shadow_updated_byTouser", fields: [updated_by], references: [id], onUpdate: NoAction, map: "fk_grades_shadow_updatedBy_user")
+
+  @@index([created_by], map: "fk_grades_shadow_createdBy_user")
+  @@index([id], map: "fk_grades_shadow_id_grades")
+  @@index([updated_by], map: "fk_grades_shadow_updatedBy_user")
+}
+
+model office {
+  id             String       @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name           String?      @dbUser.VarChar(50)
+  office_type_id String?      @dbUser.VarChar(36)
+  created_by     String?      @dbUser.VarChar(36)
+  created_at     DateTime?    @default(now()) @dbUser.Timestamp(0)
+  updated_by     String?      @dbUser.VarChar(36)
+  updated_at     DateTime?    @default(now()) @dbUser.Timestamp(0)
+  is_active      Boolean?     @default(true)
+  office_type    office_type? @relation(fields: [office_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_office_officeType")
+  roles          roles[]
+  user           user[]
+  work_flow      work_flow[]
+
+  @@index([office_type_id], map: "fk_office_officeType")
+}
+
+model office_type {
+  id                     String                   @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                   String?                  @dbUser.VarChar(50)
+  created_by             String?                  @dbUser.VarChar(36)
+  created_at             DateTime?                @default(now()) @dbUser.Timestamp(0)
+  updated_by             String?                  @dbUser.VarChar(36)
+  updated_at             DateTime?                @default(now()) @dbUser.Timestamp(0)
+  is_active              Boolean?                 @default(true)
+  office                 office[]
+  work_flow_request_list work_flow_request_list[]
+}
+
+model onboard {
+  id                String             @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name              String?            @dbUser.VarChar(36)
+  wfRequestId       String?            @dbUser.VarChar(36)
+  created_at        DateTime?          @default(now()) @dbUser.Timestamp(0)
+  updated_by        String?            @dbUser.VarChar(36)
+  updated_at        DateTime?          @default(now()) @dbUser.Timestamp(0)
+  is_active         Boolean?           @default(true)
+  created_by        String?            @dbUser.VarChar(45)
+  user              user?              @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "onboard_createdBy_fk")
+  work_flow_request work_flow_request? @relation(fields: [wfRequestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wf_onboard_fk")
+
+  @@index([created_by], map: "onboard_createdBy_fk")
+  @@index([wfRequestId], map: "wf_onboard_fk")
+}
+
+model role_app_module_permission {
+  id                       String                 @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                     String?                @dbUser.VarChar(36)
+  description              String?                @dbUser.VarChar(36)
+  app_module_permission_id String?                @dbUser.VarChar(36)
+  role_id                  String?                @dbUser.VarChar(36)
+  created_by               String?                @dbUser.VarChar(36)
+  created_at               DateTime?              @default(now()) @dbUser.Timestamp(0)
+  updated_by               String?                @dbUser.VarChar(36)
+  updated_at               DateTime?              @default(now()) @dbUser.Timestamp(0)
+  is_active                Boolean?               @default(true)
+  app_module_permission    app_module_permission? @relation(fields: [app_module_permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_appModulePermission_roleAppModulePermission")
+  roles                    roles?                 @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roles_roleAppModulePermission")
+
+  @@index([app_module_permission_id], map: "fk_appModulePermission_roleAppModulePermission")
+  @@index([role_id], map: "fk_roles_roleAppModulePermission")
+}
+
+model role_app_module_permission_v2 {
+  id                                                  String                    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  app_module_id                                       String?                   @dbUser.VarChar(36)
+  app_module_action_id                                String?                   @dbUser.VarChar(36)
+  role_id                                             String?                   @dbUser.VarChar(36)
+  created_by                                          String?                   @dbUser.VarChar(36)
+  created_at                                          DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  updated_by                                          String?                   @dbUser.VarChar(36)
+  updated_at                                          DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  is_active                                           Boolean?                  @default(true)
+  app_module_v2                                       app_module_v2?            @relation(fields: [app_module_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roleAppModulePermissionv2_app_module")
+  app_module_action_master                            app_module_action_master? @relation(fields: [app_module_action_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roleAppModulePermissionv2_app_module_actionMaster")
+  user_role_app_module_permission_v2_created_byTouser user?                     @relation("role_app_module_permission_v2_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roleAppModulePermissionv2_createdBy")
+  roles                                               roles?                    @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roleAppModulePermissionv2_role")
+  user_role_app_module_permission_v2_updated_byTouser user?                     @relation("role_app_module_permission_v2_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roleAppModulePermissionv2_updatedBy")
+
+  @@index([app_module_id], map: "fk_roleAppModulePermissionv2_app_module")
+  @@index([app_module_action_id], map: "fk_roleAppModulePermissionv2_app_module_actionMaster")
+  @@index([created_by], map: "fk_roleAppModulePermissionv2_createdBy")
+  @@index([role_id], map: "fk_roleAppModulePermissionv2_role")
+  @@index([updated_by], map: "fk_roleAppModulePermissionv2_updatedBy")
+}
+
+model roles {
+  id                                                                       String                          @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                                                                     String?                         @dbUser.VarChar(255)
+  description                                                              String?                         @dbUser.VarChar(36)
+  section_designation_id                                                   String?                         @dbUser.VarChar(36)
+  created_by                                                               String?                         @dbUser.VarChar(36)
+  created_at                                                               DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  updated_by                                                               String?                         @dbUser.VarChar(36)
+  updated_at                                                               DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  is_active                                                                Boolean?                        @default(true)
+  office_id                                                                String?                         @dbUser.VarChar(36)
+  role_app_module_permission                                               role_app_module_permission[]
+  role_app_module_permission_v2                                            role_app_module_permission_v2[]
+  user_roles_created_byTouser                                              user?                           @relation("roles_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "createdBy_userRole_fkey")
+  office                                                                   office?                         @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_roles_office")
+  user_roles_updated_byTouser                                              user?                           @relation("roles_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updatedBy_userRole_fkey")
+  section_designation                                                      section_designation?            @relation(fields: [section_designation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userRole_sectionDesignation_fkey")
+  user_role                                                                user_role[]
+  work_flow                                                                work_flow[]
+  work_flow_provided_status_work_flow_provided_status_initiatorToroles     work_flow_provided_status[]     @relation("work_flow_provided_status_initiatorToroles")
+  work_flow_provided_status_work_flow_provided_status_next_actionerToroles work_flow_provided_status[]     @relation("work_flow_provided_status_next_actionerToroles")
+  work_flow_request                                                        work_flow_request[]
+  work_flow_request_list_work_flow_request_list_action_taken_by_idToroles  work_flow_request_list[]        @relation("work_flow_request_list_action_taken_by_idToroles")
+  work_flow_request_list_work_flow_request_list_current_actioner_idToroles work_flow_request_list[]        @relation("work_flow_request_list_current_actioner_idToroles")
+
+  @@index([created_by], map: "createdBy_userRole_fkey")
+  @@index([office_id], map: "fk_roles_office")
+  @@index([updated_by], map: "updatedBy_userRole_fkey")
+  @@index([section_designation_id], map: "userRole_sectionDesignation_fkey")
+}
+
+model section {
+  id                            String                @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                          String?               @dbUser.VarChar(45)
+  mail                          String?               @dbUser.VarChar(36)
+  sort_order                    Int?
+  created_by                    String?               @dbUser.VarChar(36)
+  created_at                    DateTime?             @default(now()) @dbUser.Timestamp(0)
+  updated_by                    String?               @dbUser.VarChar(36)
+  updated_at                    DateTime?             @default(now()) @dbUser.Timestamp(0)
+  is_active                     Boolean?              @default(true)
+  user_section_created_byTouser user?                 @relation("section_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "createdBy_section_fkey")
+  user_section_updated_byTouser user?                 @relation("section_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updatedBy_section_fkey")
+  section_designation           section_designation[]
+
+  @@index([created_by], map: "createdBy_section_fkey")
+  @@index([updated_by], map: "updatedBy_section_fkey")
+}
+
+model section_designation {
+  id                                        String                @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                                      String?               @dbUser.VarChar(100)
+  reporting_section_designation_id          String?               @dbUser.VarChar(36)
+  section_id                                String?               @dbUser.VarChar(36)
+  designation_id                            String?               @dbUser.VarChar(36)
+  created_by                                String?               @dbUser.VarChar(36)
+  created_at                                DateTime?             @default(now()) @dbUser.Timestamp(0)
+  updated_by                                String?               @dbUser.VarChar(36)
+  updated_at                                DateTime?             @default(now()) @dbUser.Timestamp(0)
+  is_active                                 Boolean?              @default(true)
+  roles                                     roles[]
+  user_section_designation_created_byTouser user?                 @relation("section_designation_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "createdBy_sectionDesignation_fkey")
+  designation                               designation?          @relation(fields: [designation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sectionDesignation_designation_fkey")
+  section_designation                       section_designation?  @relation("section_designationTosection_designation", fields: [reporting_section_designation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sectionDesignation_sectionDesignation_fkey")
+  other_section_designation                 section_designation[] @relation("section_designationTosection_designation")
+  section                                   section?              @relation(fields: [section_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sectionDesignation_section_fkey")
+  user_section_designation_updated_byTouser user?                 @relation("section_designation_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updatedBy_sectionDesignation_fkey")
+
+  @@index([created_by], map: "createdBy_sectionDesignation_fkey")
+  @@index([designation_id], map: "sectionDesignation_designation_fkey")
+  @@index([reporting_section_designation_id], map: "sectionDesignation_sectionDesignation_fkey")
+  @@index([section_id], map: "sectionDesignation_section_fkey")
+  @@index([updated_by], map: "updatedBy_sectionDesignation_fkey")
+}
+
+model session_black_list {
+  id              String    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  sessionId       String    @dbUser.VarChar(36)
+  user_id         String    @dbUser.VarChar(36)
+  black_listed_at DateTime  @default(now()) @dbUser.Timestamp(0)
+  created_at      DateTime? @default(now()) @dbUser.Timestamp(0)
+  updated_at      DateTime? @default(now()) @dbUser.Timestamp(0)
+  created_by      String    @dbUser.VarChar(36)
+  updated_by      String    @dbUser.VarChar(36)
+  is_active       Boolean?  @default(true)
+  user            user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_session_black_fk")
+
+  @@index([user_id], map: "user_session_black_fk")
+}
+
+model status_master {
+  id                        String                      @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  status                    String?                     @dbUser.VarChar(50)
+  created_by                String?                     @dbUser.VarChar(36)
+  created_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  updated_by                String?                     @dbUser.VarChar(36)
+  updated_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  is_active                 Boolean?                    @default(true)
+  work_flow_provided_status work_flow_provided_status[]
+}
+
+model um_audit_log {
+  id              String    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  session_id      String?   @dbUser.VarChar(36)
+  ip              String?   @dbUser.VarChar(100)
+  module          String?   @dbUser.VarChar(100)
+  url             String?   @dbUser.VarChar(255)
+  type            String?   @dbUser.VarChar(36)
+  action          String?   @dbUser.VarChar(255)
+  description     String?   @dbUser.VarChar(255)
+  additional_data Json?
+  created_by      String?   @dbUser.VarChar(36)
+  created_at      DateTime? @default(now()) @dbUser.Timestamp(0)
+  is_active       Boolean?  @default(true)
+  user            user?     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_createdBy_um_audit_log")
+
+  @@index([created_by], map: "fk_createdBy_um_audit_log")
+}
+
+model unit {
+  id         String    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name       String?   @dbUser.VarChar(36)
+  full_name  String?   @dbUser.VarChar(45)
+  created_by String?   @dbUser.VarChar(36)
+  created_at DateTime? @default(now()) @dbUser.Timestamp(0)
+  updated_by String?   @dbUser.VarChar(36)
+  updated_at DateTime? @default(now()) @dbUser.Timestamp(0)
+  is_active  Boolean?  @default(true)
+  type       String?   @dbUser.VarChar(45)
+}
+
+model user {
+  id                                                                           String                          @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  code                                                                         String?                         @dbUser.VarChar(15)
+  first_name                                                                   String                          @dbUser.VarChar(50)
+  last_name                                                                    String                          @dbUser.VarChar(50)
+  email                                                                        String                          @unique(map: "email") @dbUser.VarChar(100)
+  phone_number                                                                 String?                         @dbUser.VarChar(36)
+  password_hash                                                                String                          @dbUser.VarChar(150)
+  password_temp                                                                String                          @dbUser.VarChar(150)
+  office_id                                                                    String?                         @dbUser.VarChar(36)
+  user_type                                                                    String?                         @dbUser.VarChar(36)
+  is_active                                                                    Boolean?                        @default(true)
+  created_at                                                                   DateTime                        @default(now()) @dbUser.Timestamp(0)
+  created_by                                                                   String?                         @dbUser.VarChar(36)
+  updated_at                                                                   DateTime?                       @default(now()) @dbUser.Timestamp(0)
+  updated_by                                                                   String?                         @dbUser.VarChar(36)
+  app_module_action_master_app_module_action_master_created_byTouser           app_module_action_master[]      @relation("app_module_action_master_created_byTouser")
+  app_module_action_master_app_module_action_master_updated_byTouser           app_module_action_master[]      @relation("app_module_action_master_updated_byTouser")
+  app_module_v2_app_module_v2_created_byTouser                                 app_module_v2[]                 @relation("app_module_v2_created_byTouser")
+  app_module_v2_app_module_v2_updated_byTouser                                 app_module_v2[]                 @relation("app_module_v2_updated_byTouser")
+  designation_designation_created_byTouser                                     designation[]                   @relation("designation_created_byTouser")
+  designation_designation_updated_byTouser                                     designation[]                   @relation("designation_updated_byTouser")
+  grades_grades_created_byTouser                                               grades[]                        @relation("grades_created_byTouser")
+  grades_grades_updated_byTouser                                               grades[]                        @relation("grades_updated_byTouser")
+  grades_shadow_grades_shadow_created_byTouser                                 grades_shadow[]                 @relation("grades_shadow_created_byTouser")
+  grades_shadow_grades_shadow_updated_byTouser                                 grades_shadow[]                 @relation("grades_shadow_updated_byTouser")
+  onboard                                                                      onboard[]
+  role_app_module_permission_v2_role_app_module_permission_v2_created_byTouser role_app_module_permission_v2[] @relation("role_app_module_permission_v2_created_byTouser")
+  role_app_module_permission_v2_role_app_module_permission_v2_updated_byTouser role_app_module_permission_v2[] @relation("role_app_module_permission_v2_updated_byTouser")
+  roles_roles_created_byTouser                                                 roles[]                         @relation("roles_created_byTouser")
+  roles_roles_updated_byTouser                                                 roles[]                         @relation("roles_updated_byTouser")
+  section_section_created_byTouser                                             section[]                       @relation("section_created_byTouser")
+  section_section_updated_byTouser                                             section[]                       @relation("section_updated_byTouser")
+  section_designation_section_designation_created_byTouser                     section_designation[]           @relation("section_designation_created_byTouser")
+  section_designation_section_designation_updated_byTouser                     section_designation[]           @relation("section_designation_updated_byTouser")
+  session_black_list                                                           session_black_list[]
+  um_audit_log                                                                 um_audit_log[]
+  user_user_created_byTouser                                                   user?                           @relation("user_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_user_createdBy_user")
+  other_user_user_created_byTouser                                             user[]                          @relation("user_created_byTouser")
+  office                                                                       office?                         @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_office")
+  user_user_updated_byTouser                                                   user?                           @relation("user_updated_byTouser", fields: [updated_by], references: [id], onUpdate: NoAction, map: "fk_user_updatedBy_user")
+  other_user_user_updated_byTouser                                             user[]                          @relation("user_updated_byTouser")
+  user_role_user_role_created_byTouser                                         user_role[]                     @relation("user_role_created_byTouser")
+  user_role_user_role_updated_byTouser                                         user_role[]                     @relation("user_role_updated_byTouser")
+  user_role_user_role_user_idTouser                                            user_role[]                     @relation("user_role_user_idTouser")
+  user_shadow_user_shadow_created_byTouser                                     user_shadow[]                   @relation("user_shadow_created_byTouser")
+  user_shadow_user_shadow_updated_byTouser                                     user_shadow[]                   @relation("user_shadow_updated_byTouser")
+  user_shadow_user_shadow_idTouser                                             user_shadow[]                   @relation("user_shadow_idTouser")
+  work_flow_request_work_flow_request_created_byTouser                         work_flow_request[]             @relation("work_flow_request_created_byTouser")
+  work_flow_request_work_flow_request_updated_byTouser                         work_flow_request[]             @relation("work_flow_request_updated_byTouser")
+  work_flow_request_list_work_flow_request_list_created_byTouser               work_flow_request_list[]        @relation("work_flow_request_list_created_byTouser")
+  work_flow_request_list_work_flow_request_list_updated_byTouser               work_flow_request_list[]        @relation("work_flow_request_list_updated_byTouser")
+
+  @@index([created_by], map: "fk_user_createdBy_user")
+  @@index([office_id], map: "fk_user_office")
+  @@index([updated_by], map: "fk_user_updatedBy_user")
+}
+
+model user_role {
+  id                              String    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                            String?   @dbUser.VarChar(255)
+  description                     String?   @dbUser.VarChar(36)
+  user_id                         String?   @dbUser.VarChar(36)
+  role_id                         String?   @dbUser.VarChar(36)
+  created_by                      String?   @dbUser.VarChar(36)
+  created_at                      DateTime? @default(now()) @dbUser.Timestamp(0)
+  updated_by                      String?   @dbUser.VarChar(36)
+  updated_at                      DateTime? @default(now()) @dbUser.Timestamp(0)
+  is_active                       Boolean?  @default(true)
+  user_user_role_created_byTouser user?     @relation("user_role_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "createdBy_user_Role_fkey")
+  roles                           roles?    @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "role_id_user_Role_fkey")
+  user_user_role_updated_byTouser user?     @relation("user_role_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "updatedBy_user_Role_fkey")
+  user_user_role_user_idTouser    user?     @relation("user_role_user_idTouser", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_id_user_Role_fkey")
+
+  @@index([created_by], map: "createdBy_user_Role_fkey")
+  @@index([role_id], map: "role_id_user_Role_fkey")
+  @@index([updated_by], map: "updatedBy_user_Role_fkey")
+  @@index([user_id], map: "user_id_user_Role_fkey")
+}
+
+model user_shadow {
+  shadow_id                         String             @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  action                            user_shadow_action
+  actionTimestamp                   DateTime?          @default(now()) @dbUser.Timestamp(0)
+  id                                String?            @dbUser.VarChar(36)
+  code                              String?            @dbUser.VarChar(15)
+  first_name                        String             @dbUser.VarChar(50)
+  last_name                         String             @dbUser.VarChar(50)
+  email                             String             @dbUser.VarChar(100)
+  password_hash                     String             @dbUser.VarChar(150)
+  password_temp                     String             @dbUser.VarChar(150)
+  is_active                         Boolean?           @default(true)
+  created_at                        DateTime           @default(now()) @dbUser.Timestamp(0)
+  created_by                        String?            @dbUser.VarChar(36)
+  updated_at                        DateTime?          @default(now()) @dbUser.Timestamp(0)
+  updated_by                        String?            @dbUser.VarChar(36)
+  user_user_shadow_created_byTouser user?              @relation("user_shadow_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_user_shadow_createdBy_user")
+  user_user_shadow_updated_byTouser user?              @relation("user_shadow_updated_byTouser", fields: [updated_by], references: [id], onUpdate: NoAction, map: "fk_user_shadow_updatedBy_user")
+  user_user_shadow_idTouser         user?              @relation("user_shadow_idTouser", fields: [id], references: [id], onUpdate: NoAction, map: "fk_user_shadow_user")
+
+  @@index([created_by], map: "fk_user_shadow_createdBy_user")
+  @@index([updated_by], map: "fk_user_shadow_updatedBy_user")
+  @@index([id], map: "fk_user_shadow_user")
+}
+
+model work_flow {
+  id                        String                      @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  role_id                   String?                     @dbUser.VarChar(36)
+  process_id                String?                     @dbUser.VarChar(36)
+  office_id                 String?                     @dbUser.VarChar(36)
+  created_by                String?                     @dbUser.VarChar(36)
+  created_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  updated_by                String?                     @dbUser.VarChar(36)
+  updated_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  is_active                 Boolean?                    @default(true)
+  office                    office?                     @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_workFlow_office")
+  work_flow_process         work_flow_process?          @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wf_process_fk")
+  roles                     roles?                      @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "work_flow_ibfk_1")
+  work_flow_provided_status work_flow_provided_status[]
+
+  @@index([office_id], map: "fk_workFlow_office")
+  @@index([role_id], map: "idx_work_flow_role")
+  @@index([process_id], map: "wf_process_fk")
+}
+
+model work_flow_process {
+  id                      String                    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                    String?                   @dbUser.VarChar(100)
+  app_module_id           String?                   @dbUser.VarChar(36)
+  created_by              String?                   @dbUser.VarChar(36)
+  created_at              DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  updated_by              String?                   @dbUser.VarChar(36)
+  updated_at              DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  is_active               Boolean?                  @default(true)
+  work_flow               work_flow[]
+  app_module              app_module?               @relation(fields: [app_module_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wf_process_appModule_fk")
+  work_flow_process_state work_flow_process_state[]
+  work_flow_request       work_flow_request[]
+
+  @@index([app_module_id], map: "wf_process_appModule_fk")
+}
+
+model work_flow_process_state {
+  id                        String                      @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                      String?                     @dbUser.VarChar(100)
+  process_id                String?                     @dbUser.VarChar(36)
+  state_id                  String?                     @dbUser.VarChar(36)
+  is_remark_required        Boolean?                    @default(false)
+  created_by                String?                     @dbUser.VarChar(36)
+  created_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  updated_by                String?                     @dbUser.VarChar(36)
+  updated_at                DateTime?                   @default(now()) @dbUser.Timestamp(0)
+  is_active                 Boolean?                    @default(true)
+  work_flow_process         work_flow_process?          @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wf_processState_process_fk")
+  work_flow_state           work_flow_state?            @relation(fields: [state_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wf_processState_state_fk")
+  work_flow_provided_status work_flow_provided_status[]
+
+  @@index([process_id], map: "wf_processState_process_fk")
+  @@index([state_id], map: "wf_processState_state_fk")
+}
+
+model work_flow_provided_status {
+  id                                                   String                   @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  work_flow_id                                         String                   @dbUser.VarChar(36)
+  process_state_id                                     String                   @dbUser.VarChar(36)
+  initiator                                            String                   @dbUser.VarChar(36)
+  next_actioner                                        String?                  @dbUser.VarChar(36)
+  order                                                Int?
+  created_by                                           String?                  @dbUser.VarChar(36)
+  created_at                                           DateTime?                @default(now()) @dbUser.Timestamp(0)
+  updated_by                                           String?                  @dbUser.VarChar(36)
+  updated_at                                           DateTime?                @default(now()) @dbUser.Timestamp(0)
+  is_active                                            Boolean?                 @default(true)
+  is_open                                              Boolean?                 @default(true)
+  status_id                                            String?                  @dbUser.VarChar(36)
+  can_edit                                             Boolean?                 @default(false)
+  can_delete                                           Boolean?                 @default(false)
+  status_master                                        status_master?           @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_wfProvidedStatus")
+  roles_work_flow_provided_status_initiatorToroles     roles                    @relation("work_flow_provided_status_initiatorToroles", fields: [initiator], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfps_initiator_fk")
+  roles_work_flow_provided_status_next_actionerToroles roles?                   @relation("work_flow_provided_status_next_actionerToroles", fields: [next_actioner], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfps_nextActioner_fk")
+  work_flow_process_state                              work_flow_process_state  @relation(fields: [process_state_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfps_processState_fk")
+  work_flow                                            work_flow                @relation(fields: [work_flow_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "work_flow_provided_status_ibfk_1")
+  work_flow_request                                    work_flow_request[]
+  work_flow_request_list                               work_flow_request_list[]
+
+  @@index([status_id], map: "fk_status_wfProvidedStatus")
+  @@index([initiator], map: "wfps_initiator_fk")
+  @@index([next_actioner], map: "wfps_nextActioner_fk")
+  @@index([process_state_id], map: "wfps_processState_fk")
+  @@index([work_flow_id], map: "work_flow_provided_status_ibfk_1")
+}
+
+model work_flow_request {
+  id                                      String                     @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  process_id                              String?                    @dbUser.VarChar(36)
+  active_provided_status                  String?                    @dbUser.VarChar(36)
+  is_open                                 Boolean?                   @default(false)
+  initiator                               String?                    @dbUser.VarChar(36)
+  created_by                              String?                    @dbUser.VarChar(36)
+  created_at                              DateTime?                  @default(now()) @dbUser.Timestamp(0)
+  updated_by                              String?                    @dbUser.VarChar(36)
+  updated_at                              DateTime?                  @default(now()) @dbUser.Timestamp(0)
+  is_active                               Boolean?                   @default(true)
+  status                                  String?                    @dbUser.VarChar(36)
+  onboard                                 onboard[]
+  user_work_flow_request_created_byTouser user?                      @relation("work_flow_request_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wf_createBy")
+  user_work_flow_request_updated_byTouser user?                      @relation("work_flow_request_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wf_updateBy")
+  work_flow_provided_status               work_flow_provided_status? @relation(fields: [active_provided_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "providedState_workFlowRequest_fk")
+  work_flow_process                       work_flow_process?         @relation(fields: [process_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfr_process_fk")
+  roles                                   roles?                     @relation(fields: [initiator], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfr_role_fk")
+  work_flow_request_list                  work_flow_request_list[]
+
+  @@index([created_by], map: "fk_wf_createBy")
+  @@index([updated_by], map: "fk_wf_updateBy")
+  @@index([status], map: "fk_wfrequest_status")
+  @@index([active_provided_status], map: "providedState_workFlowRequest_fk")
+  @@index([process_id], map: "wfr_process_fk")
+  @@index([initiator], map: "wfr_role_fk")
+}
+
+model work_flow_request_list {
+  id                                                      String                     @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  wf_request_id                                           String?                    @dbUser.VarChar(36)
+  wf_provided_status_id                                   String?                    @dbUser.VarChar(36)
+  created_by                                              String?                    @dbUser.VarChar(36)
+  created_at                                              DateTime?                  @default(now()) @dbUser.Timestamp(0)
+  updated_by                                              String?                    @dbUser.VarChar(36)
+  updated_at                                              DateTime?                  @default(now()) @dbUser.Timestamp(0)
+  is_active                                               Boolean?                   @default(true)
+  remarks                                                 String?                    @dbUser.VarChar(200)
+  current_actioner_id                                     String?                    @dbUser.VarChar(36)
+  action_taken_by_id                                      String?                    @dbUser.VarChar(36)
+  wf_state_id                                             String?                    @dbUser.VarChar(36)
+  office_id                                               String?                    @dbUser.VarChar(36)
+  allowed_state                                           Json?
+  isAdmin                                                 Boolean?                   @default(false)
+  user_work_flow_request_list_created_byTouser            user?                      @relation("work_flow_request_list_created_byTouser", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfList_createdBy")
+  user_work_flow_request_list_updated_byTouser            user?                      @relation("work_flow_request_list_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfList_updateBy")
+  roles_work_flow_request_list_action_taken_by_idToroles  roles?                     @relation("work_flow_request_list_action_taken_by_idToroles", fields: [action_taken_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfRequestList_actionTakenBy")
+  roles_work_flow_request_list_current_actioner_idToroles roles?                     @relation("work_flow_request_list_current_actioner_idToroles", fields: [current_actioner_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfRequestList_currentActioner")
+  office_type                                             office_type?               @relation(fields: [office_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfRequestList_office")
+  work_flow_state                                         work_flow_state?           @relation(fields: [wf_state_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_wfRequestList_state")
+  work_flow_provided_status                               work_flow_provided_status? @relation(fields: [wf_provided_status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfrl_wfProvidedStatus_fk")
+  work_flow_request                                       work_flow_request?         @relation(fields: [wf_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "wfrl_wfRequest_fk")
+
+  @@index([created_by], map: "fk_wfList_createdBy")
+  @@index([updated_by], map: "fk_wfList_updateBy")
+  @@index([action_taken_by_id], map: "fk_wfRequestList_actionTakenBy")
+  @@index([current_actioner_id], map: "fk_wfRequestList_currentActioner")
+  @@index([office_id], map: "fk_wfRequestList_office")
+  @@index([wf_state_id], map: "fk_wfRequestList_state")
+  @@index([wf_provided_status_id], map: "wfrl_wfProvidedStatus_fk")
+  @@index([wf_request_id], map: "wfrl_wfRequest_fk")
+}
+
+model work_flow_state {
+  id                      String                    @id @default(dbgenerated("(uuid())")) @dbUser.VarChar(36)
+  name                    String?                   @dbUser.VarChar(36)
+  label                   String?                   @dbUser.VarChar(36)
+  bg_color                String?                   @dbUser.VarChar(36)
+  fg_color                String?                   @dbUser.VarChar(36)
+  post_label              String?                   @dbUser.VarChar(36)
+  created_by              String?                   @dbUser.VarChar(36)
+  created_at              DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  updated_by              String?                   @dbUser.VarChar(36)
+  updated_at              DateTime?                 @default(now()) @dbUser.Timestamp(0)
+  is_active               Boolean?                  @default(true)
+  work_flow_process_state work_flow_process_state[]
+  work_flow_request_list  work_flow_request_list[]
+}
+
+enum grades_shadow_action {
+  insert
+  update
+  delete
+}
+
+enum user_shadow_action {
+  insert
+  update
+  delete
+}
+
+enum app_module_v2_type {
+  module
+  sub_module
+  menu
+}
