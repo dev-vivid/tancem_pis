@@ -10,7 +10,20 @@ export const getAllAdjustments = async (
 	next: NextFunction
 ) => {
 	try {
-		const result = await adjustmentUsecase.getAllAdjustmentsUsecase();
+		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+		const result = await adjustmentUsecase.getAllAdjustmentsUsecase(
+			accessToken,
+			pageNumber as string | undefined,
+			pageSize as string | undefined
+		);
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
 	} catch (error) {
@@ -25,7 +38,20 @@ export const getAdjustmentById = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const result = await adjustmentUsecase.getAdjustmentByIdUsecase(id);
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await adjustmentUsecase.getAdjustmentByIdUsecase(
+			id,
+			accessToken
+		);
+
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
 	} catch (error) {

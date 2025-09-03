@@ -1,19 +1,19 @@
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { transaction_type } from "@prisma/client";
 import { pageConfig } from "@shared/prisma/query.helper";
-import { parseDateOnly } from "@utils/date";
+import { extractDateTime, parseDateOnly } from "@utils/date";
+import { getMaterialName } from "common/api";
 
 // 1. Get all transaction types (with pagination)
 export const getAllAdjustments = async (
-	pageNumber?: number,
-	pageSize?: number,
+	accessToken: string, // 🆕 Added
+	pageNumber?: string, // 🔄 Changed type from number → string
+	pageSize?: string, // 🔄 Changed type from number → string
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { skip, take } = pageConfig({
-		pageNumber: pageNumber?.toString(),
-		pageSize: pageSize?.toString(),
-	});
+	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	//  Count total records
 	const totalRecords = await tx.adjustment.count({
 		where: { isActive: true },
 	});
@@ -27,33 +27,47 @@ export const getAllAdjustments = async (
 		},
 		select: {
 			id: true,
-			//	code: true,
+			//code: true,
+			toSourceId: true,
+			quantity: true,
 			remarks: true,
+			transactionDate: true,
+			materialId: true,
+			transactionType: true,
 			createdAt: true,
-			updatedAt: true,
 			createdById: true,
+			updatedAt: true,
 			updatedById: true,
+			isActive: true,
 		},
 	});
 
-	const data = records.map((item) => ({
-		uuid: item.id,
-		remarks: item.remarks,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		createdById: item.createdById,
-		updatedAt: item.updatedAt
-			? new Date(item.updatedAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		updatedById: item.updatedById,
-	}));
+	//  Map + enrich data (add material name)
+	const data = await Promise.all(
+		records.map(async (item) => {
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
+
+			return {
+				uuid: item.id,
+				//code: item.code,
+				toSourceId: item.toSourceId,
+				quantity: item.quantity,
+				remarks: item.remarks,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				materialId: item.materialId,
+				materialName:materialName?.productDescription ||  null, // ✅ added
+				transactionType: item.transactionType,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				isActive: item.isActive,
+			};
+		})
+	);
 
 	return {
 		totalRecords,
@@ -61,50 +75,52 @@ export const getAllAdjustments = async (
 	};
 };
 
-// 2.Get Adjustment by ID
+// 2. Get Material Mapping by ID
 export const getAdjustmentById = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const item = await tx.adjustment.findUnique({
-		where: { id },
+		where: { id, isActive: true },
 		select: {
-			id: true,
-			code: true,
-			transactionType: true, // enum field
-			toSourceId: true,
-			quantity: true,
-			remarks: true,
-			transactionDate: true,
-			materialId: true,
-			//	transactionTypeId: true,
-			//type: true, // enum field
-			createdAt: true,
-			updatedAt: true,
-			createdById: true,
-			updatedById: true,
-			isActive: true,
+			   id: true,
+      code: true,
+      toSourceId: true,
+      quantity: true,
+      remarks: true,
+      transactionDate: true,
+      materialId: true,
+      transactionType: true,
+      createdAt: true,
+      createdById: true,
+      updatedAt: true,
+      updatedById: true,
+      isActive: true,
 		},
 	});
 
 	if (!item) {
-		throw new Error("Adjustment not found.");
+		throw new Error("Material mapping not found.");
 	}
+
+	// ✅ Fetch material name (like Bags)
+	const materialName =
+		item.materialId && accessToken
+			? await getMaterialName(item.materialId, accessToken)
+			: null;
 
 	const data = {
 		uuid: item.id,
-		code: item.code,
-		transactionType: item.transactionType,
-		toSourceId: item.toSourceId,
-		quantity: item.quantity?.toString() ?? null, // Decimal to string
-		remarks: item.remarks,
-		transactionDate: item.transactionDate
-			? new Date(item.transactionDate)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		materialId: item.materialId,
+		 code: item.code,
+    toSourceId: item.toSourceId,
+    //sourceName: sourceName ? sourceName.officeDescription : null,
+    quantity: item.quantity ? item.quantity.toString() : null,
+    remarks: item.remarks,
+    transactionDate: extractDateTime(item.transactionDate, "date"),
+    materialId: item.materialId,
+    materialName: materialName ? materialName.productDescription : null,
+    transactionType: item.transactionType,
 
 		createdAt: item.createdAt
 			? new Date(item.createdAt)
@@ -120,7 +136,6 @@ export const getAdjustmentById = async (
 			: null,
 		createdById: item.createdById,
 		updatedById: item.updatedById,
-		isActive: item.isActive,
 	};
 
 	return {
@@ -128,6 +143,7 @@ export const getAdjustmentById = async (
 		data,
 	};
 };
+
 
 // export const createAdjustment = async (
 //   data: {

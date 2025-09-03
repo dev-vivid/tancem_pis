@@ -5,21 +5,22 @@ import {
 	createMaterialMapping as createMaterialMappingService,
 	updateMaterialMapping as updateMaterialMappingService,
 	deleteMaterialMapping as deleteMaterialMappingService,
-	getAllMaterial,
+	getAllMaterialmap,
 } from "../services/materialMappingMaster.service";
 
 // Get all material mappings use case
 export const getAllMaterialMapUsecase = async (
-  status: Status,
+    accessToken:string,
+	status: string,
   pageNumber?: string,
   pageSize?: string
 ) => {
-  return await getAllMaterial(status, pageNumber, pageSize);
+  return await getAllMaterialmap(accessToken, status, pageNumber, pageSize);
 };
 
 // Get material mapping by ID use case
-export const getIdMaterialMappingUsecase = async (id: string) => {
-	return await getMaterialMappingById(id);
+export const getIdMaterialMappingUsecase = async (id: string,accessToken:string) => {
+	return await getMaterialMappingById(id,accessToken);
 };
 
 // Material Mapping data type for create

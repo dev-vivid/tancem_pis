@@ -23,7 +23,7 @@ router.post(
 router.get(
   "/getmaterialmapAll",
   validateRequest(materialMappingFilterQuerySchema, "query"),
-  materialMappingMasterController.getAllMaterialmap
+  materialMappingMasterController.getAllMaterialMappings
 );
 
 //  Get Material Mapping by ID

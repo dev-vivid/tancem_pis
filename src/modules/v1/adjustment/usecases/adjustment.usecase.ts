@@ -3,14 +3,19 @@
 import * as adjustmentService from "../services/adjustment.service";
 
 // Get all adjustments
-export const getAllAdjustmentsUsecase = async () => {
-	return await adjustmentService.getAllAdjustments();
+export const getAllAdjustmentsUsecase = async (
+		accessToken: string,
+	pageNumber?: string,
+	pageSize?: string,
+) => {
+	return await adjustmentService.getAllAdjustments(accessToken, pageNumber, pageSize);
 };
 
 // Get adjustment by ID
-export const getAdjustmentByIdUsecase = async (id: string) => {
-	return await adjustmentService.getAdjustmentById(id);
+export const getAdjustmentByIdUsecase = async (id: string, accessToken: string) => {
+	return await adjustmentService.getAdjustmentById(id,accessToken);
 };
+
 
 // Create adjustment
 export const createAdjustmentUsecase = async (
