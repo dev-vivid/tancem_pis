@@ -96,7 +96,7 @@ export const getIdProblem = async (
 	const data = { 
         id: problem.id,
 				plantDepartmentId: problem.departmentId,
-				plantDepartmentName: departmentName.name,
+				plantDepartmentName: departmentName ? departmentName.name : null,
 				problemDescription: problem.problemName,
         createdAt: extractDateTime(problem.createdAt, "both"),
         updatedAt: extractDateTime(problem.updatedAt, "both"),
