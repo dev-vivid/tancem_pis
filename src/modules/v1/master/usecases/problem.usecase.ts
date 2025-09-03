@@ -21,8 +21,8 @@ export const getAllProblemsUsecase = async (
 };
 
 // Get problem by ID use case
-export const getIdProblemUsecase = async (id: string) => {
-  return await getIdProblem(id);
+export const getIdProblemUsecase = async (id: string, accessToken: string) => {
+  return await getIdProblem(id, accessToken);
 };
 
 // Problem data type for create

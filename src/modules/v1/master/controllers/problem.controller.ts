@@ -33,7 +33,14 @@ export const getAllProblem = async (req: Request, res: Response, next: NextFunct
 export const getProblemById = async (req: Request, res: Response, next: NextFunction) => {
  try {
 	const { id } = req.params;
-	const result = await getIdProblemUsecase(id);
+	const authHeader = req.headers.authorization;
+		
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ message: "Unauthorized: No access token provided" });
+	}
+	const accessToken = authHeader.split(" ")[1];		
+
+	const result = await getIdProblemUsecase(id, accessToken);
 
 	const response = responses.generate("success", {
 		data: result,

@@ -51,8 +51,8 @@ export const getAllProblems = async (
         id: rest.id,
         problemDescription: problemName,
         plantDepartmentId: departmentId,
-        // plantDepartmentName: departmentName ? departmentName.name : null,
-				plantDepartmentName: departmentName?.name || null,
+        plantDepartmentName: departmentName ? departmentName.name : null,
+				// plantDepartmentName: departmentName?.name || null,
         createdAt: extractDateTime(createdAt, "both"),
         updatedAt: extractDateTime(updatedAt, "both"),
       };
@@ -67,6 +67,7 @@ export const getAllProblems = async (
 
 export const getIdProblem = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const problem = await tx.problem.findUnique({
@@ -89,14 +90,20 @@ export const getIdProblem = async (
 
 	if(!problem) throw new Error("Problem not found");
 
-	const {departmentId, problemName, createdAt, updatedAt, ...rest } = problem;
+	const departmentName = problem.departmentId && accessToken ? await getDepartmentName(problem.departmentId, accessToken) : null;
+	
 	
 	const data = { 
-        ...rest,
-				plantDepartmentId: departmentId,
-				problemDescription: problemName,
-        createdAt: extractDateTime(createdAt, "both"),
-        updatedAt: extractDateTime(updatedAt, "both"),
+        id: problem.id,
+				plantDepartmentId: problem.departmentId,
+				plantDepartmentName: departmentName ? departmentName.name : null,
+				problemDescription: problem.problemName,
+        createdAt: extractDateTime(problem.createdAt, "both"),
+        updatedAt: extractDateTime(problem.updatedAt, "both"),
+				createdBy: problem.createdById,
+				updatedBy: problem.updatedById,
+				isActive: problem.isActive,
+				status: problem.status
 	};
 	return {
 		data
