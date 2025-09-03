@@ -16,30 +16,61 @@ import { Status } from "@prisma/client";
 
 
 
-export const getAllMaterialmap = async (req: Request, res: Response) => {
-  const { status, pageNumber, pageSize } = req.query as {
-    status?: string;
-    pageNumber?: string;
-    pageSize?: string;
-  };
+// Get all Material Mappings
+export const getAllMaterialMappings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { pageNumber, pageSize, status } = req.query;
+    const authHeader = req.headers.authorization;
 
-  const parsedStatus = status as Status | undefined;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access token provided" });
+    }
 
-  const result = await getAllMaterialMapUsecase(parsedStatus!, pageNumber, pageSize);
-  res.json(result);
+    const accessToken = authHeader.split(" ")[1];
+
+    const result = await getAllMaterialMapUsecase(
+      accessToken,
+      status as string,
+      pageNumber as string | undefined,
+      pageSize as string | undefined
+    );
+
+    const response = responses.generate("success", { data: result });
+    res.status(response.statusCode).send(response);
+  } catch (error) {
+    next(error);
+  }
 };
 
-
-
-
-
-
-
-
-export const getMaterialMappingById = async (req: Request, res: Response, next: NextFunction) => {
+// Get Material Mapping by ID
+export const getMaterialMappingById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
-    const result = await getIdMaterialMappingUsecase(id);
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access token provided" });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const result = await getIdMaterialMappingUsecase(
+      id,
+      accessToken
+    );
+
     const response = responses.generate("success", { data: result });
     res.status(response.statusCode).send(response);
   } catch (error) {
