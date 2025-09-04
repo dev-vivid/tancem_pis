@@ -8,7 +8,7 @@ import {
 	extractDateTime,
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
-import { PrismaClient as DbUserClient } from "../../../../../prisma/schema/generated/client1";
+import { PrismaClient as DbUserClient } from "../../../../../prisma/userSchema/generated/clientUserMananagement";
 
 // export const createAnalysisLab = async (data: any, user: string) => {
 // 	const analysisExists = await prisma.analysis.findUnique({
@@ -41,6 +41,7 @@ export const createAnalysisLab = async (
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
 			materialId: data.materialId,
+			wfRequestId: "",
 			createdById: user,
 		},
 	});

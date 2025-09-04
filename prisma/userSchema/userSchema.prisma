@@ -1,6 +1,6 @@
-generator client {
+generator clientUserMananagement {
   provider        = "prisma-client-js"
-  output          = "./generated/client1"
+  output          = "./generated/clientUserMananagement"
   previewFeatures = ["prismaSchemaFolder"]
 }
 
