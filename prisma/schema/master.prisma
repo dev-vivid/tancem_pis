@@ -28,6 +28,7 @@ model Problem {
   description     String?           @db.VarChar(200)
   departmentId    String            @map("department_id") @db.VarChar(36)
   problemName     String            @map("problem") @db.VarChar(36)
+	requestId        String?            @map("wf_request_id") @db.VarChar(36)
   sortOrder       Int               @default(0) @map("sort_order")
   status          Status            @default(active)
   createdAt       DateTime          @default(now()) @map("created_at")
@@ -386,6 +387,8 @@ model AnalysisLab {
   transactionDate  DateTime           @map("transaction_date") @db.Date
   materialId       String             @map("material_id") @db.VarChar(36)
   // analysisId       String   @map("analysis_id") @db.VarChar(36)
+	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
+	approvalStatus	approveStatus? 	 @map("approval_status")
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
   createdById      String?            @map("created_by_id") @db.VarChar(36)
@@ -433,6 +436,15 @@ enum transaction_type {
   Despatch
   consume
 }
+
+enum approveStatus {
+	Active
+	Inprogress
+	Forwarded
+	Approved
+	Rejected
+}
+
 
 enum Status {
   active
