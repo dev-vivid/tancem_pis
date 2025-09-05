@@ -1,9 +1,9 @@
-import { 
-	getAllPowerTransactions, 
-	getPowerTransactionById, 
-	createPowerTransaction as createPowerService,  
-	updatePowerTransaction as updatePowerService, 
-	deletePowerTransaction 
+import {
+	getAllPowerTransactions,
+	getPowerTransactionById,
+	createPowerTransaction as createPowerService,
+	updatePowerTransaction as updatePowerService,
+	deletePowerTransaction,
 } from "../services/power.service";
 
 export const getAllPowerTransactionsUsecase = async (
@@ -14,7 +14,10 @@ export const getAllPowerTransactionsUsecase = async (
 	return await getAllPowerTransactions(accessToken, pageNumber, pageSize);
 };
 
-export const getPowerTransactionByIdUsecase = async (id: string, accessToken: string) => {
+export const getPowerTransactionByIdUsecase = async (
+	id: string,
+	accessToken: string
+) => {
 	return await getPowerTransactionById(id, accessToken);
 };
 
@@ -26,6 +29,9 @@ type TPowerDetail = {
 type TPowerTransactionData = {
 	transactionDate: Date;
 	powerDetails: TPowerDetail[];
+	initiatorRoleId: string;
+	remarks: string;
+	status: string;
 };
 
 export const createPowerTransactionUsecase = async (
@@ -43,6 +49,10 @@ export const updatePowerTransactionUsecase = async (
 	return await updatePowerService(id, transactionData, user);
 };
 
-export const deletePowerTransactionUsecase = async (id: string, powerDetailsId: string[], user: string) => {
+export const deletePowerTransactionUsecase = async (
+	id: string,
+	powerDetailsId: string[],
+	user: string
+) => {
 	return await deletePowerTransaction(id, powerDetailsId, user);
 };
