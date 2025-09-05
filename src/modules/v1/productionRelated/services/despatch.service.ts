@@ -151,6 +151,7 @@ export const createdespatch = async (
 			inlandQuantity: despatchData.inlandQuantity
 				? Number(despatchData.inlandQuantity)
 				: 0,
+				wfRequestId: "",
 			createdById: user,
 		},
 	});

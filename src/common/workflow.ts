@@ -15,15 +15,21 @@ export async function createWorkflowRequest({
   remarks,
   status,
 }: WorkflowContext): Promise<string> {
+	console.log(initiatorRoleId)
   const isWorkFlowExist = await userPrimsa.work_flow.findFirst({
     where: { role_id: initiatorRoleId, process_id: PROCESS_ID, is_active: true },
   });
   if (!isWorkFlowExist) throw new Error("WorkFlowNotFound");
 
+	console.log(isWorkFlowExist);
+	
+
   const initiateState = await userPrimsa.work_flow_state.findFirst({
     where: { name: "initiate", is_active: true },
   });
   if (!initiateState) throw new Error("InitiateStateNotFound");
+	// console.log(initiateState);
+	
 
   const processState = await userPrimsa.work_flow_process_state.findFirst({
     where: {

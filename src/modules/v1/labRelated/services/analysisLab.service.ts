@@ -8,7 +8,6 @@ import {
 	extractDateTime,
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
-import { PrismaClient as DbUserClient } from "../../../../../prisma/userSchema/generated/clientUserMananagement";
 
 // export const createAnalysisLab = async (data: any, user: string) => {
 // 	const analysisExists = await prisma.analysis.findUnique({

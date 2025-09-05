@@ -16,6 +16,9 @@ export const createPowerTransactionBodySchema = Joi.object({
     )
     .min(1)
     .required(),
+		initiatorRoleId: Joi.string().required(),
+		remarks: Joi.string().optional(),
+		status: Joi.string().optional()
 });
 
 export const updatePowerTransactionBodySchema = Joi.object({

@@ -13,6 +13,7 @@ export const createQualityLab = async (data: any, user: string) => {
 			ist: data.ist,
 			fst: data.fst,
 			blaine: data.blaine,
+			wfRequestId: "",
 			createdById: user,
 		},
 	});

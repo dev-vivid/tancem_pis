@@ -146,6 +146,7 @@ export const createproduction = async (
 			equipmentId: productionData.equipmentId,
 			materialId: productionData.materialId,
 			runningHours: productionData.runningHours,
+			wfRequestId: "",
 			quantity: productionData.quantity ? Number(productionData.quantity) : 0,
 			fuelConsumption: productionData.fuelConsumption
 				? Number(productionData.fuelConsumption)

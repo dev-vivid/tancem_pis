@@ -67,6 +67,7 @@ const data = await Promise.all(
           transactionId: item.id,
           transactionCode: item.code,
           transactionDate: extractDateTime(item.transactionDate, "date"),
+					wfRequestId: item.wfRequestId,
           transactionCreatedAt: extractDateTime(item.createdAt, "both"),
           transactionUpdatedAt: extractDateTime(item.updatedAt, "both"),
           transactionCreatedById: item.createdById,
@@ -167,7 +168,7 @@ export const createPowerTransaction = async (
   await tx.powerTransaction.create({
     data: {
       transactionDate: parseDateOnly(data.transactionDate),
-			wfRequestId,
+			wfRequestId: "",
       createdById: user,
       powerDetails: {
         create: data.powerDetails.map((p) => ({

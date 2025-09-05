@@ -135,6 +135,7 @@ export const createreceipt = async (
 			materialId: receiptData.materialId,
 			materialType: receiptData.materialType,
 			transactionType: receiptData.transactionType,
+			wfRequestId: "",
 			createdById: user,
 		},
 	});
