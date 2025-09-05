@@ -1,7 +1,9 @@
-import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
+import prisma, { IPrismaTransactionClient, userPrimsa } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
 import { getEquipmentName } from "common/api";
+import { createWorkflowRequest } from "common/workflow";
+
 
 export const getAllPowerTransactions = async (
 	accessToken: string,
@@ -148,13 +150,24 @@ export const createPowerTransaction = async (
       equipmentId: string;
       units: number;
     }[];
+		initiatorRoleId: string;
+    remarks?: string;
+    status?: string;
   },
 	user: string,
   tx: IPrismaTransactionClient | typeof prisma = prisma,
 ) => {
+	  const wfRequestId = await createWorkflowRequest({
+    userId: user,
+    initiatorRoleId: data.initiatorRoleId,
+    remarks: data.remarks,
+    status: data.status,
+  });
+
   await tx.powerTransaction.create({
     data: {
       transactionDate: parseDateOnly(data.transactionDate),
+			wfRequestId,
       createdById: user,
       powerDetails: {
         create: data.powerDetails.map((p) => ({
