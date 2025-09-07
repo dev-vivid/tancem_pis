@@ -1,5 +1,8 @@
 import { Status } from "@prisma/client";
-import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
+import prisma, {
+	IPrismaTransactionClient,
+	userPrimsa,
+} from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import * as api from "../../../../common/api";
@@ -56,6 +59,16 @@ export const getAllanalysis = async (
 			const materialObj = item.materialId
 				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
+			const userDetails = await userPrimsa.user.findFirst({
+				where: {
+					id: item.createdById || "",
+				},
+				select: {
+					id: true,
+					first_name: true,
+					last_name: true,
+				},
+			});
 			// const equipmentName = item.equipmentId
 			// 	? await api.getEquipmentName(item.equipmentId, accessToken)
 			// 	: null;
@@ -66,6 +79,7 @@ export const getAllanalysis = async (
 					.toISOString()
 					.replace("T", " ")
 					.substring(0, 19),
+				userDetails,
 			};
 		})
 	);
