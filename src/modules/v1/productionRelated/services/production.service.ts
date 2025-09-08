@@ -1,3 +1,4 @@
+import { createWorkflowRequest } from "common/workflow";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import path from "path";
@@ -29,6 +30,7 @@ export const getAllproduction = async (
 			runningHours: true,
 			quantity: true,
 			fuelConsumption: true,
+			wfRequestId: true,
 			remarks: true,
 			createdAt: true,
 			createdById: true,
@@ -48,6 +50,7 @@ export const getAllproduction = async (
 		quantity: item.quantity,
 		fuelConsumption: item.fuelConsumption,
 		remarks: item.remarks,
+		wfRequestId: item.wfRequestId,
 		createdAt: item.createdAt
 			? new Date(item.createdAt)
 					.toISOString()
@@ -77,6 +80,7 @@ export const getIdproduction = async (
 			runningHours: true,
 			quantity: true,
 			fuelConsumption: true,
+			wfRequestId: true,
 			remarks: true,
 			createdAt: true,
 			createdById: true,
@@ -122,6 +126,10 @@ type productionData = {
 	quantity: string;
 	fuelConsumption?: string;
 	remarks?: string;
+	initiatorRoleId: string;
+	workflowRemarks?: string;
+	status?: string;
+
 };
 
 function parseDDMMYYYY(dateStr: string): Date | null {
@@ -140,13 +148,21 @@ export const createproduction = async (
 	if (!parsedDate || isNaN(parsedDate.getTime())) {
 		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
 	}
+
+	const wfRequestId = await createWorkflowRequest({
+		userId: user,
+		initiatorRoleId: productionData.initiatorRoleId,
+		remarks: productionData.workflowRemarks,
+		status: productionData.status,
+	});
+
 	return await tx.production.create({
 		data: {
 			transactionDate: parsedDate,
 			equipmentId: productionData.equipmentId,
 			materialId: productionData.materialId,
 			runningHours: productionData.runningHours,
-			wfRequestId: "",
+			wfRequestId,
 			quantity: productionData.quantity ? Number(productionData.quantity) : 0,
 			fuelConsumption: productionData.fuelConsumption
 				? Number(productionData.fuelConsumption)

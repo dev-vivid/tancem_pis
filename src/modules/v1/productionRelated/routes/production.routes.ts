@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	productionFilterQuerySchema,
 	productionFormSchema,
+	productionCreateFormSchema
 } from "../validations/production.schema";
 
 const productionRouter = express.Router();
@@ -23,7 +24,7 @@ productionRouter.get("/production/:id", getIdproduction);
 
 productionRouter.post(
 	"/productionAdd",
-	validateRequest(productionFormSchema, "body"),
+	validateRequest(productionCreateFormSchema, "body"),
 	createproduction
 );
 

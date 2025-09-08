@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	receiptFilterQuerySchema,
 	receiptFormSchema,
+	receiptCreateFormSchema
 } from "../validations/receipt.schema";
 
 const receiptRouter = express.Router();
@@ -23,7 +24,7 @@ receiptRouter.get("/receipt/:id", getIdreceipt);
 
 receiptRouter.post(
 	"/receiptAdd",
-	validateRequest(receiptFormSchema, "body"),
+	validateRequest(receiptCreateFormSchema, "body"),
 	createreceipt
 );
 

@@ -12,3 +12,14 @@ export const receiptFormSchema = Joi.object({
 	materialType: Joi.string().required(),
 	transactionType: Joi.string().required(),
 });
+
+export const receiptCreateFormSchema = Joi.object({
+	transactionDate: Joi.string().required(),
+	quantity: Joi.string().required(),
+	materialId: Joi.string().required(),
+	materialType: Joi.string().required(),
+	transactionType: Joi.string().required(),
+	initiatorRoleId: Joi.string().required(),
+	remarks: Joi.string().optional(),
+	status: Joi.string().optional()
+});

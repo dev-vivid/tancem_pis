@@ -1,3 +1,4 @@
+import { createWorkflowRequest } from "common/workflow";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import path from "path";
@@ -25,6 +26,7 @@ export const getAllreceipt = async (
 			code: true,
 			transactionDate: true,
 			quantity: true,
+			wfRequestId: true,
 			materialId: true,
 			materialType: true,
 			transactionType: true,
@@ -43,6 +45,7 @@ export const getAllreceipt = async (
 		materialId: item.materialId,
 		materialType: item.materialType,
 		transactionType: item.transactionType,
+		wfRequestId: item.wfRequestId,
 		createdAt: item.createdAt
 			? new Date(item.createdAt)
 					.toISOString()
@@ -71,6 +74,7 @@ export const getIdreceipt = async (
 			materialId: true,
 			materialType: true,
 			transactionType: true,
+			wfRequestId: true,
 			createdAt: true,
 			createdById: true,
 		},
@@ -89,6 +93,7 @@ export const getIdreceipt = async (
 		materialId: item.materialId,
 		materialType: item.materialType,
 		transactionType: item.transactionType,
+		wfRequestId: item.wfRequestId,
 		createdAt: item.createdAt
 			? new Date(item.createdAt)
 					.toISOString()
@@ -110,6 +115,9 @@ type receiptData = {
 	materialId: string;
 	materialType: string;
 	transactionType: string;
+	initiatorRoleId: string;
+	remarks?: string;
+	status?: string;
 };
 
 function parseDDMMYYYY(dateStr: string): Date | null {
@@ -128,6 +136,13 @@ export const createreceipt = async (
 	if (!parsedDate || isNaN(parsedDate.getTime())) {
 		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
 	}
+		const wfRequestId = await createWorkflowRequest({
+			userId: user,
+			initiatorRoleId: receiptData.initiatorRoleId,
+			remarks: receiptData.remarks,
+			status: receiptData.status,
+		});
+
 	return await tx.receiptConsumption.create({
 		data: {
 			transactionDate: parsedDate,
@@ -135,7 +150,7 @@ export const createreceipt = async (
 			materialId: receiptData.materialId,
 			materialType: receiptData.materialType,
 			transactionType: receiptData.transactionType,
-			wfRequestId: "",
+			wfRequestId,
 			createdById: user,
 		},
 	});
