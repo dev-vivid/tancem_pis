@@ -4,7 +4,7 @@ import {
 	extractDateTime,
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
-import { getEquipmentName } from "common/api";
+import { getEquipmentName, getDepartmentName } from "common/api";
 import { createWorkflowRequest } from "common/workflow";
 
 export const getAllPowerTransactions = async (
