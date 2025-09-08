@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { USER_DATABASE_URL } from "@config/index";
+import { USER_DATABASE_URL } from "../../config/index";
 import { parseMySQLConnectionString } from "./parser";
-import mysql from "mysql2/promise";
+import * as mysql from "mysql2/promise";
 
 export const prisma = new PrismaClient();
 
