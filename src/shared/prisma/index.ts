@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { PrismaClient as PrismaClientUser } from "../../../prisma/generated/clientUserMananagement";
+// import { PrismaClient as PrismaClientUser } from "../../../prisma/generated/clientUserMananagement";
 
 // const prisma = new PrismaClient();
 
@@ -9,7 +9,7 @@ export type IPrismaTransactionClient = Omit<
 	"$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 const prisma = new PrismaClient();
-export const userPrimsa = new PrismaClientUser();
+// export const userPrimsa = new PrismaClientUser();
 // .$extends({
 // 	query: {
 // 		async $allOperations({ model, operation, args, query }) {
