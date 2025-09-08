@@ -14,3 +14,16 @@ export const productionFormSchema = Joi.object({
 	fuelConsumption: Joi.string().optional(),
 	remarks: Joi.string().optional(),
 });
+
+export const productionCreateFormSchema = Joi.object({
+	transactionDate: Joi.string().required(),
+	equipmentId: Joi.string().required(),
+	materialId: Joi.string().required(),
+	runningHours: Joi.string().required(),
+	quantity: Joi.string().required(),
+	fuelConsumption: Joi.string().optional(),
+	remarks: Joi.string().optional(),
+	initiatorRoleId: Joi.string().required(),
+	workflowRemarks: Joi.string().optional(),
+	status: Joi.string().optional()
+});

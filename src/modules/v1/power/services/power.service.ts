@@ -63,7 +63,7 @@ export const getAllPowerTransactions = async (
 	// );
 
 	const data = await Promise.all(
-		transactions.flatMap(async (item) => {
+		transactions.map(async (item) => {
 			return Promise.all(
 				item.powerDetails.map(async (power) => {
 					const equipmentName = await getEquipmentName(
@@ -179,7 +179,7 @@ export const createPowerTransaction = async (
 	await tx.powerTransaction.create({
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
-			wfRequestId: "",
+			wfRequestId,
 			createdById: user,
 			powerDetails: {
 				create: data.powerDetails.map((p) => ({
