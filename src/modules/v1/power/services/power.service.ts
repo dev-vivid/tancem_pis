@@ -1,7 +1,4 @@
-import prisma, {
-	IPrismaTransactionClient,
-	userPrimsa,
-} from "../../../../shared/prisma";
+import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import {
 	extractDateTime,

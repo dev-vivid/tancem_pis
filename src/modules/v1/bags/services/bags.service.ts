@@ -1,7 +1,12 @@
 import { getMaterialName } from "common/api";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
-import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date/index";
+import {
+	extractDateTime,
+	parseDateOnly,
+} from "../../../../shared/utils/date/index";
+import { userManagementDb } from "@shared/prisma/second_db";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 // Get all bags
 export const getAllBags = async (
@@ -40,6 +45,7 @@ export const getAllBags = async (
 			isActive: true,
 		},
 	});
+	getUserData(bags[0].createdById || "");
 
 	const data = await Promise.all(
 		bags.map(async (item) => {
@@ -101,13 +107,16 @@ export const getIdBags = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
 	if (!bag) throw new Error("Bags record not found");
 
-	const materialName = bag.materialId && accessToken ? await getMaterialName(bag.materialId, accessToken) : null;
+	const materialName =
+		bag.materialId && accessToken
+			? await getMaterialName(bag.materialId, accessToken)
+			: null;
 
 	const data = {
 		id: bag.id,
@@ -157,7 +166,7 @@ export const createBags = async (
 			...bagsData,
 			transactionDate: parseDateOnly(bagsData.transactionDate),
 			createdById: user,
-		}
+		},
 	});
 };
 
@@ -187,8 +196,8 @@ export const updateBags = async (
 		data: {
 			...bagsData,
 			transactionDate: parseDateOnly(bagsData.transactionDate),
-			updatedById: user
-		}
+			updatedById: user,
+		},
 	});
 };
 
@@ -205,6 +214,6 @@ export const deleteBags = async (
 		data: {
 			isActive: false,
 			updatedById: user,
-		}
+		},
 	});
 };
