@@ -160,7 +160,7 @@ export const getAllAnalysisLab = async (
 				id: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
-				materialName: materialName?.productDescription ?? null,
+				materialName: materialName?.name ?? null,
 				analysisTypeCount: item._count.LabAnalysisTypes,
 				createdAt: item.createdAt
 					.toISOString()
@@ -210,7 +210,7 @@ export const getAnalysisLabById = async (
 		id: item.id,
 		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
-		materialName: materialName?.productDescription || null,
+		materialName: materialName?.name || null,
 		analysis: item.LabAnalysisTypes.map((a) => ({
 			id: a.MaterialAnalysis.id,
 			type: a.MaterialAnalysis.type,

@@ -8,15 +8,19 @@ import {
 } from "../services/annualMaterialBudget.service";
 
 export const getAllAnnualMaterialBudgetUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
-	status?: string,
+	status?: string
 ) => {
-	return await getAllService(pageNumber, pageSize, status);
+	return await getAllService(accessToken, pageNumber, pageSize, status);
 };
 
-export const getIdAnnualMaterialBudgetUsecase = async (id: string) => {
-	return await getByIdService(id);
+export const getIdAnnualMaterialBudgetUsecase = async (
+	id: string,
+	accessToken: string
+) => {
+	return await getByIdService(id, accessToken);
 };
 
 // AnnualMaterialBudget data type for create/update
@@ -41,7 +45,10 @@ export const createAnnualMaterialBudgetUsecase = async (
 	annualMaterialBudgetData: TAnnualMaterialBudgetData,
 	user: string
 ) => {
-	return await createAnnualMaterialBudgetService(annualMaterialBudgetData, user);
+	return await createAnnualMaterialBudgetService(
+		annualMaterialBudgetData,
+		user
+	);
 };
 
 export const updateAnnualMaterialBudgetUsecase = async (
@@ -49,7 +56,11 @@ export const updateAnnualMaterialBudgetUsecase = async (
 	updateAnnualMaterialBudgetData: TUpdateAnnualMaterialBudgetData,
 	user: string
 ) => {
-	return await updateAnnualMaterialBudgetService(id, updateAnnualMaterialBudgetData, user);
+	return await updateAnnualMaterialBudgetService(
+		id,
+		updateAnnualMaterialBudgetData,
+		user
+	);
 };
 
 export const deleteAnnualMaterialBudgetUsecase = async (

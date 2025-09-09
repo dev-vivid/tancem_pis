@@ -6,13 +6,27 @@ import {
 	getIdAnnualMaterialBudgetUsecase,
 	createAnnualMaterialBudgetUsecase,
 	updateAnnualMaterialBudgetUsecase,
-	deleteAnnualMaterialBudgetUsecase
+	deleteAnnualMaterialBudgetUsecase,
 } from "../usecases/annualMaterialBudget.usecase";
 
-export const getAllAnnualMaterialBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllAnnualMaterialBudget = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
-		const { pageNumber, pageSize, status} = req.query;
+		const { pageNumber, pageSize, status } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllAnnualMaterialBudgetUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
@@ -24,10 +38,23 @@ export const getAllAnnualMaterialBudget = async (req: Request, res: Response, ne
 	}
 };
 
-export const getIdAnnualMaterialBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const getIdAnnualMaterialBudget = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { id } = req.params;
-		const result = await getIdAnnualMaterialBudgetUsecase(id);
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIdAnnualMaterialBudgetUsecase(id, accessToken);
 
 		const response = responses.generate("success", { data: result });
 		res.status(response.statusCode).send(response);
@@ -36,7 +63,11 @@ export const getIdAnnualMaterialBudget = async (req: Request, res: Response, nex
 	}
 };
 
-export const createAnnualMaterialBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const createAnnualMaterialBudget = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const user = req.user?.id;
 		if (!user) {
@@ -58,7 +89,11 @@ export const createAnnualMaterialBudget = async (req: Request, res: Response, ne
 	}
 };
 
-export const updateAnnualMaterialBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const updateAnnualMaterialBudget = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const user = req.user?.id;
 		if (!user) {
@@ -72,7 +107,11 @@ export const updateAnnualMaterialBudget = async (req: Request, res: Response, ne
 		const { id } = req.params;
 		const updateData = req.body;
 
-		const result = await updateAnnualMaterialBudgetUsecase(id, updateData, user);
+		const result = await updateAnnualMaterialBudgetUsecase(
+			id,
+			updateData,
+			user
+		);
 
 		const response = responses.generate("success", {
 			message: "Annual Material Budget has been updated",
@@ -84,7 +123,11 @@ export const updateAnnualMaterialBudget = async (req: Request, res: Response, ne
 	}
 };
 
-export const deleteAnnualMaterialBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteAnnualMaterialBudget = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { id } = req.params;
 		const user = req.user?.id;

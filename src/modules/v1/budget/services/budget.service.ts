@@ -2,6 +2,7 @@ import { extractDateTime, parseDateOnly } from "@utils/date";
 import { getMaterialName } from "common/api";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 // Get all budgets
 export const getAllBudgets = async (
@@ -44,12 +45,21 @@ export const getAllBudgets = async (
 					? await getMaterialName(item.materialId, accessToken)
 					: null;
 
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
 			return {
 				...item,
-        materialName: materialName?.productDescription || null,
+				materialName: materialName?.name || null,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -88,12 +98,21 @@ export const getBudgetById = async (
 			? await getMaterialName(budget.materialId, accessToken)
 			: null;
 
+	const createdUser = budget.createdById
+		? await getUserData(budget.createdById)
+		: null;
+	const updatedUser = budget.updatedById
+		? await getUserData(budget.updatedById)
+		: null;
+
 	const data = {
 		...budget,
-		materialName,
+		materialName: materialName?.name || null,
 		transactionDate: extractDateTime(budget.transactionDate, "date"),
 		createdAt: extractDateTime(budget.createdAt, "both"),
 		updatedAt: extractDateTime(budget.updatedAt, "both"),
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return { data };

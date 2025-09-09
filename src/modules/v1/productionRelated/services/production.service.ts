@@ -1,9 +1,17 @@
 import { createWorkflowRequest } from "common/workflow";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
+import {
+	extractDateTime,
+	parseDateOnly,
+} from "../../../../shared/utils/date/index";
 import path from "path";
+import { constants } from "@config/constant";
+import { getMaterialName, getEquipmentName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const getAllproduction = async (
+	accessToken: string,
 	pageNumber?: number,
 	pageSize?: number,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -13,7 +21,9 @@ export const getAllproduction = async (
 		pageSize: pageSize?.toString(),
 	});
 
-	const totalRecords = await tx.production.count();
+	const totalRecords = await tx.production.count({
+		where: { isActive: true },
+	});
 
 	const production = await tx.production.findMany({
 		skip,
@@ -34,31 +44,48 @@ export const getAllproduction = async (
 			remarks: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
 		},
 	});
 
-	// Convert snake_case to camelCase in the result
-	const data = production.map((item) => ({
-		uuid: item.id,
-		productionCode: item.code,
-		transactionDate: item.transactionDate
-			? new Date(item.transactionDate).toISOString().split("T")[0] // 👈 gives YYYY-MM-DD only
-			: null,
-		equipmentId: item.equipmentId,
-		materialId: item.materialId,
-		runningHours: item.runningHours,
-		quantity: item.quantity,
-		fuelConsumption: item.fuelConsumption,
-		remarks: item.remarks,
-		wfRequestId: item.wfRequestId,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		createdBy: item.createdById,
-	}));
+	const data = await Promise.all(
+		production.map(async (item) => {
+			const materialName = item.materialId
+				? await getMaterialName(item.materialId, accessToken)
+				: null;
+
+			const equipmentName = item.equipmentId
+				? await getEquipmentName(item.equipmentId, accessToken)
+				: null;
+
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
+			return {
+				uuid: item.id,
+				productionCode: item.code,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				equipmentId: item.equipmentId,
+				materialId: item.materialId,
+				runningHours: item.runningHours,
+				quantity: item.quantity,
+				fuelConsumption: item.fuelConsumption,
+				remarks: item.remarks,
+				wfRequestId: item.wfRequestId,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdBy: item.createdById,
+				updatedBy: item.updatedById,
+			};
+		})
+	);
+
 	return {
 		totalRecords,
 		data,
@@ -67,8 +94,15 @@ export const getAllproduction = async (
 
 export const getIdproduction = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	const totalRecords = await tx.production.count({
+		where: {
+			isActive: true,
+		},
+	});
+
 	const item = await tx.production.findUnique({
 		where: { id },
 		select: {
@@ -84,6 +118,8 @@ export const getIdproduction = async (
 			remarks: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
 		},
 	});
 
@@ -91,29 +127,44 @@ export const getIdproduction = async (
 		throw new Error("production not found.");
 	}
 
+	const materialName = item.materialId
+		? await getMaterialName(item.materialId, accessToken)
+		: null;
+
+	const equipmentName = item.equipmentId
+		? await getEquipmentName(item.equipmentId, accessToken)
+		: null;
+
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
+
 	const data = {
 		uuid: item.id,
 		productionCode: item.code,
-		transactionDate: item.transactionDate
-			? new Date(item.transactionDate).toISOString().split("T")[0] // 👈 gives YYYY-MM-DD only
-			: null,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
 		equipmentId: item.equipmentId,
+		equipmentName: equipmentName ? equipmentName.name : null,
 		materialId: item.materialId,
+		materialName: materialName ? materialName.name : null,
 		runningHours: item.runningHours,
 		quantity: item.quantity,
 		fuelConsumption: item.fuelConsumption,
 		remarks: item.remarks,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
+		updatedBy: item.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return {
-		totalRecords: 1,
+		totalRecords,
 		data,
 	};
 };
@@ -129,36 +180,36 @@ type productionData = {
 	initiatorRoleId: string;
 	workflowRemarks?: string;
 	status?: string;
-
 };
 
-function parseDDMMYYYY(dateStr: string): Date | null {
-	if (!dateStr) return null;
-	const [day, month, year] = dateStr.split("-");
-	if (!day || !month || !year) return null;
-	return new Date(`${year}-${month}-${day}`); // convert to YYYY-MM-DD
-}
+// function parseDDMMYYYY(dateStr: string): Date | null {
+// 	if (!dateStr) return null;
+// 	const [day, month, year] = dateStr.split("-");
+// 	if (!day || !month || !year) return null;
+// 	return new Date(`${year}-${month}-${day}`); // convert to YYYY-MM-DD
+// }
 
 export const createproduction = async (
 	productionData: productionData,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const parsedDate = parseDDMMYYYY(productionData.transactionDate);
-	if (!parsedDate || isNaN(parsedDate.getTime())) {
-		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	}
+	// const parsedDate = parseDDMMYYYY(productionData.transactionDate);
+	// if (!parsedDate || isNaN(parsedDate.getTime())) {
+	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
+	// }
 
 	const wfRequestId = await createWorkflowRequest({
 		userId: user,
 		initiatorRoleId: productionData.initiatorRoleId,
+		processId: constants.power_workflow_process_ID,
 		remarks: productionData.workflowRemarks,
 		status: productionData.status,
 	});
 
 	return await tx.production.create({
 		data: {
-			transactionDate: parsedDate,
+			transactionDate: parseDateOnly(productionData.transactionDate),
 			equipmentId: productionData.equipmentId,
 			materialId: productionData.materialId,
 			runningHours: productionData.runningHours,
@@ -182,14 +233,14 @@ export const updateproduction = async (
 	if (!id) {
 		throw new Error("ID is required for updating production.");
 	}
-	const parsedDate = parseDDMMYYYY(productionData.transactionDate);
-	if (!parsedDate || isNaN(parsedDate.getTime())) {
-		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	}
+	// const parsedDate = parseDDMMYYYY(productionData.transactionDate);
+	// if (!parsedDate || isNaN(parsedDate.getTime())) {
+	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
+	// }
 	return await tx.production.update({
 		where: { id },
 		data: {
-			transactionDate: parsedDate,
+			transactionDate: parseDateOnly(productionData.transactionDate),
 			equipmentId: productionData.equipmentId,
 			materialId: productionData.materialId,
 			runningHours: productionData.runningHours,

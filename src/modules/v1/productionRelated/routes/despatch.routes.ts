@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	despatchFilterQuerySchema,
 	despatchFormSchema,
+	despatchCreateFormSchema,
 } from "../validations/despatch.schema";
 
 const despatchRouter = express.Router();
@@ -23,7 +24,7 @@ despatchRouter.get("/despatch/:id", getIddespatch);
 
 despatchRouter.post(
 	"/despatchAdd",
-	validateRequest(despatchFormSchema, "body"),
+	validateRequest(despatchCreateFormSchema, "body"),
 	createdespatch
 );
 

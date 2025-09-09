@@ -3,6 +3,7 @@ import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "@utils/date";
 import { getDepartmentName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const getAllProblems = async (
 	accessToken: string,
@@ -15,12 +16,12 @@ export const getAllProblems = async (
 
 	const whereClause: any = {
 		isActive: true,
-		...(status ? { status: status as Status } : {})
-	}
+		...(status ? { status: status as Status } : {}),
+	};
 	const totalRecords = await tx.problem.count({
-		where: whereClause
+		where: whereClause,
 	});
-	
+
 	const problems = await tx.problem.findMany({
 		skip,
 		take,
@@ -35,35 +36,44 @@ export const getAllProblems = async (
 			updatedById: true,
 			updatedAt: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
-  const data = await Promise.all(
-    problems.map(async ({ departmentId, problemName, createdAt, updatedAt, ...rest }) => {
-      const departmentName =
-        departmentId && accessToken
-          ? await getDepartmentName(departmentId, accessToken)
-          : null;
+	const data = await Promise.all(
+		problems.map(
+			async ({ departmentId, problemName, createdAt, updatedAt, ...rest }) => {
+				const departmentName =
+					departmentId && accessToken
+						? await getDepartmentName(departmentId, accessToken)
+						: null;
+				const createdUser = rest.createdById
+					? await getUserData(rest.createdById)
+					: null;
+				const updatedUser = rest.updatedById
+					? await getUserData(rest.updatedById)
+					: null;
 
-      return {
-        ...rest,
-        id: rest.id,
-        problemDescription: problemName,
-        plantDepartmentId: departmentId,
-        plantDepartmentName: departmentName ? departmentName.name : null,
-				// plantDepartmentName: departmentName?.name || null,
-        createdAt: extractDateTime(createdAt, "both"),
-        updatedAt: extractDateTime(updatedAt, "both"),
-      };
-    })
-  );
-	
+				return {
+					...rest,
+					id: rest.id,
+					problemDescription: problemName,
+					plantDepartmentId: departmentId,
+					plantDepartmentName: departmentName ? departmentName.name : null,
+					createdAt: extractDateTime(createdAt, "both"),
+					updatedAt: extractDateTime(updatedAt, "both"),
+					createdUser: createdUser,
+					updatedUser: updatedUser,
+				};
+			}
+		)
+	);
+
 	return {
 		totalRecords,
-		data
-		}
+		data,
 	};
+};
 
 export const getIdProblem = async (
 	id: string,
@@ -72,7 +82,7 @@ export const getIdProblem = async (
 ) => {
 	const problem = await tx.problem.findUnique({
 		where: {
-			id
+			id,
 		},
 		select: {
 			id: true,
@@ -84,30 +94,41 @@ export const getIdProblem = async (
 			updatedById: true,
 			updatedAt: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
-	if(!problem) throw new Error("Problem not found");
+	if (!problem) throw new Error("Problem not found");
 
-	const departmentName = problem.departmentId && accessToken ? await getDepartmentName(problem.departmentId, accessToken) : null;
-	
-	
-	const data = { 
-        id: problem.id,
-				plantDepartmentId: problem.departmentId,
-				plantDepartmentName: departmentName ? departmentName.name : null,
-				problemDescription: problem.problemName,
-        createdAt: extractDateTime(problem.createdAt, "both"),
-        updatedAt: extractDateTime(problem.updatedAt, "both"),
-				createdBy: problem.createdById,
-				updatedBy: problem.updatedById,
-				isActive: problem.isActive,
-				status: problem.status
+	const departmentName =
+		problem.departmentId && accessToken
+			? await getDepartmentName(problem.departmentId, accessToken)
+			: null;
+
+	const createdUser = problem.createdById
+		? await getUserData(problem.createdById)
+		: null;
+	const updatedUser = problem.updatedById
+		? await getUserData(problem.updatedById)
+		: null;
+
+	const data = {
+		id: problem.id,
+		plantDepartmentId: problem.departmentId,
+		plantDepartmentName: departmentName ? departmentName.name : null,
+		problemDescription: problem.problemName,
+		createdAt: extractDateTime(problem.createdAt, "both"),
+		updatedAt: extractDateTime(problem.updatedAt, "both"),
+		createdBy: problem.createdById,
+		updatedBy: problem.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
+		isActive: problem.isActive,
+		status: problem.status,
 	};
 	return {
-		data
-	}
+		data,
+	};
 };
 
 // export const getAllProblems = async (
@@ -127,7 +148,7 @@ export const getIdProblem = async (
 
 //     // Get problems with department names using raw SQL for cross-schema join
 // 		const problems: any[] = await tx.$queryRaw`
-// 				SELECT 
+// 				SELECT
 // 						p.id AS uuid,
 // 						p.code,
 // 						p.name,
@@ -141,14 +162,14 @@ export const getIdProblem = async (
 // 						p.updated_at AS updatedAt,
 // 						p.updated_by_id AS updatedById,
 // 						p.is_active AS isActive
-// 				FROM 
+// 				FROM
 // 						tancem_pis_staging_v2.problem p
-// 				LEFT JOIN 
-// 						tancem_user_management.section s 
+// 				LEFT JOIN
+// 						tancem_user_management.section s
 // 						ON p.department_id = s.id
-// 				WHERE 
+// 				WHERE
 // 						p.is_active = 1
-// 				ORDER BY 
+// 				ORDER BY
 // 						p.created_at ASC
 // 				LIMIT ${take}
 // 				OFFSET ${skip}
@@ -173,7 +194,7 @@ export const getIdProblem = async (
 //     tx: IPrismaTransactionClient | typeof prisma = prisma
 // ) => {
 // 		const problems: any[] = await tx.$queryRaw`
-// 			SELECT 
+// 			SELECT
 // 					p.id AS uuid,
 // 					p.code,
 // 					p.name,
@@ -187,12 +208,12 @@ export const getIdProblem = async (
 // 					p.updated_at AS updatedAt,
 // 					p.updated_by_id AS updatedById,
 // 					p.is_active AS isActive
-// 			FROM 
+// 			FROM
 // 					tancem_pis_staging_v2.problem p
-// 			LEFT JOIN 
-// 					tancem_user_management.section s 
+// 			LEFT JOIN
+// 					tancem_user_management.section s
 // 					ON p.department_id = s.id
-// 			WHERE 
+// 			WHERE
 // 					p.id = ${id}
 // 					AND p.is_active = 1
 // 		`;
@@ -202,7 +223,7 @@ export const getIdProblem = async (
 //     }
 
 //     const item = problems[0];
-    
+
 //     // Format dates
 //     const data = {
 //         ...item,
@@ -217,79 +238,92 @@ export const getIdProblem = async (
 
 // Create problem
 export const createProblem = async (
-    problemData: { 
-        name: string; 
-        description?: string; 
-        plantDepartmentId: string; 
-        problemDescription: string;
-        sortOrder?: number;
-    },
-    user: string,
-    tx: IPrismaTransactionClient | typeof prisma = prisma
+	problemData: {
+		name: string;
+		description?: string;
+		plantDepartmentId: string;
+		problemDescription: string;
+		sortOrder?: number;
+	},
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-    const { name, description, plantDepartmentId, problemDescription, sortOrder } = problemData;
+	const {
+		name,
+		description,
+		plantDepartmentId,
+		problemDescription,
+		sortOrder,
+	} = problemData;
 
-    // Create using Prisma's ORM
-   const create =  await tx.problem.create({
-        data: {
-            name,
-						description,
-            departmentId: plantDepartmentId,
-            problemName: problemDescription,
-            sortOrder: sortOrder || 0,
-            createdById: user
-        },
-   });
+	// Create using Prisma's ORM
+	const create = await tx.problem.create({
+		data: {
+			name,
+			description,
+			departmentId: plantDepartmentId,
+			problemName: problemDescription,
+			sortOrder: sortOrder || 0,
+			createdById: user,
+		},
+	});
 };
 
 // Update problem
 export const updateProblem = async (
-    id: string,
-    problemData: { 
-        name?: string; 
-        description?: string; 
-        plantDepartmentId: string; 
-        problemDescription: string;
-        sortOrder?: number;
-				status: Status;
-    },
-    user: string,
-    tx: IPrismaTransactionClient | typeof prisma = prisma
+	id: string,
+	problemData: {
+		name?: string;
+		description?: string;
+		plantDepartmentId: string;
+		problemDescription: string;
+		sortOrder?: number;
+		status: Status;
+	},
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-    const { name, description, plantDepartmentId, problemDescription, sortOrder, status } = problemData;
+	const {
+		name,
+		description,
+		plantDepartmentId,
+		problemDescription,
+		sortOrder,
+		status,
+	} = problemData;
 
-    if (!id) throw new Error("ID is required for updating problem.");
+	if (!id) throw new Error("ID is required for updating problem.");
 
-    // Update using Prisma's ORM
-    await tx.problem.update({
-        where: { id },
-        data: {
-            name,
-            description,
-            departmentId: plantDepartmentId,
-            problemName: problemDescription,
-            sortOrder,
-						status,
-            updatedById: user,
-        },
-    });
+	// Update using Prisma's ORM
+	await tx.problem.update({
+		where: { id },
+		data: {
+			name,
+			description,
+			departmentId: plantDepartmentId,
+			problemName: problemDescription,
+			sortOrder,
+			status,
+			updatedById: user,
+		},
+	});
 };
 
 // Soft delete problem
 export const deleteProblem = async (
-    id: string,
-    user: string,
-    tx: IPrismaTransactionClient | typeof prisma = prisma
+	id: string,
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-    // Validation
-    if (!id) throw new Error("ID is required for deleting problem.");
-    
-    // Soft delete using isActive flag
-    await tx.problem.update({
-        where: { id },
-        data: {
-            isActive: false,
-            updatedById: user,
-        },
-    });
+	// Validation
+	if (!id) throw new Error("ID is required for deleting problem.");
+
+	// Soft delete using isActive flag
+	await tx.problem.update({
+		where: { id },
+		data: {
+			isActive: false,
+			updatedById: user,
+		},
+	});
 };

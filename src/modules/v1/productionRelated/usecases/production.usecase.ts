@@ -5,16 +5,20 @@ import { updateproduction } from "../services/production.service";
 import { deleteproduction } from "../services/production.service";
 
 export const getAllproductionUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllproduction(page, size);
+	return await getAllproduction(accessToken, page, size);
 };
 
-export const getIdproductionUsecase = async (id: string) => {
-	return await getIdproduction(id);
+export const getIdproductionUsecase = async (
+	id: string,
+	accessToken: string
+) => {
+	return await getIdproduction(id, accessToken);
 };
 
 export const createproductionUsecase = async (
