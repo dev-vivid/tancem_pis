@@ -2,20 +2,22 @@ import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { Status } from "@prisma/client";
 import { extractDateTime } from "../../../../shared/utils/date/index";
-
+import getUserData from "@shared/prisma/queries/getUserById";
+import { getMaterialName } from "common/api";
 
 export const createAnnualMaterialBudget = async (
 	annualMaterialBudgetData: {
-		financialYear: string,
-		month: number,
-		year: number,
-		materialId: string,
-		value: number,
+		financialYear: string;
+		month: number;
+		year: number;
+		materialId: string;
+		value: number;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId, value } = annualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value } =
+		annualMaterialBudgetData;
 
 	const create = await tx.annualMaterialBudget.create({
 		data: {
@@ -25,7 +27,7 @@ export const createAnnualMaterialBudget = async (
 			year,
 			materialId,
 			createdById: user,
-		}
+		},
 	});
 
 	// return create;
@@ -34,17 +36,18 @@ export const createAnnualMaterialBudget = async (
 export const updateAnnualMaterialBudget = async (
 	id: string,
 	updateAnnualMaterialBudgetData: {
-		financialYear: string,
-		month: number,
-		year: number,
-		materialId: string,
+		financialYear: string;
+		month: number;
+		year: number;
+		materialId: string;
 		value: number;
-		status: Status,
+		status: Status;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId, value, status } = updateAnnualMaterialBudgetData;
+	const { financialYear, month, year, materialId, value, status } =
+		updateAnnualMaterialBudgetData;
 
 	if (!user) {
 		throw new Error("User is not Authorized");
@@ -60,11 +63,12 @@ export const updateAnnualMaterialBudget = async (
 			status,
 			value,
 			updatedById: user,
-		}
+		},
 	});
 };
 
 export const getAllAnnualMaterialBudget = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -74,8 +78,12 @@ export const getAllAnnualMaterialBudget = async (
 
 	const whereClause: any = {
 		isActive: true,
-		...(status ? {status: status as Status} : {})
-	}
+		...(status ? { status: status as Status } : {}),
+	};
+
+	const totalRecords = await tx.annualMaterialBudget.count({
+		where: whereClause,
+	});
 
 	const result = await tx.annualMaterialBudget.findMany({
 		skip,
@@ -84,6 +92,7 @@ export const getAllAnnualMaterialBudget = async (
 		orderBy: { createdAt: "desc" },
 		select: {
 			id: true,
+			code: true,
 			financialYear: true,
 			month: true,
 			year: true,
@@ -92,28 +101,66 @@ export const getAllAnnualMaterialBudget = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
-	const data = result.map(item => ({
-		...item,
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedAt: extractDateTime(item.updatedAt, "both")
-	}));
+	const data = await Promise.all(
+		result.map(async (item) => {
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
 
-	return data;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
+			return {
+				id: item.id,
+				code: item.code,
+				financialYear: item.financialYear,
+				month: item.month,
+				year: item.year,
+				value: item.value,
+				materialId: item.materialId,
+				materialName: materialName ? materialName.name : null,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdById: item.createdById,
+				updatedById: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
+				isActive: item.isActive,
+				status: item.status,
+			};
+		})
+	);
+
+	return { totalRecords, data };
 };
 
 export const getAnnualMaterialBudgetByID = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	const totalRecords = await tx.annualMaterialBudget.count({
+		where: {
+			isActive: true,
+		},
+	});
+
 	const result = await tx.annualMaterialBudget.findUnique({
 		where: { id },
 		select: {
 			id: true,
+			code: true,
 			financialYear: true,
 			month: true,
 			year: true,
@@ -122,20 +169,46 @@ export const getAnnualMaterialBudgetByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			updatedById: true,
 			status: true,
-			isActive: true
-		}
+			isActive: true,
+		},
 	});
 
-	if (!result) { throw new Error("AnnualMaterialBudget not found"); }
+	if (!result) {
+		throw new Error("AnnualMaterialBudget not found");
+	}
+
+	const materialName =
+		result.materialId && accessToken
+			? await getMaterialName(result.materialId, accessToken)
+			: null;
+	const createdUser = result.createdById
+		? await getUserData(result.createdById)
+		: null;
+
+	const updatedUser = result.updatedById
+		? await getUserData(result.updatedById)
+		: null;
 
 	const data = {
-		...result,
+		id: result.id,
+		code: result.code,
+		financialYear: result.financialYear,
+		month: result.month,
+		year: result.year,
+		value: result.value,
+		materialId: result.materialId,
+		materialName: materialName ? materialName.name : null,
 		createdAt: extractDateTime(result.createdAt, "both"),
-		updatedAt: extractDateTime(result.updatedAt, "both")
+		updatedAt: extractDateTime(result.updatedAt, "both"),
+		createdBy: result.createdById,
+		updatedBy: result.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
-	return { data };
+	return { totalRecords, data };
 };
 
 export const deleteAnnualMaterialBudget = async (
@@ -143,7 +216,9 @@ export const deleteAnnualMaterialBudget = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if (!id) { throw new Error("ID is required for deleting."); }
+	if (!id) {
+		throw new Error("ID is required for deleting.");
+	}
 
 	await tx.annualMaterialBudget.update({
 		where: { id },

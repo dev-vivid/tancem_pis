@@ -64,7 +64,7 @@ export const getAllQualityLab = async (
 
 			return {
 				...item,
-				materialName: materialObj?.productDescription || "",
+				materialName: materialObj?.name || "",
 				equipmentName: equipmentObj?.name || "",
 				createdAt: item.createdAt
 					.toISOString()
@@ -100,7 +100,7 @@ export const getQualityLabById = async (
 		: null;
 	return {
 		...item,
-		materialName: materialName?.productDescription || null,
+		materialName: materialName?.name || null,
 		equipmentName: equipmentName?.name || null,
 		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
 	};

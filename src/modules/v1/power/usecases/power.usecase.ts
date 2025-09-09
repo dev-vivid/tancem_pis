@@ -8,10 +8,18 @@ import {
 
 export const getAllPowerTransactionsUsecase = async (
 	accessToken: string,
+	isOpen?: string,
+	status?: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	return await getAllPowerTransactions(accessToken, pageNumber, pageSize);
+	return await getAllPowerTransactions(
+		accessToken,
+		isOpen as string | undefined,
+		status,
+		pageNumber,
+		pageSize
+	);
 };
 
 export const getPowerTransactionByIdUsecase = async (

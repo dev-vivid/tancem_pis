@@ -2,7 +2,10 @@ import prisma, { IPrismaTransactionClient } from "@shared/prisma";
 import { transaction_type } from "@prisma/client";
 import { pageConfig } from "@shared/prisma/query.helper";
 import { extractDateTime, parseDateOnly } from "@utils/date";
-import { getMaterialName } from "common/api";
+import { getMaterialName, getOfficeName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
+import { constants } from "@config/constant";
+import { createWorkflowRequest } from "common/workflow";
 
 // 1. Get all transaction types (with pagination)
 export const getAllAdjustments = async (
@@ -51,6 +54,15 @@ export const getAllAdjustments = async (
 					? await getMaterialName(item.materialId, accessToken)
 					: null;
 
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
+			console.log(createdUser, updatedUser);
+
 			return {
 				uuid: item.id,
 				//code: item.code,
@@ -59,12 +71,14 @@ export const getAllAdjustments = async (
 				remarks: item.remarks,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
-				materialName:materialName?.productDescription ||  null, // ✅ added
+				materialName: materialName?.name || null, // ✅ added
 				transactionType: item.transactionType,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 				isActive: item.isActive,
 			};
 		})
@@ -85,19 +99,19 @@ export const getAdjustmentById = async (
 	const item = await tx.adjustment.findUnique({
 		where: { id, isActive: true },
 		select: {
-			   id: true,
-      code: true,
-      toSourceId: true,
-      quantity: true,
-      remarks: true,
-      transactionDate: true,
-      materialId: true,
-      transactionType: true,
-      createdAt: true,
-      createdById: true,
-      updatedAt: true,
-      updatedById: true,
-      isActive: true,
+			id: true,
+			code: true,
+			toSourceId: true,
+			quantity: true,
+			remarks: true,
+			transactionDate: true,
+			materialId: true,
+			transactionType: true,
+			createdAt: true,
+			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			isActive: true,
 		},
 	});
 
@@ -113,28 +127,18 @@ export const getAdjustmentById = async (
 
 	const data = {
 		uuid: item.id,
-		 code: item.code,
-    toSourceId: item.toSourceId,
-    //sourceName: sourceName ? sourceName.officeDescription : null,
-    quantity: item.quantity ? item.quantity.toString() : null,
-    remarks: item.remarks,
-    transactionDate: extractDateTime(item.transactionDate, "date"),
-    materialId: item.materialId,
-    materialName: materialName ? materialName.productDescription : null,
-    transactionType: item.transactionType,
+		code: item.code,
+		toSourceId: item.toSourceId,
+		//sourceName: sourceName ? sourceName.officeDescription : null,
+		quantity: item.quantity ? item.quantity.toString() : null,
+		remarks: item.remarks,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+		materialId: item.materialId,
+		materialName: materialName ? materialName.name : null,
+		transactionType: item.transactionType,
 
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		updatedAt: item.updatedAt
-			? new Date(item.updatedAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
 		updatedById: item.updatedById,
 	};
@@ -144,7 +148,6 @@ export const getAdjustmentById = async (
 		data,
 	};
 };
-
 
 // export const createAdjustment = async (
 //   data: {
@@ -187,7 +190,9 @@ export const createAdjustment = async (
 		transactionDate: Date;
 		transactionType: transaction_type;
 		materialId?: string;
-
+		initiatorRoleId: string;
+		workflowRemarks?: string;
+		status?: string;
 		type: transaction_type;
 	},
 	userId: string,
@@ -200,6 +205,9 @@ export const createAdjustment = async (
 		transactionDate,
 		materialId,
 		transactionType,
+		initiatorRoleId,
+		workflowRemarks,
+		status,
 	} = adjustmentData;
 
 	if (!quantity || !transactionDate || !transactionType) {
@@ -207,13 +215,20 @@ export const createAdjustment = async (
 			"Quantity, Transaction Date, Transaction Type ID, and Type are required."
 		);
 	}
+	const wfRequestId = await createWorkflowRequest({
+		userId: userId,
+		initiatorRoleId: adjustmentData.initiatorRoleId,
+		processId: constants.power_workflow_process_ID,
+		remarks: adjustmentData.workflowRemarks,
+		status: adjustmentData.status,
+	});
 
 	await tx.adjustment.create({
 		data: {
 			toSourceId,
 			quantity,
 			remarks,
-			wfRequestId: "",
+			wfRequestId,
 			transactionDate: parseDateOnly(transactionDate),
 			materialId,
 			transactionType,
@@ -229,7 +244,7 @@ export const updateAdjustment = async (
 		toSourceId?: string;
 		quantity?: string;
 		remarks?: string;
-		transactionDate?: Date;
+		transactionDate: Date;
 		materialId?: string;
 		transactionType: transaction_type;
 	},
@@ -249,9 +264,7 @@ export const updateAdjustment = async (
 		where: { id },
 		data: {
 			...adjustmentData,
-			transactionDate: adjustmentData.transactionDate
-				? new Date(adjustmentData.transactionDate)
-				: undefined, // optional handling,
+			transactionDate: parseDateOnly(adjustmentData.transactionDate),
 			updatedById: userId,
 		},
 	});

@@ -1,7 +1,9 @@
 import { Status } from "@prisma/client";
 import prisma, { IPrismaTransactionClient } from "@shared/prisma";
+import getUserData from "@shared/prisma/queries/getUserById";
 import { pageConfig } from "@shared/prisma/query.helper";
 import { extractDateTime } from "@utils/date";
+import { it } from "node:test";
 
 // 1. Get all transaction types (with pagination)
 export const getAllTransactionTypes = async (
@@ -16,9 +18,9 @@ export const getAllTransactionTypes = async (
 	});
 
 	const whereClause: any = {
-			isActive: true,
-			...(status ? { status: status as Status } : {})
-	}
+		isActive: true,
+		...(status ? { status: status as Status } : {}),
+	};
 
 	const totalRecords = await tx.transactionType.count({
 		where: { isActive: true },
@@ -40,16 +42,29 @@ export const getAllTransactionTypes = async (
 			createdById: true,
 			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
-	
-		const data = records.map(({createdAt, updatedAt, ...rest}) => ({
-        ...rest,
-        createdAt: extractDateTime(createdAt, "both"),
-        updatedAt: extractDateTime(updatedAt, "both"),
-    }));
 
+	const data = await Promise.all(
+		records.map(async ({ createdAt, updatedAt, ...rest }) => {
+			const createdUser = rest.createdById
+				? await getUserData(rest.createdById)
+				: null;
+
+			const updatedUser = rest.updatedById
+				? await getUserData(rest.updatedById)
+				: null;
+
+			return {
+				...rest,
+				createdAt: extractDateTime(createdAt, "both"),
+				updatedAt: extractDateTime(updatedAt, "both"),
+				createdUser,
+				updatedUser,
+			};
+		})
+	);
 
 	return {
 		totalRecords,
@@ -73,13 +88,20 @@ export const getTransactionTypeById = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
 		},
 	});
 
 	if (!item) {
 		throw new Error("Transaction type not found.");
 	}
+
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
 
 	const data = {
 		uuid: item.id,
@@ -90,11 +112,13 @@ export const getTransactionTypeById = async (
 		updatedAt: item.updatedAt,
 		updatedById: item.updatedById,
 		status: item.status,
-		isActive: item.isActive
+		isActive: item.isActive,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return {
-		data
+		data,
 	};
 };
 
@@ -121,7 +145,7 @@ export const createTransactionType = async (
 // 4. Update transaction type
 export const updateTransactionType = async (
 	id: string,
-	transactionTypeData: { name: string, status: Status },
+	transactionTypeData: { name: string; status: Status },
 	userId: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {

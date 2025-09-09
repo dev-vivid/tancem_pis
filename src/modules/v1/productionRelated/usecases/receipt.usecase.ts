@@ -5,16 +5,17 @@ import { updatereceipt } from "../services/receipt.service";
 import { deletereceipt } from "../services/receipt.service";
 
 export const getAllreceiptUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllreceipt(page, size);
+	return await getAllreceipt(accessToken, page, size);
 };
 
-export const getIdreceiptUsecase = async (id: string) => {
-	return await getIdreceipt(id);
+export const getIdreceiptUsecase = async (id: string, accessToken: string) => {
+	return await getIdreceipt(id, accessToken);
 };
 
 export const createreceiptUsecase = async (receiptData: any, user: string) => {

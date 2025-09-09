@@ -14,7 +14,17 @@ export const getAllproduction = async (
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllproductionUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -34,8 +44,17 @@ export const getIdproduction = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const { pageNumber, pageSize } = req.query;
-		const result = await getIdproductionUsecase(id);
+		// const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIdproductionUsecase(id, accessToken);
 		const response = responses.generate("success", {
 			data: result,
 		});

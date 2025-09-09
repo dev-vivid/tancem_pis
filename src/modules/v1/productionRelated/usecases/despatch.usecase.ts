@@ -5,16 +5,17 @@ import { updatedespatch } from "../services/despatch.service";
 import { deletedespatch } from "../services/despatch.service";
 
 export const getAlldespatchUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string
 ) => {
 	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAlldespatch(page, size);
+	return await getAlldespatch(accessToken, page, size);
 };
 
-export const getIddespatchUsecase = async (id: string) => {
-	return await getIddespatch(id);
+export const getIddespatchUsecase = async (id: string, accessToken: string) => {
+	return await getIddespatch(id, accessToken);
 };
 
 export const createdespatchUsecase = async (

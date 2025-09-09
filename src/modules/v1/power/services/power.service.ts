@@ -1,3 +1,4 @@
+import { constants } from "@config/constant";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import {
@@ -5,10 +6,19 @@ import {
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
 import { getEquipmentName, getDepartmentName } from "common/api";
-import { createWorkflowRequest } from "common/workflow";
+import {
+	createWorkflowRequest,
+	fetchClosedWorkflowIdsWithoutRole,
+	getCurrentState,
+	getNextAction,
+	getRemarks,
+} from "common/workflow";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const getAllPowerTransactions = async (
 	accessToken: string,
+	isOpen?: string,
+	status?: string,
 	pageNumber?: string,
 	pageSize?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -19,10 +29,21 @@ export const getAllPowerTransactions = async (
 		where: { isActive: true },
 	});
 
+	const getWfId = await fetchClosedWorkflowIdsWithoutRole(
+		constants.power_workflow_process_ID,
+		isOpen || "",
+		status || ""
+	);
+
 	const transactions = await tx.powerTransaction.findMany({
 		skip,
 		take,
-		where: { isActive: true },
+		where: {
+			isActive: true,
+			// wfRequestId: {
+			// 	in: getWfId,
+			// },
+		},
 		orderBy: { createdAt: "desc" },
 		include: {
 			powerDetails: {
@@ -32,33 +53,6 @@ export const getAllPowerTransactions = async (
 		},
 	});
 
-	// const data = transactions.map(item => ({
-	//   ...item,
-	// 	transactionDate: extractDateTime(item.transactionDate, "date"),
-	//   createdAt: extractDateTime(item.createdAt, "both"),
-	//   updatedAt: extractDateTime(item.updatedAt, "both"),
-	//   powerDetails: item.powerDetails.map(detail => ({
-	//     ...detail,
-	//     createdAt: extractDateTime(detail.createdAt, "both"),
-	//     updatedAt: extractDateTime(detail.updatedAt, "both"),
-	//   })),
-	// }));
-
-	// 	const data = transactions.flatMap(item =>
-	//   item.powerDetails.map(detail => ({
-	//     powerDetailsId: detail.id,
-	//     transactionId: item.id,
-	//     equipmentId: detail.equipmentId,
-	//     units: detail.units,
-	//     transactionDate: extractDateTime(item.transactionDate, "date"),
-	//     createdAt: extractDateTime(detail.createdAt, "both"),
-	//     updatedAt: extractDateTime(detail.updatedAt, "both"),
-	//     createdBy: detail.createdById,
-	//     updatedBy: detail.updatedById,
-	//     isActive: item.isActive,
-	//   }))
-	// );
-
 	const data = await Promise.all(
 		transactions.map(async (item) => {
 			return Promise.all(
@@ -67,6 +61,13 @@ export const getAllPowerTransactions = async (
 						power.equipmentId,
 						accessToken
 					);
+					const createdUser = item.createdById
+						? await getUserData(item.createdById)
+						: null;
+
+					const updatedUser = item.updatedById
+						? await getUserData(item.updatedById)
+						: null;
 
 					return {
 						transactionId: item.id,
@@ -77,6 +78,8 @@ export const getAllPowerTransactions = async (
 						transactionUpdatedAt: extractDateTime(item.updatedAt, "both"),
 						transactionCreatedById: item.createdById,
 						transactionUpdatedById: item.updatedById,
+						transactionCreatedUser: createdUser,
+						transactionUpdatedUser: updatedUser,
 						transactionIsActive: item.isActive,
 
 						powerId: power.id,
@@ -88,6 +91,8 @@ export const getAllPowerTransactions = async (
 						powerUpdatedAt: extractDateTime(power.updatedAt, "both"),
 						powerCreatedById: power.createdById,
 						powerUpdatedById: power.updatedById,
+						powerCreatedUser: createdUser,
+						powerUpdatedUser: updatedUser,
 						powerIsActive: power.isActive,
 					};
 				})
@@ -140,6 +145,12 @@ export const getPowerTransactionById = async (
 		})
 	);
 
+	const [currentState, nextAction, remarks] = await Promise.all([
+		getCurrentState(getPowerTransactionById.wfRequestId),
+		getNextAction(getPowerTransactionById.wfRequestId),
+		getRemarks(getPowerTransactionById.wfRequestId),
+	]);
+
 	return {
 		...getPowerTransactionById,
 		transactionDate: extractDateTime(
@@ -149,6 +160,11 @@ export const getPowerTransactionById = async (
 		createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
 		updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
 		powerDetails,
+		workflow: {
+			currentState,
+			nextAction,
+			remarks,
+		},
 	};
 };
 
@@ -169,6 +185,7 @@ export const createPowerTransaction = async (
 	const wfRequestId = await createWorkflowRequest({
 		userId: user,
 		initiatorRoleId: data.initiatorRoleId,
+		processId: constants.power_workflow_process_ID,
 		remarks: data.remarks,
 		status: data.status,
 	});

@@ -54,11 +54,18 @@ export const getAllBags = async (
 					? await getMaterialName(item.materialId, accessToken)
 					: null;
 
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
 			return {
 				uuid: item.id,
 				code: item.code,
 				materialId: item.materialId,
-				materialName: materialName ? materialName.productDescription : null,
+				materialName: materialName ? materialName.name : null,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				opc: item.opc,
 				ppc: item.ppc,
@@ -71,8 +78,10 @@ export const getAllBags = async (
 				transferQty: item.transferQty,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
+				createdUser: createdUser,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
+				updatedUser: updatedUser,
 				isActive: item.isActive,
 			};
 		})
@@ -118,12 +127,19 @@ export const getIdBags = async (
 			? await getMaterialName(bag.materialId, accessToken)
 			: null;
 
+	const createdUser = bag.createdById
+		? await getUserData(bag.createdById)
+		: null;
+	const updatedUser = bag.updatedById
+		? await getUserData(bag.updatedById)
+		: null;
+
 	const data = {
 		id: bag.id,
 		code: bag.code,
 		transactionDate: extractDateTime(bag.transactionDate, "date"),
 		materialId: bag.materialId,
-		materialName: materialName ? materialName.productDescription : null,
+		materialName: materialName ? materialName.name : null,
 		opc: bag.opc,
 		ppc: bag.ppc,
 		src: bag.src,
@@ -135,8 +151,10 @@ export const getIdBags = async (
 		transferQty: bag.transferQty,
 		createdAt: extractDateTime(bag.createdAt, "both"),
 		createdById: bag.createdById,
+		createdUser: createdUser,
 		updatedAt: extractDateTime(bag.updatedAt, "both"),
 		updatedById: bag.updatedById,
+		updatedUser: updatedUser,
 		isActive: bag.isActive,
 	};
 

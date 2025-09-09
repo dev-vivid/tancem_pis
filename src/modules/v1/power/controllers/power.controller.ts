@@ -5,20 +5,28 @@ import {
 	getPowerTransactionByIdUsecase,
 	createPowerTransactionUsecase,
 	updatePowerTransactionUsecase,
-	deletePowerTransactionUsecase
+	deletePowerTransactionUsecase,
 } from "../usecases/power.usecase";
 
-export const getAllPower = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllPower = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
-		const { pageNumber, pageSize } = req.query;
+		const { isOpen, status, pageNumber, pageSize } = req.query;
 		const authHeader = req.headers.authorization;
-		
+
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
-			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
 		}
-		const accessToken = authHeader.split(" ")[1];		
+		const accessToken = authHeader.split(" ")[1];
 		const result = await getAllPowerTransactionsUsecase(
 			accessToken,
+			isOpen as string | undefined,
+			status as string | undefined,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -29,15 +37,21 @@ export const getAllPower = async (req: Request, res: Response, next: NextFunctio
 	}
 };
 
-export const getPowerById = async (req: Request, res: Response, next: NextFunction) => {
+export const getPowerById = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { id } = req.params;
 		const authHeader = req.headers.authorization;
-		
+
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
-			return res.status(401).json({ message: "Unauthorized: No access token provided" });
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
 		}
-		const accessToken = authHeader.split(" ")[1];		
+		const accessToken = authHeader.split(" ")[1];
 		const result = await getPowerTransactionByIdUsecase(id, accessToken);
 
 		const response = responses.generate("success", { data: result });
@@ -47,7 +61,11 @@ export const getPowerById = async (req: Request, res: Response, next: NextFuncti
 	}
 };
 
-export const createPower = async (req: Request, res: Response, next: NextFunction) => {
+export const createPower = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const user = req.user?.id;
 		if (!user) {
@@ -69,7 +87,11 @@ export const createPower = async (req: Request, res: Response, next: NextFunctio
 	}
 };
 
-export const updatePower = async (req: Request, res: Response, next: NextFunction) => {
+export const updatePower = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const user = req.user?.id;
 		if (!user) {
@@ -94,7 +116,11 @@ export const updatePower = async (req: Request, res: Response, next: NextFunctio
 	}
 };
 
-export const deletePower = async (req: Request, res: Response, next: NextFunction) => {
+export const deletePower = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { id } = req.params;
 		const { powerDetailsId } = req.body;
@@ -107,7 +133,11 @@ export const deletePower = async (req: Request, res: Response, next: NextFunctio
 				message: "User is not authenticated",
 			});
 		}
-		const result = await deletePowerTransactionUsecase(id, powerDetailsId, user);
+		const result = await deletePowerTransactionUsecase(
+			id,
+			powerDetailsId,
+			user
+		);
 		const response = responses.generate("success", {
 			message: "Power record has been deleted",
 			data: result,

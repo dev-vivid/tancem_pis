@@ -3,7 +3,8 @@ import {
 	SESSION_VALIDATION_URL,
 	INVENTORY_URL,
 	ASSET_URL,
-	USER_MANAGEMENT_URL
+	USER_MANAGEMENT_URL,
+	SALES_URL,
 } from "@config/index";
 
 // export const getMaterialName = async (
@@ -46,7 +47,7 @@ export const getMaterialName = async (
 	accessToken: string
 ) => {
 	const token = `Bearer ${accessToken}`;
-	const apiUrl = `${INVENTORY_URL}/rawMaterialItemFetch/${materialId}`;
+	const apiUrl = `${SALES_URL}/productView/${materialId}`;
 	try {
 		// console.log("API URL being called:", apiUrl);
 
@@ -60,8 +61,8 @@ export const getMaterialName = async (
 
 		const data = await response.json();
 		// console.log("API data:", data);
-		if (data?.success && data?.data?.list) {
-			return data.data.list; // <-- this is the object with productDescription
+		if (data?.data?.list) {
+			return data.data.list;
 		}
 
 		return null;
@@ -128,7 +129,7 @@ export const getDepartmentName = async (
 
 		// ✅ Check response structure
 		if (data?.success && data?.data) {
-			return data.data; 
+			return data.data;
 		}
 
 		return null;
@@ -141,15 +142,12 @@ export const getDepartmentName = async (
 	}
 };
 
-export const getOfficeName = async (
-	officeId: string,
-	accessToken: string
-) => {
+export const getOfficeName = async (officeId: string, accessToken: string) => {
 	const token = `Bearer ${accessToken}`;
 	try {
 		const response = await fetch(
 			`${USER_MANAGEMENT_URL}/office?table=office`,
-			
+
 			{
 				headers: new Headers({
 					"content-type": "application/json",
@@ -164,15 +162,12 @@ export const getOfficeName = async (
 
 		// ✅ Check response structure
 		if (data?.success && data?.data?.data) {
-			return data.data.data; 
+			return data.data.data;
 		}
 
 		return null;
 	} catch (error) {
-		console.error(
-			`Error fetching equipment name for ID ${officeId}:`,
-			error
-		);
+		console.error(`Error fetching equipment name for ID ${officeId}:`, error);
 		return null;
 	}
 };

@@ -3,6 +3,7 @@ import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import * as api from "../../../../common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 import path from "path";
 
@@ -59,13 +60,19 @@ export const getAllanalysis = async (
 			// const equipmentName = item.equipmentId
 			// 	? await api.getEquipmentName(item.equipmentId, accessToken)
 			// 	: null;
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
 			return {
 				...item,
-				materialName: materialObj?.productDescription || "",
-				createdAt: item.createdAt
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19),
+				materialName: materialObj?.name || "",
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -179,6 +186,13 @@ export const getIdanalysis = async (
 		? await api.getMaterialName(item.materialId, accessToken)
 		: null;
 
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
+
 	// console.log(" Material Name:", materialName);
 
 	const data = {
@@ -187,11 +201,13 @@ export const getIdanalysis = async (
 		analysisType: item.type,
 		description: item.description,
 		materialId: item.materialId,
-		materialName: materialName.productDescription || "",
+		materialName: materialName.name || "",
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"), // fixed field name
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 		status: item.status,
 		isActive: item.isActive,
 	};

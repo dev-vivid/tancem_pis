@@ -4,40 +4,38 @@ import { extractDateTime } from "../../../../shared/utils/date/index";
 import { Status } from "@prisma/client";
 import { getMaterialName } from "common/api";
 
-
 export const createMaterialType = async (
 	materialTypeData: {
-		materialId: string,
-		materialTypeMasterId: string,
+		materialId: string;
+		materialTypeMasterId: string;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-
-	const {materialId, materialTypeMasterId} = materialTypeData;
+	const { materialId, materialTypeMasterId } = materialTypeData;
 
 	const create = await tx.materialType.create({
 		data: {
 			materialId,
 			materialTypeMasterId,
 			createdById: user,
-		}
+		},
 	});
 };
 
 export const updateMaterialType = async (
 	id: string,
 	updateMaterialTypeData: {
-		materialId: string,
-		materialTypeMasterId: string,
+		materialId: string;
+		materialTypeMasterId: string;
 		status: Status;
 	},
 	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const {materialId, materialTypeMasterId, status} = updateMaterialTypeData;
+	const { materialId, materialTypeMasterId, status } = updateMaterialTypeData;
 
-	if(!user){
+	if (!user) {
 		throw new Error("User is not Authorized");
 	}
 
@@ -47,24 +45,24 @@ export const updateMaterialType = async (
 			materialId,
 			materialTypeMasterId,
 			status,
-      updatedById: user
-		}
+			updatedById: user,
+		},
 	});
-}
+};
 
 export const getAllMaterialType = async (
 	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
 	const whereClause: any = {
 		isActive: true,
-		...(status ? { status: status as Status } : {})
-	}
+		...(status ? { status: status as Status } : {}),
+	};
 
 	const result = await tx.materialType.findMany({
 		skip,
@@ -96,29 +94,28 @@ export const getAllMaterialType = async (
 				uuid: item.id,
 				code: item.code,
 				materialId: item.materialId,
-				materialName: materialName ? materialName.productDescription : null,
+				materialName: materialName ? materialName.name : null,
 				materialTypeMasterId: item.materialTypeMasterId,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
 				isActive: item.isActive,
-				status: item.status
+				status: item.status,
 			};
 		})
 	);
 
 	return data;
-
-}
+};
 
 export const getByID = async (
 	id: string,
 	accessToken: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const result = await tx.materialType.findUnique({
-		where: {id, },
+		where: { id },
 		select: {
 			id: true,
 			code: true,
@@ -128,48 +125,51 @@ export const getByID = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
-		}
+			isActive: true,
+		},
 	});
 
-	if(!result) {throw new Error("materialType not found");}
+	if (!result) {
+		throw new Error("materialType not found");
+	}
 
-	const materialName = result.materialId && accessToken ? await getMaterialName(result.materialId, accessToken) : null;
+	const materialName =
+		result.materialId && accessToken
+			? await getMaterialName(result.materialId, accessToken)
+			: null;
 
-		const data = {
+	const data = {
 		id: result.id,
 		code: result.code,
 		materialId: result.materialId,
-		materialName: materialName ? materialName.productDescription : null,
+		materialName: materialName ? materialName.name : null,
 		createdAt: extractDateTime(result.createdAt, "both"),
 		createdById: result.createdById,
 		updatedAt: extractDateTime(result.updatedAt, "both"),
 		updatedById: result.updatedById,
 		isActive: result.isActive,
-		status: result.status
+		status: result.status,
 	};
 
 	return {
-		data
+		data,
 	};
-
 };
 
 export const deleteMaterialType = async (
 	id: string,
 	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma 
+	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if(!id) {throw new Error("ID is required for deleting.");}
+	if (!id) {
+		throw new Error("ID is required for deleting.");
+	}
 
 	await tx.materialType.update({
-		where: {id},
+		where: { id },
 		data: {
 			isActive: false,
 			updatedById: user,
 		},
 	});
-
-
 };
-

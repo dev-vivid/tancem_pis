@@ -14,7 +14,17 @@ export const getAlldespatch = async (
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAlldespatchUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -35,7 +45,16 @@ export const getIddespatch = async (
 	try {
 		const { id } = req.params;
 		const { pageNumber, pageSize } = req.query;
-		const result = await getIddespatchUsecase(id);
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIddespatchUsecase(id, accessToken);
 		const response = responses.generate("success", {
 			data: result,
 		});

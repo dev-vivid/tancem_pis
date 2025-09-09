@@ -1,9 +1,13 @@
 import Joi from "joi";
 
 export const annualMaterialBudgetFilterQuerySchema = Joi.object({
-	pageNumber: Joi.string().optional(),
-	pageSize: Joi.string().optional(),
-	status: Joi.string().optional()
+	pageNumber: Joi.string()
+		.optional()
+		.pattern(/^[0-9]+$/),
+	pageSize: Joi.string()
+		.optional()
+		.pattern(/^[0-9]+$/),
+	status: Joi.string().valid("active", "inActive").optional(),
 });
 
 export const createAnnualMaterialBudgetBodySchema = Joi.object({
@@ -12,7 +16,6 @@ export const createAnnualMaterialBudgetBodySchema = Joi.object({
 	year: Joi.number().integer().required(),
 	materialId: Joi.string().required(),
 	value: Joi.number().precision(2).required(),
-	
 });
 
 export const updateAnnualMaterialBudgetBodySchema = Joi.object({

@@ -14,7 +14,17 @@ export const getAllreceipt = async (
 ) => {
 	try {
 		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllreceiptUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined
 		);
@@ -34,8 +44,17 @@ export const getIdreceipt = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const { pageNumber, pageSize } = req.query;
-		const result = await getIdreceiptUsecase(id);
+		// const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIdreceiptUsecase(id, accessToken);
 		const response = responses.generate("success", {
 			data: result,
 		});

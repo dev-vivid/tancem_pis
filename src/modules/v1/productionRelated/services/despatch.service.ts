@@ -1,8 +1,23 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import path from "path";
+import {
+	extractDateTime,
+	parseDateOnly,
+} from "../../../../shared/utils/date/index";
+import { getMaterialName } from "common/api";
+import {
+	createWorkflowRequest,
+	fetchClosedWorkflowIdsWithoutRole,
+	getCurrentState,
+	getNextAction,
+	getRemarks,
+} from "common/workflow";
+import getUserData from "@shared/prisma/queries/getUserById";
+import { constants } from "@config/constant";
 
 export const getAlldespatch = async (
+	accessToken: string,
 	pageNumber?: number,
 	pageSize?: number,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
@@ -12,7 +27,11 @@ export const getAlldespatch = async (
 		pageSize: pageSize?.toString(),
 	});
 
-	const totalRecords = await tx.despatch.count();
+	const totalRecords = await tx.despatch.count({
+		where: {
+			isActive: true,
+		},
+	});
 
 	const despatch = await tx.despatch.findMany({
 		skip,
@@ -29,31 +48,49 @@ export const getAlldespatch = async (
 			roadQuantity: true,
 			exportQuantity: true,
 			inlandQuantity: true,
+			wfRequestId: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
 		},
 	});
 
 	// Convert snake_case to camelCase in the result
-	const data = despatch.map((item) => ({
-		uuid: item.id,
-		despatchCode: item.code,
-		transactionDate: item.transactionDate
-			? new Date(item.transactionDate).toISOString().split("T")[0] // 👈 gives YYYY-MM-DD only
-			: null,
-		materialId: item.materialId,
-		railQuantity: item.railQuantity,
-		roadQuantity: item.roadQuantity,
-		exportQuantity: item.exportQuantity,
-		inlandQuantity: item.inlandQuantity,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
-		createdBy: item.createdById,
-	}));
+	const data = await Promise.all(
+		despatch.map(async (item) => {
+			const materialName = item.materialId
+				? await getMaterialName(item.materialId, accessToken)
+				: null;
+
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
+			return {
+				uuid: item.id,
+				despatchCode: item.code,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				materialId: item.materialId,
+				materialName: materialName ? materialName.name : null,
+				railQuantity: item.railQuantity,
+				roadQuantity: item.roadQuantity,
+				exportQuantity: item.exportQuantity,
+				inlandQuantity: item.inlandQuantity,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdBy: item.createdById,
+				updatedBy: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
+			};
+		})
+	);
+
 	return {
 		totalRecords,
 		data,
@@ -62,6 +99,7 @@ export const getAlldespatch = async (
 
 export const getIddespatch = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const item = await tx.despatch.findUnique({
@@ -77,6 +115,8 @@ export const getIddespatch = async (
 			inlandQuantity: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
 		},
 	});
 
@@ -84,24 +124,34 @@ export const getIddespatch = async (
 		throw new Error("despatch not found.");
 	}
 
+	const materialName =
+		item.materialId && accessToken
+			? await getMaterialName(item.materialId, accessToken)
+			: null;
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
+
 	const data = {
 		uuid: item.id,
 		despatchCode: item.code,
-		transactionDate: item.transactionDate
-			? new Date(item.transactionDate).toISOString().split("T")[0] // 👈 gives YYYY-MM-DD only
-			: null,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
+		materialName: materialName ? materialName.name : null,
 		railQuantity: item.railQuantity,
 		roadQuantity: item.roadQuantity,
 		exportQuantity: item.exportQuantity,
 		inlandQuantity: item.inlandQuantity,
-		createdAt: item.createdAt
-			? new Date(item.createdAt)
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19)
-			: null,
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
+		updatedBy: item.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return {
@@ -117,28 +167,38 @@ type DespatchData = {
 	roadQuantity?: string;
 	exportQuantity?: string;
 	inlandQuantity?: string;
+	initiatorRoleId: string;
+	remarks: string;
+	status: string;
 };
 
-function parseDDMMYYYY(dateStr: string): Date | null {
-	if (!dateStr) return null;
-	const [day, month, year] = dateStr.split("-");
-	if (!day || !month || !year) return null;
-	return new Date(`${year}-${month}-${day}`); // convert to YYYY-MM-DD
-}
+// function parseDDMMYYYY(dateStr: string): Date | null {
+// 	if (!dateStr) return null;
+// 	const [day, month, year] = dateStr.split("-");
+// 	if (!day || !month || !year) return null;
+// 	return new Date(`${year}-${month}-${day}`); // convert to YYYY-MM-DD
+// }
 
 export const createdespatch = async (
 	despatchData: DespatchData,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const parsedDate = parseDDMMYYYY(despatchData.transactionDate);
-	if (!parsedDate || isNaN(parsedDate.getTime())) {
-		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	}
+	// const parsedDate = parseDDMMYYYY(despatchData.transactionDate);
+	// if (!parsedDate || isNaN(parsedDate.getTime())) {
+	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
+	// }
+	const wfRequestId = await createWorkflowRequest({
+		userId: user,
+		initiatorRoleId: despatchData.initiatorRoleId,
+		processId: constants.power_workflow_process_ID,
+		remarks: despatchData.remarks,
+		status: despatchData.status,
+	});
 	return await tx.despatch.create({
 		data: {
 			materialId: despatchData.materialId,
-			transactionDate: parsedDate,
+			transactionDate: parseDateOnly(despatchData.transactionDate),
 			railQuantity: despatchData.railQuantity
 				? Number(despatchData.railQuantity)
 				: 0,
@@ -151,7 +211,7 @@ export const createdespatch = async (
 			inlandQuantity: despatchData.inlandQuantity
 				? Number(despatchData.inlandQuantity)
 				: 0,
-				wfRequestId: "",
+			wfRequestId,
 			createdById: user,
 		},
 	});
@@ -166,15 +226,15 @@ export const updatedespatch = async (
 	if (!id) {
 		throw new Error("ID is required for updating despatch.");
 	}
-	const parsedDate = parseDDMMYYYY(despatchData.transactionDate);
-	if (!parsedDate || isNaN(parsedDate.getTime())) {
-		throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	}
+	// const parsedDate = parseDDMMYYYY(despatchData.transactionDate);
+	// if (!parsedDate || isNaN(parsedDate.getTime())) {
+	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
+	// }
 	return await tx.despatch.update({
 		where: { id },
 		data: {
 			materialId: despatchData.materialId,
-			transactionDate: parsedDate,
+			transactionDate: parseDateOnly(despatchData.transactionDate),
 			railQuantity: despatchData.railQuantity
 				? Number(despatchData.railQuantity)
 				: 0,

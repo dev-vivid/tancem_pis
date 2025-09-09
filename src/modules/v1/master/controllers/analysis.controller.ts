@@ -76,10 +76,8 @@ export const createAnalysis = async (
 		const analysisData = req.body;
 		await createAnalysisUsecase(analysisData, user);
 
-		const response = responses.generate("success", {
-			message: "Status updated successfully!",
-			data: null,
-		});
+		let response = responses.generate("success", {});
+		response.message = "Analysis created successfully!";
 		res.status(response.statusCode).send(response);
 	} catch (error) {
 		next(error);
@@ -129,10 +127,8 @@ export const updateAnalysis = async (
 		const analysisData = req.body;
 		await updateAnalysisUsecase(id, analysisData, user);
 
-		const response = responses.generate("success", {
-			message: "Analysis updated successfully!",
-			data: null,
-		});
+		let response = responses.generate("success", {});
+		response.message = "Analysis updated successfully!";
 		res.status(response.statusCode).send(response);
 	} catch (error) {
 		next(error);
@@ -165,10 +161,8 @@ export const deleteAnalysis = async (
 		}
 		// Assuming deleteAnalysisUsecase is implemented
 		await deleteAnalysisUsecase(id, user);
-		const response = responses.generate("success", {
-			message: "Analysis deleted successfully!",
-			data: null,
-		});
+		let response = responses.generate("success", {});
+		response.message = "Analysis deleted successfully!";
 		res.status(response.statusCode).send(response);
 	} catch (error) {
 		next(error);
