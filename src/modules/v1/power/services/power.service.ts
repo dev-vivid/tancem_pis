@@ -178,33 +178,45 @@ export const createPowerTransaction = async (
 		initiatorRoleId: string;
 		remarks?: string;
 		status?: string;
-	},
+	}[],
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const wfRequestId = await createWorkflowRequest({
-		userId: user,
-		initiatorRoleId: data.initiatorRoleId,
-		processId: constants.power_workflow_process_ID,
-		remarks: data.remarks,
-		status: data.status,
-	});
+	const createdTransactions = [];
 
-	await tx.powerTransaction.create({
-		data: {
-			transactionDate: parseDateOnly(data.transactionDate),
-			wfRequestId,
-			createdById: user,
-			powerDetails: {
-				create: data.powerDetails.map((p) => ({
-					equipmentId: p.equipmentId,
-					units: p.units,
-					createdById: user,
-				})),
+	for (const item of data) {
+		if (!item.initiatorRoleId) {
+			throw new Error("initiatorRoleId is required for each transaction");
+		}
+
+		const wfRequestId = await createWorkflowRequest({
+			userId: user,
+			initiatorRoleId: item.initiatorRoleId,
+			processId: constants.power_workflow_process_ID,
+			remarks: item.remarks,
+			status: item.status,
+		});
+
+		const created = await tx.powerTransaction.create({
+			data: {
+				transactionDate: parseDateOnly(item.transactionDate),
+				wfRequestId,
+				createdById: user,
+				powerDetails: {
+					create: item.powerDetails.map((p) => ({
+						equipmentId: p.equipmentId,
+						units: p.units,
+						createdById: user,
+					})),
+				},
 			},
-		},
-		include: { powerDetails: true },
-	});
+			include: { powerDetails: true },
+		});
+
+		createdTransactions.push(created);
+	}
+
+	return createdTransactions;
 };
 
 export const updatePowerTransaction = async (

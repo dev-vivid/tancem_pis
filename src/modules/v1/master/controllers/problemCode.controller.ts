@@ -14,7 +14,17 @@ export const getAllproblemCode = async (
 ) => {
 	try {
 		const { pageNumber, pageSize, status } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllProblemCodeUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
@@ -35,8 +45,17 @@ export const getIdproblemCode = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const { pageNumber, pageSize } = req.query;
-		const result = await getIdProblemCodeUsecase(id);
+		// const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIdProblemCodeUsecase(id, accessToken);
 		const response = responses.generate("success", {
 			data: result,
 		});

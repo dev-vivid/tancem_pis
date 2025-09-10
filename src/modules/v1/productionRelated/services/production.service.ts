@@ -72,7 +72,9 @@ export const getAllproduction = async (
 				productionCode: item.code,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				equipmentId: item.equipmentId,
+				equipmentName: equipmentName ? equipmentName.name : null,
 				materialId: item.materialId,
+				materialName: materialName ? materialName.name : null,
 				runningHours: item.runningHours,
 				quantity: item.quantity,
 				fuelConsumption: item.fuelConsumption,
@@ -82,6 +84,8 @@ export const getAllproduction = async (
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdBy: item.createdById,
 				updatedBy: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);

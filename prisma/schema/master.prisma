@@ -28,7 +28,7 @@ model Problem {
   description     String?           @db.VarChar(200)
   departmentId    String            @map("department_id") @db.VarChar(36)
   problemName     String            @map("problem") @db.VarChar(36)
-	requestId        String?            @map("wf_request_id") @db.VarChar(36)
+  requestId       String?           @map("wf_request_id") @db.VarChar(36)
   sortOrder       Int               @default(0) @map("sort_order")
   status          Status            @default(active)
   createdAt       DateTime          @default(now()) @map("created_at")
@@ -270,8 +270,8 @@ model Adjustment {
   transactionDate DateTime         @map("transaction_date") @db.Date
   materialId      String?          @map("material_id") @db.VarChar(36)
   transactionType transaction_type @map("type")
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
+  wfRequestId     String           @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus?   @map("approval_status")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
   createdById     String?          @map("created_by_id") @db.VarChar(36)
@@ -329,16 +329,16 @@ model SubEquipment {
 }
 
 model PowerTransaction {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  transactionDate DateTime @map("transaction_date") @db.Date
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
   powerDetails    Power[]
 
   @@index([code])
@@ -365,21 +365,21 @@ model Power {
 }
 
 model QualityLab {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  transactionDate DateTime @map("transaction_date") @db.Date
-  equipmentId     String   @map("equipment_id") @db.VarChar(36)
-  materialId      String   @map("material_id") @db.VarChar(36)
-  ist             String   @map("initial_setting_time") @db.VarChar(36)
-  fst             String   @map("final_setting_time") @db.VarChar(36)
-  blaine          String   @map("blaine") @db.VarChar(36)
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  equipmentId     String         @map("equipment_id") @db.VarChar(36)
+  materialId      String         @map("material_id") @db.VarChar(36)
+  ist             String         @map("initial_setting_time") @db.VarChar(36)
+  fst             String         @map("final_setting_time") @db.VarChar(36)
+  blaine          String         @map("blaine") @db.VarChar(36)
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
 
   @@index([equipmentId])
   @@index([materialId])
@@ -393,8 +393,8 @@ model AnalysisLab {
   transactionDate  DateTime           @map("transaction_date") @db.Date
   materialId       String             @map("material_id") @db.VarChar(36)
   // analysisId       String   @map("analysis_id") @db.VarChar(36)
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
+  wfRequestId      String             @map("wf_request_id") @db.VarChar(36)
+  approvalStatus   approveStatus?     @map("approval_status")
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
   createdById      String?            @map("created_by_id") @db.VarChar(36)
@@ -444,13 +444,12 @@ enum transaction_type {
 }
 
 enum approveStatus {
-	Active
-	Inprogress
-	Forwarded
-	Approved
-	Rejected
+  Active
+  Inprogress
+  Forwarded
+  Approved
+  Rejected
 }
-
 
 enum Status {
   active
@@ -482,42 +481,60 @@ model externalLabTestingReport {
 }
 
 model Despatch {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  transactionDate DateTime @map("transaction_date") @db.Date
-  materialId      String   @map("material_id") @db.VarChar(36)
-  railQuantity    Decimal  @map("quantity") @db.Decimal(10, 2)
-  roadQuantity    Decimal  @map("road_quantity") @db.Decimal(10, 2)
-  exportQuantity  Decimal  @map("export_quantity") @db.Decimal(10, 2)
-  inlandQuantity  Decimal  @map("inland_quantity") @db.Decimal(10, 2)
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
+
+  Despatches DespatchDetails[]
 
   @@index([code])
-  @@index([materialId])
   @@map("despatch")
 }
 
+model DespatchDetails {
+  id             String   @id @unique @default(uuid()) @db.VarChar(36)
+  code           Int      @unique @default(autoincrement())
+  materialId     String   @map("material_id") @db.VarChar(36)
+  despatchId     String   @map("despatch_id") @db.VarChar(36)
+  railQuantity   Decimal  @map("quantity") @db.Decimal(10, 2)
+  roadQuantity   Decimal  @map("road_quantity") @db.Decimal(10, 2)
+  exportQuantity Decimal  @map("export_quantity") @db.Decimal(10, 2)
+  inlandQuantity Decimal  @map("inland_quantity") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById    String?  @map("created_by_id") @db.VarChar(36)
+  isActive       Boolean  @default(true) @map("is_active")
+  updatedById    String?  @map("updated_by_id") @db.VarChar(36)
+
+  despatch Despatch @relation(fields: [despatchId], references: [id])
+
+  @@index([code])
+  @@index([materialId])
+  @@map("despatch_details")
+}
+
 model ReceiptConsumption {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  transactionDate DateTime @map("transaction_date") @db.Date
-  materialType    String   @map("material_type") @db.VarChar(36)
-  materialId      String   @map("material_id") @db.VarChar(36)
-  transactionType String   @map("transaction_type") @db.VarChar(36)
-  quantity        Decimal  @map("quantity") @db.Decimal(10, 2)
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  materialType    String         @map("material_type") @db.VarChar(36)
+  materialId      String         @map("material_id") @db.VarChar(36)
+  transactionType String         @map("transaction_type") @db.VarChar(36)
+  quantity        Decimal        @map("quantity") @db.Decimal(10, 2)
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
 
   @@index([materialType])
   @@index([materialId])
@@ -525,22 +542,22 @@ model ReceiptConsumption {
 }
 
 model Production {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  transactionDate DateTime @map("transaction_date") @db.Date
-  equipmentId     String   @map("material_type") @db.VarChar(36)
-  materialId      String   @map("material_id") @db.VarChar(36)
-  runningHours    String?  @map("running_hours") @db.VarChar(5)
-  quantity        Decimal  @map("quantity") @db.Decimal(10, 2)
-  fuelConsumption Decimal  @map("fuelConsumption") @db.Decimal(10, 2)
-  remarks         String?  @map("remarks") @db.Text
-	wfRequestId     String   				 @map("wf_request_id") @db.VarChar(36)
-	approvalStatus	approveStatus? 	 @map("approval_status")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  equipmentId     String         @map("material_type") @db.VarChar(36)
+  materialId      String         @map("material_id") @db.VarChar(36)
+  runningHours    String?        @map("running_hours") @db.VarChar(5)
+  quantity        Decimal        @map("quantity") @db.Decimal(10, 2)
+  fuelConsumption Decimal        @map("fuelConsumption") @db.Decimal(10, 2)
+  remarks         String?        @map("remarks") @db.Text
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
 
   @@index([equipmentId])
   @@index([materialId])
@@ -617,57 +634,57 @@ enum YesNo {
 }
 
 model strengthTransactions {
-	//? Primary Key
-	id   String @id @unique @default(uuid())  @db.VarChar(36)
-	//? Readable reference Key
-	code Int    @unique @default(autoincrement())
+  //? Primary Key
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
 
-	//? Columns
-	transactionDate DateTime @map("transaction_date") @db.Date
+  //? Columns
+  transactionDate DateTime @map("transaction_date") @db.Date
   materialId      String   @map("material_id") @db.VarChar(36)
 
-	//? Default columns
-	createdAt   DateTime @default(now()) @map("created_at")
-	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-	createdById String? @db.VarChar(36) @map("created_by_id")
-	updatedById String? @db.VarChar(36) @map("updated_by_id")
-	isActive    Boolean  @default(true) @map("is_active")
+  //? Default columns
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+  isActive    Boolean  @default(true) @map("is_active")
 
-	samples strengthSamples[] @relation("TransactionSamples")
-	//? Indexing
-	// @@index([])
+  samples strengthSamples[] @relation("TransactionSamples")
+  //? Indexing
+  // @@index([])
 
-	//? Table name in DB
-	@@map("strength_transactions")
+  //? Table name in DB
+  @@map("strength_transactions")
 }
 
-model strengthSamples  {
-	//? Primary Key
-	id   String @id @unique @default(uuid())  @db.VarChar(36)
-	//? Readable reference Key
-	code Int    @unique @default(autoincrement())
+model strengthSamples {
+  //? Primary Key
+  id   String @id @unique @default(uuid()) @db.VarChar(36)
+  //? Readable reference Key
+  code Int    @unique @default(autoincrement())
 
-	//? Columns
-	transactionId String @map("transaction_id") @db.VarChar(36)
-	sampleDate DateTime @map("sample_date") @db.Date
-	day1_strength Decimal @map("day1_strenght")@db.Decimal(10,2)
-	day3_strength Decimal @map("day3_strenght")@db.Decimal(10,2)
-	day7_strength Decimal @map("day7_strenght")@db.Decimal(10,2)
-	day28_strength Decimal @map("day28_strenght")@db.Decimal(10,2)
-	expansion Decimal @map("expansion")@db.Decimal(10,2)
+  //? Columns
+  transactionId  String   @map("transaction_id") @db.VarChar(36)
+  sampleDate     DateTime @map("sample_date") @db.Date
+  day1_strength  Decimal  @map("day1_strenght") @db.Decimal(10, 2)
+  day3_strength  Decimal  @map("day3_strenght") @db.Decimal(10, 2)
+  day7_strength  Decimal  @map("day7_strenght") @db.Decimal(10, 2)
+  day28_strength Decimal  @map("day28_strenght") @db.Decimal(10, 2)
+  expansion      Decimal  @map("expansion") @db.Decimal(10, 2)
 
-	transaction   strengthTransactions  @relation("TransactionSamples", fields: [transactionId], references: [id])
+  transaction strengthTransactions @relation("TransactionSamples", fields: [transactionId], references: [id])
 
-	//? Default columns
-	createdAt   DateTime @default(now()) @map("created_at")
-	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-	createdById String? @db.VarChar(36) @map("created_by_id")
-	updatedById String? @db.VarChar(36) @map("updated_by_id")
-	isActive    Boolean  @default(true) @map("is_active")
+  //? Default columns
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+  isActive    Boolean  @default(true) @map("is_active")
 
-	//? Indexing
-	// @@index([])
+  //? Indexing
+  // @@index([])
 
-	//? Table name in DB
-	@@map("strength_samples")
+  //? Table name in DB
+  @@map("strength_samples")
 }

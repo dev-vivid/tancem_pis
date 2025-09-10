@@ -28,6 +28,7 @@ import budgetRouter from "@module/v1/budget/routes/budget.routes";
 import strengthRouter from "@module/v1/labRelated/routes/strength.routes";
 // import materialMappingMaster from "@module/v1/master/routes/materialMappingMaster.routes";
 // import material from "@module/v1/master/routes/material.routes";
+import mappingRouter from "@module/v1/master/routes/equipmentOutputMaterialMapping.routes";
 
 // routes.use(``, [baseAuth], materialMappingMaster);
 // routes.use(``, [baseAuth], material);
@@ -54,5 +55,6 @@ routes.use(``, [baseAuth], productionRouter);
 routes.use(``, [baseAuth], receiptRouter);
 routes.use(``, [baseAuth], labReport);
 routes.use(``, [baseAuth], strengthRouter);
+routes.use(``, [baseAuth], mappingRouter);
 
 export { routes as apiV1Routes };
