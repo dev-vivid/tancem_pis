@@ -42,7 +42,7 @@ export const createStoppageUsecase = async (
 	transactionData: TStoppage,
 	user: string
 ) => {
-	return await createStoppage([transactionData], user);
+	return await createStoppage(transactionData, user);
 };
 
 export const getAllStoppageUsecase = async (

@@ -240,3 +240,23 @@ export const deleteProblemCode = async (
 		},
 	});
 };
+
+export const getProblemsByDepartment = async (
+	departmentId: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	if (!departmentId) throw new Error("departmentId is required.");
+
+	return await tx.problem.findMany({
+		where: {
+			departmentId,
+			isActive: true,
+			status: "active", // only active ones
+		},
+		select: {
+			id: true,
+			problemName: true,
+		},
+		orderBy: { sortOrder: "asc" },
+	});
+};

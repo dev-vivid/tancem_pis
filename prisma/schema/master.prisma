@@ -67,15 +67,16 @@ model ProblemCode {
 }
 
 model TransactionType {
-  id          String   @id @unique @default(uuid()) @db.VarChar(36)
-  code        Int      @unique @default(autoincrement())
-  name        String   @db.VarChar(50)
-  status      Status   @default(active)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById String?  @map("created_by_id") @db.VarChar(36)
-  updatedById String?  @map("updated_by_id") @db.VarChar(36)
-  isActive    Boolean  @default(true) @map("is_active")
+  id                   String               @id @unique @default(uuid()) @db.VarChar(36)
+  code                 Int                  @unique @default(autoincrement())
+  name                 String               @db.VarChar(50)
+  status               Status               @default(active)
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @default(now()) @updatedAt @map("updated_at")
+  createdById          String?              @map("created_by_id") @db.VarChar(36)
+  updatedById          String?              @map("updated_by_id") @db.VarChar(36)
+  isActive             Boolean              @default(true) @map("is_active")
+  receiptsconsumptions ReceiptConsumption[]
 
   @@index([code])
   @@map("transaction_type")
@@ -535,6 +536,8 @@ model ReceiptConsumption {
   createdById     String?        @map("created_by_id") @db.VarChar(36)
   isActive        Boolean        @default(true) @map("is_active")
   updatedById     String?        @map("updated_by_id") @db.VarChar(36)
+
+  transactionTypes TransactionType @relation(fields: [transactionType], references: [id])
 
   @@index([materialType])
   @@index([materialId])

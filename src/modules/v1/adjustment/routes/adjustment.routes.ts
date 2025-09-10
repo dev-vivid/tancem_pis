@@ -20,7 +20,7 @@ router.post(
 
 // Get all Adjustments
 router.get(
-	"/getAll",
+	"/getAllAdjustment",
 	validateRequest(adjustmentFilterQuerySchema, "query"),
 	adjustmentController.getAllAdjustments
 );

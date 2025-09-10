@@ -5,12 +5,13 @@ import {
 	createproblemCode,
 	updateproblemCode,
 	deleteproblemCode,
+	getProblemsByDepartmentController,
 } from "../controllers/problemCode.controller";
 import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	problemCodeFilterQuerySchema,
 	problemCodeFormSchema,
-	updateproblemCodeFormSchema
+	updateproblemCodeFormSchema,
 } from "../validations/problemCode.schema";
 
 const problemCodeRouter = express.Router();
@@ -22,6 +23,10 @@ problemCodeRouter.get(
 );
 
 problemCodeRouter.get("/problemCode/:id", getIdproblemCode);
+problemCodeRouter.get(
+	"/getDepartment/:departmentId",
+	getProblemsByDepartmentController
+);
 
 problemCodeRouter.post(
 	"/problemCodeAdd",
