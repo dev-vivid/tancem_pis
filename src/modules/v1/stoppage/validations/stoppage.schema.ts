@@ -9,32 +9,30 @@ export const stoppageFilterQuerySchema = Joi.object({
 		.pattern(/^[0-9]+$/),
 });
 
-export const createStoppageBodySchema = Joi.array().items(
-	Joi.object({
-		transactionDate: Joi.string()
-			.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
-			.required(),
-		departmentId: Joi.string().required(),
-		equipmentMainId: Joi.string().required(),
-		equipmentSubGroupId: Joi.string().required(),
-		problems: Joi.array()
-			.items(
-				Joi.object({
-					problemHours: Joi.string()
-						.pattern(/^\d{2}:\d{2}$/) // enforce HH:MM format
-						.required()
-						.messages({
-							"string.pattern.base":
-								"problemHours must be in HH:MM format (e.g., 02:30)",
-						}),
-					noOfStoppages: Joi.number().optional(),
-					problemId: Joi.string().required(),
-					remarks: Joi.string().optional(),
-				})
-			)
-			.required(),
-	})
-);
+export const createStoppageBodySchema = Joi.object({
+	transactionDate: Joi.string()
+		.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
+		.required(),
+	departmentId: Joi.string().required(),
+	equipmentMainId: Joi.string().required(),
+	equipmentSubGroupId: Joi.string().required(),
+	problems: Joi.array()
+		.items(
+			Joi.object({
+				problemHours: Joi.string()
+					.pattern(/^\d{2}:\d{2}$/) // enforce HH:MM format
+					.required()
+					.messages({
+						"string.pattern.base":
+							"problemHours must be in HH:MM format (e.g., 02:30)",
+					}),
+				noOfStoppages: Joi.number().optional(),
+				problemId: Joi.string().required(),
+				remarks: Joi.string().optional(),
+			})
+		)
+		.required(),
+});
 
 export const updateStoppageBodySchema = Joi.object({
 	transactionDate: Joi.string()

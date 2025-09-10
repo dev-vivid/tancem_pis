@@ -6,6 +6,7 @@ import { getIdProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { createProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { updateProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { deleteProblemCodeUsecase } from "../usecases/problemCode.usecase";
+import { getProblemsByDepartment } from "../services/problemCode.service";
 
 export const getAllproblemCode = async (
 	req: Request,
@@ -175,6 +176,24 @@ export const deleteproblemCode = async (
 		const response = responses.generate("success", {
 			message: "Analysis deleted successfully!",
 			data: null,
+		});
+		res.status(response.statusCode).send(response);
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const getProblemsByDepartmentController = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { departmentId } = req.params;
+		const problems = await getProblemsByDepartment(departmentId);
+		const response = responses.generate("success", {
+			message: "Analysis deleted successfully!",
+			data: problems,
 		});
 		res.status(response.statusCode).send(response);
 	} catch (error) {

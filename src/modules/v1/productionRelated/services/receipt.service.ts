@@ -41,6 +41,12 @@ export const getAllreceipt = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			transactionTypes: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
 		},
 	});
 
@@ -62,10 +68,14 @@ export const getAllreceipt = async (
 				uuid: item.id,
 				receiptCode: item.code,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
+				quantity: item.quantity,
 				materialId: item.materialId,
 				materialName: materialName ? materialName.name : null,
 				materialType: item.materialType,
 				transactionType: item.transactionType,
+				transactionTypeName: item.transactionTypes
+					? item.transactionTypes.name
+					: null,
 				wfRequestId: item.wfRequestId,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
@@ -103,6 +113,12 @@ export const getIdreceipt = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			transactionTypes: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
 		},
 	});
 
@@ -126,10 +142,14 @@ export const getIdreceipt = async (
 		uuid: item.id,
 		receiptCode: item.code,
 		transactionDate: extractDateTime(item.transactionDate, "date"),
+		quantity: item.quantity,
 		materialId: item.materialId,
 		materialName: materialName ? materialName.name : null,
 		materialType: item.materialType,
 		transactionType: item.transactionType,
+		transactionTypeName: item.transactionTypes
+			? item.transactionTypes.name
+			: null,
 		wfRequestId: item.wfRequestId,
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),

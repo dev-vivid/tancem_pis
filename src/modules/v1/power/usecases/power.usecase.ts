@@ -46,7 +46,7 @@ export const createPowerTransactionUsecase = async (
 	transactionData: TPowerTransactionData,
 	user: string
 ) => {
-	return await createPowerService([transactionData], user);
+	return await createPowerService(transactionData, user);
 };
 
 export const updatePowerTransactionUsecase = async (
@@ -58,9 +58,8 @@ export const updatePowerTransactionUsecase = async (
 };
 
 export const deletePowerTransactionUsecase = async (
-	id: string,
-	powerDetailsId: string[],
+	powerid: string,
 	user: string
 ) => {
-	return await deletePowerTransaction(id, powerDetailsId, user);
+	return await deletePowerTransaction(powerid, user);
 };

@@ -9,25 +9,23 @@ export const powerFilterQuerySchema = Joi.object({
 		.pattern(/^[0-9]+$/),
 });
 
-export const createPowerTransactionBodySchema = Joi.array().items(
-	Joi.object({
-		transactionDate: Joi.string()
-			.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
-			.required(),
-		powerDetails: Joi.array()
-			.items(
-				Joi.object({
-					equipmentId: Joi.string().required(),
-					units: Joi.number().precision(2).required(),
-				})
-			)
-			.min(1)
-			.required(),
-		initiatorRoleId: Joi.string().required(),
-		remarks: Joi.string().optional(),
-		status: Joi.string().optional(),
-	})
-);
+export const createPowerTransactionBodySchema = Joi.object({
+	transactionDate: Joi.string()
+		.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
+		.required(),
+	powerDetails: Joi.array()
+		.items(
+			Joi.object({
+				equipmentId: Joi.string().required(),
+				units: Joi.number().precision(2).required(),
+			})
+		)
+		.min(1)
+		.required(),
+	initiatorRoleId: Joi.string().required(),
+	remarks: Joi.string().optional(),
+	status: Joi.string().optional(),
+});
 
 export const updatePowerTransactionBodySchema = Joi.object({
 	transactionDate: Joi.string()
@@ -49,7 +47,7 @@ export const updatePowerTransactionParamsSchema = Joi.object({
 });
 
 export const deletePowerTransactionParamsSchema = Joi.object({
-	transactionId: Joi.string().required(),
+	powerid: Joi.string().required(),
 });
 
 export const getPowerTransactionParamsSchema = Joi.object({

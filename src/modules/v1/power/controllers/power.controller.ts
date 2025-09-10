@@ -122,8 +122,7 @@ export const deletePower = async (
 	next: NextFunction
 ) => {
 	try {
-		const { id } = req.params;
-		const { powerDetailsId } = req.body;
+		const { powerid } = req.params;
 		const user = req.user?.id;
 		if (!user) {
 			return res.status(401).json({
@@ -133,11 +132,7 @@ export const deletePower = async (
 				message: "User is not authenticated",
 			});
 		}
-		const result = await deletePowerTransactionUsecase(
-			id,
-			powerDetailsId,
-			user
-		);
+		const result = await deletePowerTransactionUsecase(powerid, user);
 		const response = responses.generate("success", {
 			message: "Power record has been deleted",
 			data: result,

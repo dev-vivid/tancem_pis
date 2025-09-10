@@ -41,13 +41,13 @@ export const getAlldespatch = async (
 	// Map response
 	const data = await Promise.all(
 		transactions.flatMap(async (item) => {
-			const createdUser = item.createdById
-				? await getUserData(item.createdById)
-				: null;
+			// const createdUser_ = item.createdById
+			// 	? await getUserData(item.createdById)
+			// 	: null;
 
-			const updatedUser = item.updatedById
-				? await getUserData(item.updatedById)
-				: null;
+			// const updatedUser_ = item.updatedById
+			// 	? await getUserData(item.updatedById)
+			// 	: null;
 
 			// Map each child detail
 			const detailsMapped = await Promise.all(
@@ -57,22 +57,30 @@ export const getAlldespatch = async (
 							? await getMaterialName(detail.materialId, accessToken)
 							: null;
 
+					const createdUser = detail.createdById
+						? await getUserData(detail.createdById)
+						: null;
+
+					const updatedUser = detail.updatedById
+						? await getUserData(detail.updatedById)
+						: null;
+
 					return {
 						// ---- Parent (Despatch) ----
+						uuid: detail.id,
 						despatchId: item.id,
 						despatchCode: item.code,
 						transactionDate: extractDateTime(item.transactionDate, "date"),
 
-						despatchCreatedAt: extractDateTime(item.createdAt, "both"),
-						despatchUpdatedAt: extractDateTime(item.updatedAt, "both"),
-						despatchCreatedById: item.createdById,
-						despatchUpdatedById: item.updatedById,
-						despatchCreatedUser: createdUser,
-						despatchUpdatedUser: updatedUser,
-						despatchIsActive: item.isActive,
+						// despatchCreatedAt: extractDateTime(item.createdAt, "both"),
+						// despatchUpdatedAt: extractDateTime(item.updatedAt, "both"),
+						// despatchCreatedById: item.createdById,
+						// despatchUpdatedById: item.updatedById,
+						// despatchCreatedUser: createdUser,
+						// despatchUpdatedUser: updatedUser,
+						// despatchIsActive: item.isActive,
 
 						// ---- Child (DespatchDetails) ----
-						despatchDetailId: detail.id,
 						materialCode: detail.code,
 						materialId: detail.materialId,
 						materialName: materialName ? materialName.name : null,
@@ -82,11 +90,13 @@ export const getAlldespatch = async (
 						exportQuantity: detail.exportQuantity,
 						inlandQuantity: detail.inlandQuantity,
 
-						detailCreatedAt: extractDateTime(detail.createdAt, "both"),
-						detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
-						detailCreatedById: detail.createdById,
-						detailUpdatedById: detail.updatedById,
-						detailIsActive: detail.isActive,
+						createdAt: extractDateTime(detail.createdAt, "both"),
+						updatedAt: extractDateTime(detail.updatedAt, "both"),
+						createdById: detail.createdById,
+						updatedById: detail.updatedById,
+						isActive: detail.isActive,
+						createdUser: createdUser,
+						updatedUser: updatedUser,
 					};
 				})
 			);
@@ -121,14 +131,6 @@ export const getIddespatch = async (
 		return null;
 	}
 
-	const createdUser = despatch.createdById
-		? await getUserData(despatch.createdById)
-		: null;
-
-	const updatedUser = despatch.updatedById
-		? await getUserData(despatch.updatedById)
-		: null;
-
 	const data = await Promise.all(
 		despatch.Despatches.map(async (detail) => {
 			const materialName =
@@ -136,21 +138,29 @@ export const getIddespatch = async (
 					? await getMaterialName(detail.materialId, accessToken)
 					: null;
 
+			const createdUser = detail.createdById
+				? await getUserData(detail.createdById)
+				: null;
+
+			const updatedUser = detail.updatedById
+				? await getUserData(detail.updatedById)
+				: null;
+
 			return {
 				// ---- Parent (Despatch) ----
+				uuid: detail.id,
 				despatchId: despatch.id,
-				despatchCode: despatch.code,
-				transactionDate: extractDateTime(despatch.transactionDate, "date"),
-				despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
-				despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
-				despatchCreatedById: despatch.createdById,
-				despatchUpdatedById: despatch.updatedById,
-				despatchCreatedUser: createdUser,
-				despatchUpdatedUser: updatedUser,
-				despatchIsActive: despatch.isActive,
+				// despatchCode: despatch.code,
+				// transactionDate: extractDateTime(despatch.transactionDate, "date"),
+				// despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
+				// despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
+				// despatchCreatedById: despatch.createdById,
+				// despatchUpdatedById: despatch.updatedById,
+				// despatchCreatedUser: createdUser,
+				// despatchUpdatedUser: updatedUser,
+				// despatchIsActive: despatch.isActive,
 
 				// ---- Child (DespatchDetails) ----
-				despatchDetailId: detail.id,
 				materialCode: detail.code,
 				materialId: detail.materialId,
 				materialName: materialName ? materialName.name : null,
@@ -159,11 +169,13 @@ export const getIddespatch = async (
 				exportQuantity: detail.exportQuantity,
 				inlandQuantity: detail.inlandQuantity,
 
-				detailCreatedAt: extractDateTime(detail.createdAt, "both"),
-				detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
-				detailCreatedById: detail.createdById,
-				detailUpdatedById: detail.updatedById,
-				detailIsActive: detail.isActive,
+				createdAt: extractDateTime(detail.createdAt, "both"),
+				updatedAt: extractDateTime(detail.updatedAt, "both"),
+				createdById: detail.createdById,
+				updatedById: detail.updatedById,
+				isActive: detail.isActive,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -233,7 +245,7 @@ export const createdespatch = async (
 export const updateDespatch = async (
 	despatchId: string,
 	data: {
-		transactionDate: string;
+		transactionDate?: string; // optional for partial update
 		details: {
 			id?: string; // existing detail id (if updating)
 			materialId?: string;
@@ -246,49 +258,42 @@ export const updateDespatch = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	// parent update (only fields provided)
+	const parentUpdate: any = { updatedById: user };
+	if (data.transactionDate !== undefined) {
+		parentUpdate.transactionDate = parseDateOnly(data.transactionDate);
+	}
+
 	const updated = await tx.despatch.update({
 		where: { id: despatchId },
 		data: {
-			transactionDate: parseDateOnly(data.transactionDate),
-			updatedById: user,
+			...parentUpdate,
 			Despatches: {
-				upsert: data.details.map((d) => {
-					// build update object only with provided keys
-					const updateData: any = { updatedById: user };
-					if (d.materialId !== undefined) updateData.materialId = d.materialId;
-					if (d.railQuantity !== undefined)
-						updateData.railQuantity = Number(d.railQuantity);
-					if (d.roadQuantity !== undefined)
-						updateData.roadQuantity = Number(d.roadQuantity);
-					if (d.exportQuantity !== undefined)
-						updateData.exportQuantity = Number(d.exportQuantity);
-					if (d.inlandQuantity !== undefined)
-						updateData.inlandQuantity = Number(d.inlandQuantity);
+				update: data.details
+					.filter((d) => d.id)
+					.map((d) => {
+						// dynamic update
+						const updateData: any = { updatedById: user };
+						if (d.materialId !== undefined)
+							updateData.materialId = d.materialId;
+						if (d.railQuantity !== undefined)
+							updateData.railQuantity = Number(d.railQuantity);
+						if (d.roadQuantity !== undefined)
+							updateData.roadQuantity = Number(d.roadQuantity);
+						if (d.exportQuantity !== undefined)
+							updateData.exportQuantity = Number(d.exportQuantity);
+						if (d.inlandQuantity !== undefined)
+							updateData.inlandQuantity = Number(d.inlandQuantity);
 
-					// build create object (here you may want defaults if not provided)
-					const createData: any = { createdById: user };
-					if (d.materialId !== undefined) createData.materialId = d.materialId;
-					if (d.railQuantity !== undefined)
-						createData.railQuantity = Number(d.railQuantity);
-					if (d.roadQuantity !== undefined)
-						createData.roadQuantity = Number(d.roadQuantity);
-					if (d.exportQuantity !== undefined)
-						createData.exportQuantity = Number(d.exportQuantity);
-					if (d.inlandQuantity !== undefined)
-						createData.inlandQuantity = Number(d.inlandQuantity);
-
-					return {
-						where: { id: d.id ?? "" },
-						update: updateData,
-						create: createData,
-					};
-				}),
+						return {
+							where: { id: d.id! },
+							data: updateData,
+						};
+					}),
 			},
 		},
 		include: { Despatches: true },
 	});
-
-	return updated;
 };
 
 export const deletedespatch = async (
@@ -296,20 +301,35 @@ export const deletedespatch = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if (!id) throw new Error("ID is required");
+	if (!id) throw new Error("Detail ID is required");
 
-	// Soft delete Despatch header and its details
-	await tx.despatch.update({
-		where: { id },
+	const detailRecord = await tx.despatchDetails.findUnique({
+		where: { id: id },
+		select: { despatchId: true },
+	});
+
+	if (!detailRecord) {
+		throw new Error("Despatch detail not found");
+	}
+
+	const despatchId = detailRecord.despatchId;
+
+	await tx.despatchDetails.update({
+		where: { id: id },
 		data: {
 			isActive: false,
 			updatedById: user,
-			Despatches: {
-				updateMany: {
-					where: { isActive: true },
-					data: { isActive: false, updatedById: user },
-				},
-			},
 		},
 	});
+
+	const remainingDetails = await tx.despatchDetails.count({
+		where: { despatchId, isActive: true },
+	});
+
+	if (remainingDetails === 0) {
+		await tx.despatch.update({
+			where: { id: despatchId },
+			data: { isActive: false, updatedById: user },
+		});
+	}
 };

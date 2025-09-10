@@ -70,19 +70,19 @@ export const getAllPowerTransactions = async (
 						: null;
 
 					return {
+						uuid: power.id,
 						transactionId: item.id,
-						transactionCode: item.code,
+						// transactionCode: item.code,
 						transactionDate: extractDateTime(item.transactionDate, "date"),
 						wfRequestId: item.wfRequestId,
-						transactionCreatedAt: extractDateTime(item.createdAt, "both"),
-						transactionUpdatedAt: extractDateTime(item.updatedAt, "both"),
-						transactionCreatedById: item.createdById,
-						transactionUpdatedById: item.updatedById,
-						transactionCreatedUser: createdUser,
-						transactionUpdatedUser: updatedUser,
-						transactionIsActive: item.isActive,
+						// transactionCreatedAt: extractDateTime(item.createdAt, "both"),
+						// transactionUpdatedAt: extractDateTime(item.updatedAt, "both"),
+						// transactionCreatedById: item.createdById,
+						// transactionUpdatedById: item.updatedById,
+						// transactionCreatedUser: createdUser,
+						// transactionUpdatedUser: updatedUser,
+						// transactionIsActive: item.isActive,
 
-						powerId: power.id,
 						powerCode: power.code,
 						equipmentId: power.equipmentId,
 						equipmentName: equipmentName ? equipmentName.name : null,
@@ -130,7 +130,7 @@ export const getPowerTransactionById = async (
 					: null;
 
 			return {
-				id: detail.id,
+				uuid: detail.id,
 				code: detail.code,
 				transactionId: detail.transactionId,
 				equipmentId: detail.equipmentId,
@@ -178,45 +178,39 @@ export const createPowerTransaction = async (
 		initiatorRoleId: string;
 		remarks?: string;
 		status?: string;
-	}[],
+	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const createdTransactions = [];
-
-	for (const item of data) {
-		if (!item.initiatorRoleId) {
-			throw new Error("initiatorRoleId is required for each transaction");
-		}
-
-		const wfRequestId = await createWorkflowRequest({
-			userId: user,
-			initiatorRoleId: item.initiatorRoleId,
-			processId: constants.power_workflow_process_ID,
-			remarks: item.remarks,
-			status: item.status,
-		});
-
-		const created = await tx.powerTransaction.create({
-			data: {
-				transactionDate: parseDateOnly(item.transactionDate),
-				wfRequestId,
-				createdById: user,
-				powerDetails: {
-					create: item.powerDetails.map((p) => ({
-						equipmentId: p.equipmentId,
-						units: p.units,
-						createdById: user,
-					})),
-				},
-			},
-			include: { powerDetails: true },
-		});
-
-		createdTransactions.push(created);
+	if (!data.initiatorRoleId) {
+		throw new Error("initiatorRoleId is required");
 	}
 
-	return createdTransactions;
+	// Create workflow request first
+	const wfRequestId = await createWorkflowRequest({
+		userId: user,
+		initiatorRoleId: data.initiatorRoleId,
+		processId: constants.power_workflow_process_ID,
+		remarks: data.remarks,
+		status: data.status,
+	});
+
+	// Create transaction with child details
+	const createdTransaction = await tx.powerTransaction.create({
+		data: {
+			transactionDate: parseDateOnly(data.transactionDate),
+			wfRequestId,
+			createdById: user,
+			powerDetails: {
+				create: data.powerDetails.map((p) => ({
+					equipmentId: p.equipmentId,
+					units: p.units,
+					createdById: user,
+				})),
+			},
+		},
+		include: { powerDetails: true },
+	});
 };
 
 export const updatePowerTransaction = async (
@@ -261,26 +255,34 @@ export const updatePowerTransaction = async (
 };
 
 export const deletePowerTransaction = async (
-	transactionId: string,
-	detailIds: string[],
+	powerid: string,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	// Soft delete only specific child records
+	const childRecord = await tx.power.findUnique({
+		where: { id: powerid },
+		select: { transactionId: true },
+	});
+
+	if (!childRecord) {
+		throw new Error("Child record not found");
+	}
+
+	const transactionId = childRecord.transactionId;
+
+	// Soft delete the specific child record
 	await tx.power.updateMany({
-		where: {
-			transactionId,
-			id: { in: detailIds },
-			isActive: true,
-		},
+		where: { id: powerid, isActive: true },
 		data: { isActive: false, updatedById: user },
 	});
 
-	// Optionally, check if the parent transaction should also be soft deleted
+	// Count remaining active child records
 	const remainingDetails = await tx.power.count({
 		where: { transactionId, isActive: true },
 	});
 
+	// If no children left → soft delete parent
 	if (remainingDetails === 0) {
 		await tx.powerTransaction.update({
 			where: { id: transactionId },

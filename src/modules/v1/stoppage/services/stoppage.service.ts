@@ -37,59 +37,51 @@ export const createStoppage = async (
 			remarks?: string;
 			noOfStoppages?: number;
 		}[];
-	}[],
+	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const createdStoppages = [];
+	// 1. Convert problemHours to minutes and calculate total
+	const totalProblemMinutes = stoppagedata.problems.reduce((sum, p) => {
+		if (p.problemHours) {
+			return sum + timeStringToMinutes(p.problemHours);
+		}
+		return sum;
+	}, 0);
 
-	for (const data of stoppagedata) {
-		// 1. Convert problemHours to minutes and calculate total
-		const totalProblemMinutes = data.problems.reduce((sum, p) => {
-			if (p.problemHours) {
-				return sum + timeStringToMinutes(p.problemHours);
-			}
-			return sum;
-		}, 0);
+	// 2. Stoppage hours
+	const stoppageHours = minutesToTimeString(totalProblemMinutes);
 
-		// 2. Stoppage hours
-		const stoppageHours = minutesToTimeString(totalProblemMinutes);
+	// 3. Total hours = 24:00
+	const totalHours = "24:00";
 
-		// 3. Total hours = 24:00
-		const totalHours = "24:00";
+	// 4. Running hours = total - stoppage
+	const runningMinutes = Math.max(24 * 60 - totalProblemMinutes, 0);
+	const runningHours = minutesToTimeString(runningMinutes);
 
-		// 4. Running hours = total - stoppage
-		const runningMinutes = Math.max(24 * 60 - totalProblemMinutes, 0);
-		const runningHours = minutesToTimeString(runningMinutes);
-
-		// 5. Create stoppage with problems
-		const created = await tx.stoppage.create({
-			data: {
-				transactionDate: parseDateOnly(data.transactionDate),
-				departmentId: data.departmentId,
-				equipmentMainId: data.equipmentMainId,
-				equipmentSubGroupId: data.equipmentSubGroupId,
-				runningHours,
-				stoppageHours,
-				totalHours,
-				createdById: user,
-				stoppageproblems: {
-					create: data.problems.map((p) => ({
-						problemId: p.problemId,
-						problemHours: p.problemHours,
-						remarks: p.remarks,
-						noOfStoppages: p.noOfStoppages,
-						createdById: user,
-					})),
-				},
+	// 5. Create stoppage with problems
+	const created = await tx.stoppage.create({
+		data: {
+			transactionDate: parseDateOnly(stoppagedata.transactionDate),
+			departmentId: stoppagedata.departmentId,
+			equipmentMainId: stoppagedata.equipmentMainId,
+			equipmentSubGroupId: stoppagedata.equipmentSubGroupId,
+			runningHours,
+			stoppageHours,
+			totalHours,
+			createdById: user,
+			stoppageproblems: {
+				create: stoppagedata.problems.map((p) => ({
+					problemId: p.problemId,
+					problemHours: p.problemHours,
+					remarks: p.remarks,
+					noOfStoppages: p.noOfStoppages,
+					createdById: user,
+				})),
 			},
-			include: { stoppageproblems: true },
-		});
-
-		createdStoppages.push(created);
-	}
-
-	return createdStoppages; // returns array of created stoppages
+		},
+		include: { stoppageproblems: true },
+	});
 };
 
 export const updateStoppage = async (
