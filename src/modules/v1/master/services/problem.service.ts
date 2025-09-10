@@ -56,7 +56,7 @@ export const getAllProblems = async (
 
 				return {
 					...rest,
-					id: rest.id,
+					uuid: rest.id,
 					problemDescription: problemName,
 					plantDepartmentId: departmentId,
 					plantDepartmentName: departmentName ? departmentName.name : null,
@@ -113,7 +113,7 @@ export const getIdProblem = async (
 		: null;
 
 	const data = {
-		id: problem.id,
+		uuid: problem.id,
 		plantDepartmentId: problem.departmentId,
 		plantDepartmentName: departmentName ? departmentName.name : null,
 		problemDescription: problem.problemName,

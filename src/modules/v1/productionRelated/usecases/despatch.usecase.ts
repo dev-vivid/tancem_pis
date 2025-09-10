@@ -1,7 +1,7 @@
 import { getAlldespatch } from "../services/despatch.service";
 import { getIddespatch } from "../services/despatch.service";
 import { createdespatch } from "../services/despatch.service";
-import { updatedespatch } from "../services/despatch.service";
+import { updateDespatch } from "../services/despatch.service";
 import { deletedespatch } from "../services/despatch.service";
 
 export const getAlldespatchUsecase = async (
@@ -9,9 +9,7 @@ export const getAlldespatchUsecase = async (
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
-	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAlldespatch(accessToken, page, size);
+	return await getAlldespatch(accessToken, pageNumber, pageSize);
 };
 
 export const getIddespatchUsecase = async (id: string, accessToken: string) => {
@@ -30,7 +28,7 @@ export const updatedespatchUsecase = async (
 	despatchData: any,
 	user: string
 ) => {
-	return await updatedespatch(id, despatchData, user);
+	return await updateDespatch(id, despatchData, user);
 };
 
 export const deletedespatchUsecase = async (id: string, user: string) => {

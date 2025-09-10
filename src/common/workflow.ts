@@ -78,6 +78,12 @@ export async function createWorkflowRequest({
 		[initiatorRoleId, processId]
 	);
 	const isWorkFlowExist = workflowRows[0];
+	console.log("Debug workflow check", {
+		initiatorRoleId,
+		processId,
+		workflowRows,
+	});
+
 	if (!isWorkFlowExist) throw new Error("WorkFlowNotFound");
 
 	// 2. Get initiate state

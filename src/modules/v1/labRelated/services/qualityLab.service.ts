@@ -1,7 +1,8 @@
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import * as api from "../../../../common/api";
-import { parseDateOnly } from "../../../../shared/utils/date";
+import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const createQualityLab = async (data: any, user: string) => {
 	await prisma.qualityLab.create({
@@ -47,6 +48,9 @@ export const getAllQualityLab = async (
 			blaine: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
+			isActive: true,
 		},
 	});
 
@@ -60,16 +64,28 @@ export const getAllQualityLab = async (
 				? await api.getEquipmentName(item.equipmentId, accessToken)
 				: null;
 
-			// console.log("Material API Response:", materialObj);
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
 
 			return {
-				...item,
+				uuid: item.id,
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				materialId: item.materialId,
 				materialName: materialObj?.name || "",
+				equipmentId: item.equipmentId,
 				equipmentName: equipmentObj?.name || "",
-				createdAt: item.createdAt
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19),
+				ist: item.ist,
+				fst: item.fst,
+				blaine: item.blaine,
+				isActive: item.isActive,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -100,6 +116,7 @@ export const getQualityLabById = async (
 		: null;
 	return {
 		...item,
+		uuid: item.id,
 		materialName: materialName?.name || null,
 		equipmentName: equipmentName?.name || null,
 		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
