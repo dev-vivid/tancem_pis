@@ -615,3 +615,59 @@ enum YesNo {
   Yes
   No
 }
+
+model strengthTransactions {
+	//? Primary Key
+	id   String @id @unique @default(uuid())  @db.VarChar(36)
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	transactionDate DateTime @map("transaction_date") @db.Date
+  materialId      String   @map("material_id") @db.VarChar(36)
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+	createdById String? @db.VarChar(36) @map("created_by_id")
+	updatedById String? @db.VarChar(36) @map("updated_by_id")
+	isActive    Boolean  @default(true) @map("is_active")
+
+	samples strengthSamples[] @relation("TransactionSamples")
+	//? Indexing
+	// @@index([])
+
+	//? Table name in DB
+	@@map("strength_transactions")
+}
+
+model strengthSamples  {
+	//? Primary Key
+	id   String @id @unique @default(uuid())  @db.VarChar(36)
+	//? Readable reference Key
+	code Int    @unique @default(autoincrement())
+
+	//? Columns
+	transactionId String @map("transaction_id") @db.VarChar(36)
+	sampleDate DateTime @map("sample_date") @db.Date
+	day1_strength Decimal @map("day1_strenght")@db.Decimal(10,2)
+	day3_strength Decimal @map("day3_strenght")@db.Decimal(10,2)
+	day7_strength Decimal @map("day7_strenght")@db.Decimal(10,2)
+	day28_strength Decimal @map("day28_strenght")@db.Decimal(10,2)
+	expansion Decimal @map("expansion")@db.Decimal(10,2)
+
+	transaction   strengthTransactions  @relation("TransactionSamples", fields: [transactionId], references: [id])
+
+	//? Default columns
+	createdAt   DateTime @default(now()) @map("created_at")
+	updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+	createdById String? @db.VarChar(36) @map("created_by_id")
+	updatedById String? @db.VarChar(36) @map("updated_by_id")
+	isActive    Boolean  @default(true) @map("is_active")
+
+	//? Indexing
+	// @@index([])
+
+	//? Table name in DB
+	@@map("strength_samples")
+}
