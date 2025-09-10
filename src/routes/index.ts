@@ -25,6 +25,7 @@ import productionRouter from "@module/v1/productionRelated/routes/production.rou
 import receiptRouter from "@module/v1/productionRelated/routes/receipt.routes";
 import labReport from "@module/v1/labRelated/routes/externalLabTestingReport.routes";
 import budgetRouter from "@module/v1/budget/routes/budget.routes";
+import strengthRouter from "@module/v1/labRelated/routes/strength.routes";
 // import materialMappingMaster from "@module/v1/master/routes/materialMappingMaster.routes";
 // import material from "@module/v1/master/routes/material.routes";
 
@@ -52,5 +53,6 @@ routes.use(``, [baseAuth], despatchRouter);
 routes.use(``, [baseAuth], productionRouter);
 routes.use(``, [baseAuth], receiptRouter);
 routes.use(``, [baseAuth], labReport);
+routes.use(``, [baseAuth], strengthRouter);
 
 export { routes as apiV1Routes };
