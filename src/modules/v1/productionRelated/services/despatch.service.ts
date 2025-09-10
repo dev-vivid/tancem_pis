@@ -24,6 +24,7 @@ export const getAlldespatch = async (
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
+	// Fetch despatches with their child details
 	const transactions = await tx.despatch.findMany({
 		skip,
 		take,
@@ -48,36 +49,49 @@ export const getAlldespatch = async (
 				? await getUserData(item.updatedById)
 				: null;
 
-			return item.Despatches.map((detail) => ({
-				// ---- Parent (Despatch) ----
-				despatchId: item.id,
-				despatchCode: item.code,
-				transactionDate: extractDateTime(item.transactionDate, "date"),
+			// Map each child detail
+			const detailsMapped = await Promise.all(
+				item.Despatches.map(async (detail) => {
+					const materialName =
+						detail.materialId && accessToken
+							? await getMaterialName(detail.materialId, accessToken)
+							: null;
 
-				despatchCreatedAt: extractDateTime(item.createdAt, "both"),
-				despatchUpdatedAt: extractDateTime(item.updatedAt, "both"),
-				despatchCreatedById: item.createdById,
-				despatchUpdatedById: item.updatedById,
-				despatchCreatedUser: createdUser,
-				despatchUpdatedUser: updatedUser,
-				despatchIsActive: item.isActive,
+					return {
+						// ---- Parent (Despatch) ----
+						despatchId: item.id,
+						despatchCode: item.code,
+						transactionDate: extractDateTime(item.transactionDate, "date"),
 
-				// ---- Child (DespatchDetails) ----
-				despatchDetailId: detail.id,
-				materialCode: detail.code,
-				materialId: detail.materialId,
+						despatchCreatedAt: extractDateTime(item.createdAt, "both"),
+						despatchUpdatedAt: extractDateTime(item.updatedAt, "both"),
+						despatchCreatedById: item.createdById,
+						despatchUpdatedById: item.updatedById,
+						despatchCreatedUser: createdUser,
+						despatchUpdatedUser: updatedUser,
+						despatchIsActive: item.isActive,
 
-				railQuantity: detail.railQuantity,
-				roadQuantity: detail.roadQuantity,
-				exportQuantity: detail.exportQuantity,
-				inlandQuantity: detail.inlandQuantity,
+						// ---- Child (DespatchDetails) ----
+						despatchDetailId: detail.id,
+						materialCode: detail.code,
+						materialId: detail.materialId,
+						materialName: materialName ? materialName.name : null,
 
-				detailCreatedAt: extractDateTime(detail.createdAt, "both"),
-				detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
-				detailCreatedById: detail.createdById,
-				detailUpdatedById: detail.updatedById,
-				detailIsActive: detail.isActive,
-			}));
+						railQuantity: detail.railQuantity,
+						roadQuantity: detail.roadQuantity,
+						exportQuantity: detail.exportQuantity,
+						inlandQuantity: detail.inlandQuantity,
+
+						detailCreatedAt: extractDateTime(detail.createdAt, "both"),
+						detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
+						detailCreatedById: detail.createdById,
+						detailUpdatedById: detail.updatedById,
+						detailIsActive: detail.isActive,
+					};
+				})
+			);
+
+			return detailsMapped;
 		})
 	);
 
@@ -115,33 +129,44 @@ export const getIddespatch = async (
 		? await getUserData(despatch.updatedById)
 		: null;
 
-	const data = despatch.Despatches.map((detail) => ({
-		despatchId: despatch.id,
-		despatchCode: despatch.code,
-		transactionDate: extractDateTime(despatch.transactionDate, "date"),
-		despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
-		despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
-		despatchCreatedById: despatch.createdById,
-		despatchUpdatedById: despatch.updatedById,
-		despatchCreatedUser: createdUser,
-		despatchUpdatedUser: updatedUser,
-		despatchIsActive: despatch.isActive,
+	const data = await Promise.all(
+		despatch.Despatches.map(async (detail) => {
+			const materialName =
+				detail.materialId && accessToken
+					? await getMaterialName(detail.materialId, accessToken)
+					: null;
 
-		despatchDetailId: detail.id,
-		materialCode: detail.code,
-		materialId: detail.materialId,
+			return {
+				// ---- Parent (Despatch) ----
+				despatchId: despatch.id,
+				despatchCode: despatch.code,
+				transactionDate: extractDateTime(despatch.transactionDate, "date"),
+				despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
+				despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
+				despatchCreatedById: despatch.createdById,
+				despatchUpdatedById: despatch.updatedById,
+				despatchCreatedUser: createdUser,
+				despatchUpdatedUser: updatedUser,
+				despatchIsActive: despatch.isActive,
 
-		railQuantity: detail.railQuantity,
-		roadQuantity: detail.roadQuantity,
-		exportQuantity: detail.exportQuantity,
-		inlandQuantity: detail.inlandQuantity,
+				// ---- Child (DespatchDetails) ----
+				despatchDetailId: detail.id,
+				materialCode: detail.code,
+				materialId: detail.materialId,
+				materialName: materialName ? materialName.name : null,
+				railQuantity: detail.railQuantity,
+				roadQuantity: detail.roadQuantity,
+				exportQuantity: detail.exportQuantity,
+				inlandQuantity: detail.inlandQuantity,
 
-		detailCreatedAt: extractDateTime(detail.createdAt, "both"),
-		detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
-		detailCreatedById: detail.createdById,
-		detailUpdatedById: detail.updatedById,
-		detailIsActive: detail.isActive,
-	}));
+				detailCreatedAt: extractDateTime(detail.createdAt, "both"),
+				detailUpdatedAt: extractDateTime(detail.updatedAt, "both"),
+				detailCreatedById: detail.createdById,
+				detailUpdatedById: detail.updatedById,
+				detailIsActive: detail.isActive,
+			};
+		})
+	);
 
 	return { data };
 };
@@ -149,7 +174,7 @@ export const getIddespatch = async (
 export const createdespatch = async (
 	despatchData: {
 		transactionDate: string;
-		initiatorRoleId: string;
+		initiatorRoleId?: string;
 		remarks: string;
 		status: string;
 		details: {
@@ -159,48 +184,50 @@ export const createdespatch = async (
 			exportQuantity?: string;
 			inlandQuantity?: string;
 		}[];
-	}[],
+	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const createdDespatches = [];
+	// const createdDespatches = [];
 
-	for (const data of despatchData) {
-		if (!data.initiatorRoleId) throw new Error("initiatorRoleId is required");
+	// for (const data of despatchData) {
+	// 	if (!data.initiatorRoleId) throw new Error("initiatorRoleId is required");
 
-		// Create workflow
-		const wfRequestId = await createWorkflowRequest({
-			userId: user,
-			initiatorRoleId: data.initiatorRoleId,
-			processId: constants.power_workflow_process_ID,
-			remarks: data.remarks,
-			status: data.status,
-		});
+	// Create workflow
+	// const wfRequestId = await createWorkflowRequest({
+	// 	userId: user,
+	// 	initiatorRoleId: data.initiatorRoleId,
+	// 	processId: constants.power_workflow_process_ID,
+	// 	remarks: data.remarks,
+	// 	status: data.status,
+	// });
+	const data = despatchData;
+	console.log(despatchData);
 
-		// Create Despatch header with details
-		const created = await tx.despatch.create({
-			data: {
-				transactionDate: parseDateOnly(data.transactionDate),
-				wfRequestId,
-				createdById: user,
-				Despatches: {
-					create: data.details.map((d) => ({
-						materialId: d.materialId,
-						railQuantity: d.railQuantity ? Number(d.railQuantity) : 0,
-						roadQuantity: d.roadQuantity ? Number(d.roadQuantity) : 0,
-						exportQuantity: d.exportQuantity ? Number(d.exportQuantity) : 0,
-						inlandQuantity: d.inlandQuantity ? Number(d.inlandQuantity) : 0,
-						createdById: user,
-					})),
-				},
+	// Create Despatch header with details
+	const created = await tx.despatch.create({
+		data: {
+			transactionDate: parseDateOnly(despatchData.transactionDate),
+			wfRequestId: "",
+			createdById: user,
+			Despatches: {
+				create: data.details.map((d) => ({
+					materialId: d.materialId,
+					railQuantity: d.railQuantity ? Number(d.railQuantity) : 0,
+					roadQuantity: d.roadQuantity ? Number(d.roadQuantity) : 0,
+					exportQuantity: d.exportQuantity ? Number(d.exportQuantity) : 0,
+					inlandQuantity: d.inlandQuantity ? Number(d.inlandQuantity) : 0,
+					createdById: user,
+				})),
 			},
-			include: { Despatches: true },
-		});
+		},
+		include: { Despatches: true },
+	});
 
-		createdDespatches.push(created);
-	}
+	// 	createdDespatches.push(created);
+	// }
 
-	return createdDespatches;
+	// return createdDespatches;
 };
 
 export const updateDespatch = async (
