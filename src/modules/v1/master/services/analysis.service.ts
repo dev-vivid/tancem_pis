@@ -201,7 +201,7 @@ export const getIdanalysis = async (
 		analysisType: item.type,
 		description: item.description,
 		materialId: item.materialId,
-		materialName: materialName.name || "",
+		materialName: materialName?.name || "",
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"), // fixed field name
 		createdBy: item.createdById,

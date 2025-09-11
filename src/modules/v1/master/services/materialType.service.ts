@@ -214,3 +214,31 @@ export const deleteMaterialType = async (
 		},
 	});
 };
+
+export const getMaterialsByMaterialTypeId = async (
+	materialTypeId: string,
+	accessToken: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	const materialTypes = await tx.materialType.findMany({
+		where: { materialTypeMasterId: materialTypeId, isActive: true },
+		select: { materialId: true },
+	});
+
+	// Fetch material names from external API
+	const materials = await Promise.all(
+		materialTypes.map(async (mt) => {
+			if (mt.materialId && accessToken) {
+				const material = await getMaterialName(mt.materialId, accessToken);
+				return {
+					id: mt.materialId,
+					name: material ? material.name : null,
+				};
+			}
+			return null;
+		})
+	);
+
+	// remove nulls
+	return materials.filter(Boolean);
+};

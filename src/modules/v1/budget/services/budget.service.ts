@@ -123,7 +123,7 @@ export const createBudget = async (
 	budgetData: {
 		financialYear: string;
 		transactionDate: Date;
-		materialId: string;
+		materialId?: string;
 		budgetCode: string;
 		budgetValue: number;
 	},
