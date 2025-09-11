@@ -213,7 +213,7 @@ export const getAllStoppage = async (
 					: null;
 
 			return item.stoppageproblems.map((problem) => ({
-				stoppageId: item.id,
+				uuid: item.id,
 				stoppageCode: item.code,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				departmentId: item.departmentId,
@@ -225,26 +225,28 @@ export const getAllStoppage = async (
 				runningHours: item.runningHours,
 				stoppageHours: item.stoppageHours,
 				totalHours: item.totalHours,
-				stoppageCreatedAt: extractDateTime(item.createdAt, "both"),
-				stoppageUpdatedAt: extractDateTime(item.updatedAt, "both"),
-				stoppageCreatedById: item.createdById,
-				stoppageUpdatedById: item.updatedById,
-				stoppageCreatedUser: createdUser,
-				stoppageUpdatedUser: updatedUser,
-				stoppageIsActive: item.isActive,
+				// stoppageCreatedAt: extractDateTime(item.createdAt, "both"),
+				// stoppageUpdatedAt: extractDateTime(item.updatedAt, "both"),
+				// stoppageCreatedById: item.createdById,
+				// stoppageUpdatedById: item.updatedById,
+				// stoppageCreatedUser: createdUser,
+				// stoppageUpdatedUser: updatedUser,
+				// stoppageIsActive: item.isActive,
 
-				stoppageproblemId: problem.id,
-				problemCode: problem.code,
+				// stoppageproblemId: problem.id,
+				// problemCode: problem.code,
 				problemId: problem.problemId,
 				problemName: problem.ProblemFk.problemName || null,
 				problemHours: problem.problemHours,
 				noOfStoppages: problem.noOfStoppages,
 				remarks: problem.remarks,
-				problemCreatedAt: extractDateTime(problem.createdAt, "both"),
-				problemUpdatedAt: extractDateTime(problem.updatedAt, "both"),
-				problemCreatedById: problem.createdById,
-				problemUpdatedById: problem.updatedById,
-				problemIsActive: problem.isActive,
+				reatedAt: extractDateTime(problem.createdAt, "both"),
+				updatedAt: extractDateTime(problem.updatedAt, "both"),
+				createdById: problem.createdById,
+				updatedById: problem.updatedById,
+				isActive: problem.isActive,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			}));
 		})
 	);
@@ -311,7 +313,7 @@ export const getStoppageById = async (
 	}));
 
 	return {
-		stoppageId: stoppageById.id,
+		uuid: stoppageById.id,
 		stoppageCode: stoppageById.code,
 		transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
 		departmentId: stoppageById.departmentId,
@@ -323,13 +325,13 @@ export const getStoppageById = async (
 		runningHours: stoppageById.runningHours,
 		stoppageHours: stoppageById.stoppageHours,
 		totalHours: stoppageById.totalHours,
-		stoppageCreatedAt: extractDateTime(stoppageById.createdAt, "both"),
-		stoppageUpdatedAt: extractDateTime(stoppageById.updatedAt, "both"),
-		stoppageCreatedById: stoppageById.createdById,
-		stoppageUpdatedById: stoppageById.updatedById,
-		stoppageCreatedUser: createdUser,
-		stoppageUpdatedUser: updatedUser,
-		stoppageIsActive: stoppageById.isActive,
+		// stoppageCreatedAt: extractDateTime(stoppageById.createdAt, "both"),
+		// stoppageUpdatedAt: extractDateTime(stoppageById.updatedAt, "both"),
+		// stoppageCreatedById: stoppageById.createdById,
+		// stoppageUpdatedById: stoppageById.updatedById,
+		// stoppageCreatedUser: createdUser,
+		// stoppageUpdatedUser: updatedUser,
+		// stoppageIsActive: stoppageById.isActive,
 
 		stoppageproblems: stoppageById.stoppageproblems.map((problem) => ({
 			stoppageproblemId: problem.id,
@@ -344,6 +346,8 @@ export const getStoppageById = async (
 			problemCreatedById: problem.createdById,
 			problemUpdatedById: problem.updatedById,
 			problemIsActive: problem.isActive,
+			createdUser: createdUser,
+			updatedUser: updatedUser,
 		})),
 	};
 };

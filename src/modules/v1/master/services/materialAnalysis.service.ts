@@ -3,43 +3,50 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { Status } from "@prisma/client";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import { getMaterialName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const createMaterialAnalysis = async (
 	materialAnalysisData: {
 		materialId: string;
-		analysisId: string;
+		analyses: { analysisId: string }[];
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { materialId, analysisId } = materialAnalysisData;
+	const { materialId, analyses } = materialAnalysisData;
 
-	const create = await tx.materialAnalysis.create({
-		data: {
+	if (!analyses || analyses.length === 0) {
+		throw new Error("At least one analysis is required");
+	}
+
+	// Optional: Validate analysis exists
+	for (const a of analyses) {
+		const exists = await tx.analysis.findUnique({
+			where: { id: a.analysisId },
+		});
+		if (!exists) throw new Error(`Analysis not found: ${a.analysisId}`);
+	}
+
+	return await tx.materialAnalysis.createMany({
+		data: analyses.map((a) => ({
 			materialId,
-			analysisId,
+			analysisId: a.analysisId,
 			createdById: user,
-		},
+		})),
 	});
 };
 
 export const updateMaterialAnalysis = async (
 	id: string,
-	updateMaterialTypeData: {
-		materialId: string;
-		analysisId: string;
-		status: Status;
-	},
+	updateData: { materialId: string; analysisId: string; status: Status },
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { materialId, analysisId, status } = updateMaterialTypeData;
+	const { materialId, analysisId, status } = updateData;
 
-	if (!user) {
-		throw new Error("User is not Authorized");
-	}
+	if (!user) throw new Error("User is not Authorized");
 
-	await tx.materialAnalysis.update({
+	return await tx.materialAnalysis.update({
 		where: { id },
 		data: {
 			materialId,
@@ -95,6 +102,13 @@ export const getAllMaterialAnalysis = async (
 					? await getMaterialName(item.materialId, accessToken)
 					: null;
 
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
 			return {
 				uuid: item.id,
 				code: item.code,
@@ -109,6 +123,8 @@ export const getAllMaterialAnalysis = async (
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 				isActive: item.isActive,
 				status: item.status,
 			};
@@ -132,6 +148,7 @@ export const getByID = async (
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
+			updatedById: true,
 			status: true,
 			isActive: true,
 			MaterialAnalysis: {
@@ -151,6 +168,13 @@ export const getByID = async (
 		result.materialId && accessToken
 			? await getMaterialName(result.materialId, accessToken)
 			: null;
+
+	const createdUser = result.createdById
+		? await getUserData(result.createdById)
+		: null;
+	const updatedUser = result.updatedById
+		? await getUserData(result.updatedById)
+		: null;
 	const { MaterialAnalysis, ...rest } = result;
 
 	const data = {
@@ -158,6 +182,8 @@ export const getByID = async (
 		materialName: materialName?.name || null,
 		createdAt: extractDateTime(result.createdAt, "both"),
 		updatedAt: extractDateTime(result.updatedAt, "both"),
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 		analysisDetails: {
 			description: result.MaterialAnalysis?.description || null,
 			type: result.MaterialAnalysis?.type || null,

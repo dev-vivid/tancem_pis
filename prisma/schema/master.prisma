@@ -77,6 +77,7 @@ model TransactionType {
   updatedById          String?              @map("updated_by_id") @db.VarChar(36)
   isActive             Boolean              @default(true) @map("is_active")
   receiptsconsumptions ReceiptConsumption[]
+  adjustments          Adjustment[]
 
   @@index([code])
   @@map("transaction_type")
@@ -111,6 +112,8 @@ model MaterialType {
   updatedById          String?            @map("updated_by_id") @db.VarChar(36)
   isActive             Boolean            @default(true) @map("is_active")
   materialTypeMaster   MaterialTypeMaster @relation(fields: [materialTypeMasterId], references: [id])
+
+  receiptsconsumptionsRef ReceiptConsumption[]
 
   @@index([code])
   @@index([materialTypeMasterId], map: "material_type_material_type_id_fkey")
@@ -263,21 +266,24 @@ model StoppageProblem {
 }
 
 model Adjustment {
-  id              String           @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int              @unique @default(autoincrement())
-  toSourceId      String?          @map("to_source_id") @db.VarChar(36)
-  quantity        Decimal          @map("quantity") @db.Decimal(10, 2)
-  remarks         String?          @map("remarks") @db.Text
-  transactionDate DateTime         @map("transaction_date") @db.Date
-  materialId      String?          @map("material_id") @db.VarChar(36)
-  transactionType transaction_type @map("type")
-  wfRequestId     String           @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus?   @map("approval_status")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
-  createdById     String?          @map("created_by_id") @db.VarChar(36)
-  updatedById     String?          @map("updated_by_id") @db.VarChar(36)
-  isActive        Boolean          @default(true) @map("is_active")
+  id                String            @id @unique @default(uuid()) @db.VarChar(36)
+  code              Int               @unique @default(autoincrement())
+  toSourceId        String?           @map("to_source_id") @db.VarChar(36)
+  quantity          Decimal           @map("quantity") @db.Decimal(10, 2)
+  remarks           String?           @map("remarks") @db.Text
+  transactionDate   DateTime          @map("transaction_date") @db.Date
+  materialId        String?           @map("material_id") @db.VarChar(36)
+  transactionType   transaction_type? @map("type")
+  transactionTypeId String            @map("transaction_type_id") @db.VarChar(36)
+  wfRequestId       String            @map("wf_request_id") @db.VarChar(36)
+  approvalStatus    approveStatus?    @map("approval_status")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById       String?           @map("created_by_id") @db.VarChar(36)
+  updatedById       String?           @map("updated_by_id") @db.VarChar(36)
+  isActive          Boolean           @default(true) @map("is_active")
+
+  transactionTypeRel TransactionType @relation(fields: [transactionTypeId], references: [id])
 
   @@index([materialId])
   @@map("adjustment")
@@ -537,6 +543,7 @@ model ReceiptConsumption {
   isActive        Boolean        @default(true) @map("is_active")
   updatedById     String?        @map("updated_by_id") @db.VarChar(36)
 
+  materialTypes    MaterialType    @relation(fields: [materialType], references: [id])
   transactionTypes TransactionType @relation(fields: [transactionType], references: [id])
 
   @@index([materialType])
@@ -572,7 +579,7 @@ model budget {
   code            Int      @unique @default(autoincrement())
   financialYear   String   @map("financial_year") @db.VarChar(36)
   transactionDate DateTime @map("transaction_date") @db.Date
-  materialId      String   @map("material_id") @db.VarChar(36)
+  materialId      String?  @map("material_id") @db.VarChar(36)
   budgetCode      String?  @map("budget_code") @db.VarChar(36)
   budgetValue     Decimal  @map("budget_value") @db.Decimal(10, 2)
   createdAt       DateTime @default(now()) @map("created_at")

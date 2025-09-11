@@ -34,16 +34,13 @@ type TUpdateMapping = {
 	status: Status;
 };
 
-export const createMappingUsecase = async (
-	mappingData: TCreateMapping,
-	user: string
-) => {
+export const createMappingUsecase = async (mappingData: any, user: string) => {
 	return await createMappingService(mappingData, user);
 };
 
 export const updateMappingUsecase = async (
 	id: string,
-	updateData: TUpdateMapping,
+	updateData: any,
 	user: string
 ) => {
 	return await updateMappingService(id, updateData, user);

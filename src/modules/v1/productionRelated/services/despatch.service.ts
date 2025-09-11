@@ -83,8 +83,7 @@ export const getAlldespatch = async (
 						// ---- Child (DespatchDetails) ----
 						materialCode: detail.code,
 						materialId: detail.materialId,
-						materialName: materialName ? materialName.name : null,
-
+						materialName: materialName?.name ?? null,
 						railQuantity: detail.railQuantity,
 						roadQuantity: detail.roadQuantity,
 						exportQuantity: detail.exportQuantity,

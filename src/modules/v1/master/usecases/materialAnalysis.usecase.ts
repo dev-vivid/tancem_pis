@@ -36,7 +36,7 @@ type TUpdateMaterialAnalysisData = {
 };
 
 export const createMaterialAnalysisUsecase = async (
-	materialAnalysisData: TMaterialAnalysisData,
+	materialAnalysisData: any,
 	user: string
 ) => {
 	return await createMaterialAnalysisService(materialAnalysisData, user);
@@ -44,7 +44,7 @@ export const createMaterialAnalysisUsecase = async (
 
 export const updateMaterialAnalysisUsecase = async (
 	id: string,
-	updateMaterialAnalysisData: TUpdateMaterialAnalysisData,
+	updateMaterialAnalysisData: any,
 	user: string
 ) => {
 	return await updateMaterialAnalysisService(

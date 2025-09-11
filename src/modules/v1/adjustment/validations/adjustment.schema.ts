@@ -40,16 +40,13 @@ export const createAdjustmentBodySchema = Joi.object({
 		"string.base": "materialId must be a string",
 	}),
 
-	transactionType: Joi.string()
-		.valid("Receipts", "Despatch", "consume")
-		.required()
-		.messages({
-			"string.guid": "Invalid UUID format for transactionTypeId",
-			"string.base": "transactionTypeId must be a string",
-			"any.required": "Transaction Type ID is required",
-		}),
+	transactionTypeId: Joi.string().required().messages({
+		"string.guid": "Invalid UUID format for transactionTypeId",
+		"string.base": "transactionTypeId must be a string",
+		"any.required": "Transaction Type ID is required",
+	}),
 
-	initiatorRoleId: Joi.string().required(),
+	initiatorRoleId: Joi.string().optional(),
 	workflowRemarks: Joi.string().optional(),
 	status: Joi.string().optional(),
 });
@@ -89,14 +86,11 @@ export const updateAdjustmentBodySchema = Joi.object({
 	//     "string.base": "transactionTypeId must be a string",
 	//   }),
 
-	transactionType: Joi.string()
-		.valid("Receipts", "Despatch", "consume")
-		.required()
-		.messages({
-			"string.guid": "Invalid UUID format for transactionTypeId",
-			"string.base": "transactionTypeId must be a string",
-			"any.required": "Transaction Type ID is required",
-		}),
+	transactionTypeId: Joi.string().optional().messages({
+		"string.guid": "Invalid UUID format for transactionTypeId",
+		"string.base": "transactionTypeId must be a string",
+		"any.required": "Transaction Type ID is required",
+	}),
 }).min(1); // At least one field required
 
 /**

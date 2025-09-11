@@ -206,13 +206,13 @@ export const getAdjustmentById = async (
 // 3. Create Adjustment
 export const createAdjustment = async (
 	adjustmentData: {
-		toSourceId?: string;
+		toSourceId: string;
 		quantity: string;
 		remarks?: string;
 		transactionDate: Date;
-		transactionType: transaction_type;
+		transactionTypeId: string;
 		materialId?: string;
-		initiatorRoleId: string;
+		initiatorRoleId?: string;
 		workflowRemarks?: string;
 		status?: string;
 		type: transaction_type;
@@ -226,34 +226,34 @@ export const createAdjustment = async (
 		remarks,
 		transactionDate,
 		materialId,
-		transactionType,
+		transactionTypeId,
 		initiatorRoleId,
 		workflowRemarks,
 		status,
 	} = adjustmentData;
 
-	if (!quantity || !transactionDate || !transactionType) {
+	if (!quantity || !transactionDate || !transactionTypeId) {
 		throw new Error(
 			"Quantity, Transaction Date, Transaction Type ID, and Type are required."
 		);
 	}
-	const wfRequestId = await createWorkflowRequest({
-		userId: userId,
-		initiatorRoleId: adjustmentData.initiatorRoleId,
-		processId: constants.power_workflow_process_ID,
-		remarks: adjustmentData.workflowRemarks,
-		status: adjustmentData.status,
-	});
+	// const wfRequestId = await createWorkflowRequest({
+	// 	userId: userId,
+	// 	initiatorRoleId: adjustmentData.initiatorRoleId,
+	// 	processId: constants.power_workflow_process_ID,
+	// 	remarks: adjustmentData.workflowRemarks,
+	// 	status: adjustmentData.status,
+	// });
 
 	await tx.adjustment.create({
 		data: {
 			toSourceId,
 			quantity,
 			remarks,
-			wfRequestId,
+			wfRequestId: "",
 			transactionDate: parseDateOnly(transactionDate),
 			materialId,
-			transactionType,
+			transactionTypeId,
 			createdById: userId,
 		},
 	});
@@ -268,7 +268,7 @@ export const updateAdjustment = async (
 		remarks?: string;
 		transactionDate: Date;
 		materialId?: string;
-		transactionType: transaction_type;
+		transactionTypeId: string;
 	},
 	userId: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
