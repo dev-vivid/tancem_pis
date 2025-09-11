@@ -41,13 +41,18 @@ export const getStrengthSchedule = async (
 ) => {
 	const trnDate = parseDateOnly(transactionDate);
 
-	// 4 sample reference dates with their strength keys
-	const sampleDates = [
-		{ date: subDays(trnDate, 1), key: "day1_strength" },
-		{ date: subDays(trnDate, 3), key: "day3_strength" },
-		{ date: subDays(trnDate, 7), key: "day7_strength" },
-		{ date: subDays(trnDate, 28), key: "day28_strength" },
-	];
+	// Required sample days based on your format
+	const testDays: Record<string, number> = {
+		day1_strength: 2,
+		day3_strength: 4,
+		day7_strength: 8,
+		day28_strength: 29,
+	};
+
+	const sampleDates = Object.entries(testDays).map(([key, days]) => ({
+		key,
+		date: subDays(trnDate, days),
+	}));
 
 	// Fetch existing samples from DB
 	const existing = await prisma.strengthSamples.findMany({
@@ -166,7 +171,11 @@ export const getStrengthById = async (
 ) => {
 	const transaction = await tx.strengthTransactions.findUnique({
 		where: { id },
-		include: { samples: true },
+		include: {
+			samples: {
+				orderBy: { sampleDate: "desc" }, // ✅ Order by latest first
+			},
+		},
 	});
 
 	if (!transaction) throw new Error("Strength transaction not found");
