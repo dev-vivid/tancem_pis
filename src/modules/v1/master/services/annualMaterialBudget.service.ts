@@ -10,58 +10,63 @@ export const createAnnualMaterialBudget = async (
 		financialYear: string;
 		month: number;
 		year: number;
-		materialId: string;
-		value: number;
+		materials: {
+			materialId: string;
+			value: number;
+		}[];
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId, value } =
-		annualMaterialBudgetData;
+	const { financialYear, month, year, materials } = annualMaterialBudgetData;
 
-	const create = await tx.annualMaterialBudget.create({
-		data: {
+	if (!materials || materials.length === 0) {
+		throw new Error("At least one materialId + value is required");
+	}
+
+	const created = await tx.annualMaterialBudget.createMany({
+		data: materials.map((m) => ({
 			financialYear,
 			month,
-			value,
 			year,
-			materialId,
+			materialId: m.materialId,
+			value: m.value,
 			createdById: user,
-		},
+		})),
 	});
 
-	// return create;
+	return created;
 };
 
 export const updateAnnualMaterialBudget = async (
 	id: string,
 	updateAnnualMaterialBudgetData: {
-		financialYear: string;
-		month: number;
-		year: number;
-		materialId: string;
-		value: number;
-		status: Status;
+		financialYear?: string;
+		month?: number;
+		year?: number;
+		status?: Status;
+		materialId?: string;
+		value?: number;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { financialYear, month, year, materialId, value, status } =
-		updateAnnualMaterialBudgetData;
-
 	if (!user) {
 		throw new Error("User is not Authorized");
 	}
 
-	await tx.annualMaterialBudget.update({
+	const { financialYear, month, year, status, materialId, value } =
+		updateAnnualMaterialBudgetData;
+
+	const updated = await tx.annualMaterialBudget.update({
 		where: { id },
 		data: {
-			financialYear,
-			month,
-			year,
-			materialId,
-			status,
-			value,
+			...(financialYear && { financialYear }),
+			...(month && { month }),
+			...(year && { year }),
+			...(status && { status }),
+			...(materialId && { materialId }),
+			...(value !== undefined && { value }),
 			updatedById: user,
 		},
 	});

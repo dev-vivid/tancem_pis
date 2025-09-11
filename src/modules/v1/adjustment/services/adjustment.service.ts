@@ -61,12 +61,20 @@ export const getAllAdjustments = async (
 				? await getUserData(item.updatedById)
 				: null;
 
-			console.log(createdUser, updatedUser);
+			const officeName =
+				item.toSourceId && accessToken
+					? await getOfficeName(item.toSourceId, accessToken)
+					: null;
+			const office =
+				officeName?.find((o: any) => o.id === item.toSourceId) || null;
+
+			// console.log(officeName);
 
 			return {
 				uuid: item.id,
 				//code: item.code,
 				toSourceId: item.toSourceId,
+				sourceName: office?.name || null,
 				quantity: item.quantity,
 				remarks: item.remarks,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
@@ -125,22 +133,36 @@ export const getAdjustmentById = async (
 			? await getMaterialName(item.materialId, accessToken)
 			: null;
 
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
+
+	const officeName =
+		item.toSourceId && accessToken
+			? await getOfficeName(item.toSourceId, accessToken)
+			: null;
+	const office = officeName?.find((o: any) => o.id === item.toSourceId) || null;
+
 	const data = {
 		uuid: item.id,
 		code: item.code,
 		toSourceId: item.toSourceId,
-		//sourceName: sourceName ? sourceName.officeDescription : null,
+		sourceName: office?.name || null,
 		quantity: item.quantity ? item.quantity.toString() : null,
 		remarks: item.remarks,
 		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
 		materialName: materialName ? materialName.name : null,
 		transactionType: item.transactionType,
-
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
 		updatedById: item.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return {

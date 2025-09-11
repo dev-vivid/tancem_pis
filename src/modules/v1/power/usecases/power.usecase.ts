@@ -58,9 +58,8 @@ export const updatePowerTransactionUsecase = async (
 };
 
 export const deletePowerTransactionUsecase = async (
-	id: string,
-	powerDetailsId: string[],
+	powerid: string,
 	user: string
 ) => {
-	return await deletePowerTransaction(id, powerDetailsId, user);
+	return await deletePowerTransaction(powerid, user);
 };

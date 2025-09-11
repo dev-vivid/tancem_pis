@@ -6,6 +6,7 @@ import { updateProblemCode } from "../services/problemCode.service";
 import { deleteProblemCode } from "../services/problemCode.service";
 
 export const getAllProblemCodeUsecase = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string
@@ -13,11 +14,14 @@ export const getAllProblemCodeUsecase = async (
 	// const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
 	// const size = pageSize ? parseInt(pageSize, 10) : undefined;
 	// return await getAllProblemCode(page, size);
-	return await getAllProblemCode(pageNumber, pageSize, status);
+	return await getAllProblemCode(accessToken, pageNumber, pageSize, status);
 };
 
-export const getIdProblemCodeUsecase = async (id: string) => {
-	return await getIdProblemCode(id);
+export const getIdProblemCodeUsecase = async (
+	id: string,
+	accessToken: string
+) => {
+	return await getIdProblemCode(id, accessToken);
 };
 
 type TproblemCodeData = {

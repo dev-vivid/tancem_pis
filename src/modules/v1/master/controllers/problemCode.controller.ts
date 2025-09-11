@@ -6,6 +6,7 @@ import { getIdProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { createProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { updateProblemCodeUsecase } from "../usecases/problemCode.usecase";
 import { deleteProblemCodeUsecase } from "../usecases/problemCode.usecase";
+import { getProblemsByDepartment } from "../services/problemCode.service";
 
 export const getAllproblemCode = async (
 	req: Request,
@@ -14,7 +15,17 @@ export const getAllproblemCode = async (
 ) => {
 	try {
 		const { pageNumber, pageSize, status } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
 		const result = await getAllProblemCodeUsecase(
+			accessToken,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
@@ -35,8 +46,17 @@ export const getIdproblemCode = async (
 ) => {
 	try {
 		const { id } = req.params;
-		const { pageNumber, pageSize } = req.query;
-		const result = await getIdProblemCodeUsecase(id);
+		// const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await getIdProblemCodeUsecase(id, accessToken);
 		const response = responses.generate("success", {
 			data: result,
 		});
@@ -156,6 +176,24 @@ export const deleteproblemCode = async (
 		const response = responses.generate("success", {
 			message: "Analysis deleted successfully!",
 			data: null,
+		});
+		res.status(response.statusCode).send(response);
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const getProblemsByDepartmentController = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { departmentId } = req.params;
+		const problems = await getProblemsByDepartment(departmentId);
+		const response = responses.generate("success", {
+			message: "Analysis deleted successfully!",
+			data: problems,
 		});
 		res.status(response.statusCode).send(response);
 	} catch (error) {

@@ -45,7 +45,7 @@ export const getAllBags = async (
 			isActive: true,
 		},
 	});
-	getUserData(bags[0].createdById || "");
+	// getUserData(bags[0].createdById || "");
 
 	const data = await Promise.all(
 		bags.map(async (item) => {
@@ -135,7 +135,7 @@ export const getIdBags = async (
 		: null;
 
 	const data = {
-		id: bag.id,
+		uuid: bag.id,
 		code: bag.code,
 		transactionDate: extractDateTime(bag.transactionDate, "date"),
 		materialId: bag.materialId,

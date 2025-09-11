@@ -6,7 +6,7 @@ import {
 	createPowerTransactionBodySchema,
 	updatePowerTransactionParamsSchema,
 	updatePowerTransactionBodySchema,
-	deletePowerTransactionParamsSchema
+	deletePowerTransactionParamsSchema,
 } from "../validations/power.schema";
 
 import {
@@ -14,7 +14,7 @@ import {
 	getPowerById,
 	createPower,
 	updatePower,
-	deletePower
+	deletePower,
 } from "../controllers/power.controller";
 
 const powerRouter = express.Router();
@@ -45,7 +45,7 @@ powerRouter.put(
 );
 
 powerRouter.patch(
-	"/deletePower/:transactionId",
+	"/deletePower/:powerid",
 	validateRequest(deletePowerTransactionParamsSchema, "params"),
 	deletePower
 );

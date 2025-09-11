@@ -68,7 +68,7 @@ export function extractDateTime(
 	const seconds = date.getSeconds().toString().padStart(2, "0");
 
 	// Format the date and time
-	const formattedDate = `${day}/${month}/${year}`;
+	const formattedDate = `${day}-${month}-${year}`;
 	const formattedTime = `${hours}:${minutes}:${seconds}`;
 
 	// Return the appropriate value based on the type

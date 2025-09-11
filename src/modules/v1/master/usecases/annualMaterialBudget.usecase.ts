@@ -42,7 +42,7 @@ type TUpdateAnnualMaterialBudgetData = {
 };
 
 export const createAnnualMaterialBudgetUsecase = async (
-	annualMaterialBudgetData: TAnnualMaterialBudgetData,
+	annualMaterialBudgetData: any,
 	user: string
 ) => {
 	return await createAnnualMaterialBudgetService(
@@ -53,7 +53,7 @@ export const createAnnualMaterialBudgetUsecase = async (
 
 export const updateAnnualMaterialBudgetUsecase = async (
 	id: string,
-	updateAnnualMaterialBudgetData: TUpdateAnnualMaterialBudgetData,
+	updateAnnualMaterialBudgetData: any,
 	user: string
 ) => {
 	return await updateAnnualMaterialBudgetService(

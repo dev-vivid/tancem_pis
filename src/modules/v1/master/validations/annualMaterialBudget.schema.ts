@@ -14,8 +14,15 @@ export const createAnnualMaterialBudgetBodySchema = Joi.object({
 	financialYear: Joi.string().required(),
 	month: Joi.number().integer().required(),
 	year: Joi.number().integer().required(),
-	materialId: Joi.string().required(),
-	value: Joi.number().precision(2).required(),
+	materials: Joi.array()
+		.items(
+			Joi.object({
+				materialId: Joi.string().required(),
+				value: Joi.number().precision(2).required(),
+			})
+		)
+		.min(1)
+		.required(),
 });
 
 export const updateAnnualMaterialBudgetBodySchema = Joi.object({

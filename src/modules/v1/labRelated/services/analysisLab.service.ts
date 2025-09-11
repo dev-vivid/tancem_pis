@@ -5,6 +5,7 @@ import {
 	extractDateTime,
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 // export const createAnalysisLab = async (data: any, user: string) => {
 // 	const analysisExists = await prisma.analysis.findUnique({
@@ -141,6 +142,8 @@ export const getAllAnalysisLab = async (
 			materialId: true,
 			createdAt: true,
 			createdById: true,
+			updatedAt: true,
+			updatedById: true,
 			_count: {
 				select: {
 					LabAnalysisTypes: {
@@ -156,17 +159,25 @@ export const getAllAnalysisLab = async (
 			const materialName = item.materialId
 				? await api.getMaterialName(item.materialId, accessToken)
 				: null;
+
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
 			return {
-				id: item.id,
+				uuid: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
 				materialName: materialName?.name ?? null,
 				analysisTypeCount: item._count.LabAnalysisTypes,
-				createdAt: item.createdAt
-					.toISOString()
-					.replace("T", " ")
-					.substring(0, 19),
+				createdAt: extractDateTime(item.createdAt, "both"),
+				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
+				updatedById: item.updatedById,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -206,8 +217,15 @@ export const getAnalysisLabById = async (
 		? await api.getMaterialName(item.materialId, accessToken)
 		: null;
 
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
+
 	return {
-		id: item.id,
+		uuid: item.id,
 		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
 		materialName: materialName?.name || null,
@@ -216,8 +234,12 @@ export const getAnalysisLabById = async (
 			type: a.MaterialAnalysis.type,
 			name: a.MaterialAnalysis.description,
 		})),
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
+		updatedById: item.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 };
 

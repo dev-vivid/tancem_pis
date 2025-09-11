@@ -3,6 +3,7 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import { Status } from "@prisma/client";
 import { getMaterialName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 export const createMaterialType = async (
 	materialTypeData: {
@@ -80,6 +81,12 @@ export const getAllMaterialType = async (
 			createdById: true,
 			updatedById: true,
 			isActive: true,
+			materialTypeMaster: {
+				select: {
+					name: true,
+					materialTypeCode: true,
+				},
+			},
 		},
 	});
 
@@ -90,18 +97,31 @@ export const getAllMaterialType = async (
 					? await getMaterialName(item.materialId, accessToken)
 					: null;
 
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
 			return {
 				uuid: item.id,
 				code: item.code,
 				materialId: item.materialId,
 				materialName: materialName ? materialName.name : null,
 				materialTypeMasterId: item.materialTypeMasterId,
+				materialTypeMasterDetails: {
+					name: item.materialTypeMaster?.name || null,
+					materialTypeCode: item.materialTypeMaster?.materialTypeCode || null,
+				},
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
 				isActive: item.isActive,
 				status: item.status,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
 			};
 		})
 	);
@@ -120,12 +140,19 @@ export const getByID = async (
 			id: true,
 			code: true,
 			materialId: true,
+			materialTypeMasterId: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
 			status: true,
 			isActive: true,
+			materialTypeMaster: {
+				select: {
+					name: true,
+					materialTypeCode: true,
+				},
+			},
 		},
 	});
 
@@ -138,17 +165,31 @@ export const getByID = async (
 			? await getMaterialName(result.materialId, accessToken)
 			: null;
 
+	const createdUser = result.createdById
+		? await getUserData(result.createdById)
+		: null;
+	const updatedUser = result.updatedById
+		? await getUserData(result.updatedById)
+		: null;
+
 	const data = {
 		id: result.id,
 		code: result.code,
 		materialId: result.materialId,
 		materialName: materialName ? materialName.name : null,
+		materialTypeMasterId: result.materialTypeMasterId,
+		materialTypeMasterDetails: {
+			name: result.materialTypeMaster?.name || null,
+			materialTypeCode: result.materialTypeMaster?.materialTypeCode || null,
+		},
 		createdAt: extractDateTime(result.createdAt, "both"),
 		createdById: result.createdById,
 		updatedAt: extractDateTime(result.updatedAt, "both"),
 		updatedById: result.updatedById,
 		isActive: result.isActive,
 		status: result.status,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 
 	return {

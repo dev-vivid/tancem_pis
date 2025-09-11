@@ -3,11 +3,14 @@ import { pageConfig } from "../../../../shared/prisma/query.helper";
 import path from "path";
 import { Status } from "@prisma/client";
 import { extractDateTime } from "../../../../shared/utils/date/index";
+import { getDepartmentName, getEquipmentName } from "common/api";
+import getUserData from "@shared/prisma/queries/getUserById";
 
-const formatDate = (date?: Date | null) =>
-	date ? date.toISOString().replace("T", " ").substring(0, 19) : null;
+// const formatDate = (date?: Date | null) =>
+// 	date ? date.toISOString().replace("T", " ").substring(0, 19) : null;
 
 export const getAllProblemCode = async (
+	accessToken: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -15,11 +18,13 @@ export const getAllProblemCode = async (
 ) => {
 	const { skip, take } = pageConfig({ pageNumber, pageSize });
 
-	// const totalRecords = await tx.problemCode.count();
+	const totalRecords = await tx.problemCode.count({
+		where: { isActive: true },
+	});
 	const whereClause: any = {
-			isActive: true,
-			...(status ? { status: status as Status } : {})
-	}
+		isActive: true,
+		...(status ? { status: status as Status } : {}),
+	};
 
 	const problemCodes = await tx.problemCode.findMany({
 		skip,
@@ -38,35 +43,60 @@ export const getAllProblemCode = async (
 			updatedById: true,
 			status: true,
 			isActive: true,
-			ProblemMaster :{
+			ProblemMaster: {
 				select: {
-					problemName: true
-				}
-			}
+					problemName: true,
+				},
+			},
 		},
 	});
-	const totalRecords = problemCodes.length;
-	return {
-		totalRecords,
-		data: problemCodes.map((item) => ({
-			uuid: item.id,
-			problemId: item.problemId,
-			problemName: item.ProblemMaster?.problemName,
-			equipmentId: item.equipmentId,
-			departmentId: item.departmentId,
-			problemCode: item.problemcode,
-			createdAt: extractDateTime(item.createdAt, "both"),
-			createdBy: item.createdById,
-			updatedAt: extractDateTime(item.updatedAt, "both"),
-			updatedBy: item.updatedById,
-			status: item.status,
-			isActive: item.isActive,
-		})),
-	};
+
+	const data = await Promise.all(
+		problemCodes.map(async (item) => {
+			const equipmentName =
+				item.equipmentId && accessToken
+					? await getEquipmentName(item.equipmentId, accessToken)
+					: null;
+
+			const departmentName =
+				item.departmentId && accessToken
+					? await getDepartmentName(item.departmentId, accessToken)
+					: null;
+
+			const createdUser = item.createdById
+				? await getUserData(item.createdById)
+				: null;
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
+
+			return {
+				uuid: item.id,
+				problemId: item.problemId,
+				problemName: item.ProblemMaster?.problemName,
+				equipmentId: item.equipmentId,
+				equipmentName: equipmentName ? equipmentName.name : null,
+				departmentId: item.departmentId,
+				departmentName: departmentName ? departmentName.name : null,
+				problemCode: item.problemcode,
+				createdAt: extractDateTime(item.createdAt, "both"),
+				createdBy: item.createdById,
+				updatedAt: extractDateTime(item.updatedAt, "both"),
+				updatedBy: item.updatedById,
+				status: item.status,
+				isActive: item.isActive,
+				createdUser: createdUser,
+				updatedUser: updatedUser,
+			};
+		})
+	);
+
+	return { totalRecords, data };
 };
 
 export const getIdProblemCode = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const item = await tx.problemCode.findUnique({
@@ -86,12 +116,29 @@ export const getIdProblemCode = async (
 			ProblemMaster: {
 				select: {
 					problemName: true,
-				}
-			}
+				},
+			},
 		},
 	});
 
 	if (!item) throw new Error("Problem code not found.");
+
+	const equipmentName =
+		item.equipmentId && accessToken
+			? await getEquipmentName(item.equipmentId, accessToken)
+			: null;
+
+	const departmentName =
+		item.departmentId && accessToken
+			? await getDepartmentName(item.departmentId, accessToken)
+			: null;
+
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
 
 	return {
 		data: {
@@ -99,13 +146,18 @@ export const getIdProblemCode = async (
 			problemId: item.problemId,
 			problemName: item.ProblemMaster?.problemName,
 			equipmentId: item.equipmentId,
+			equipmentName: equipmentName ? equipmentName.name : null,
 			departmentId: item.departmentId,
+			departmentName: departmentName ? departmentName.name : null,
 			problemCode: item.problemcode,
 			createdAt: extractDateTime(item.createdAt, "both"),
 			updatedAt: extractDateTime(item.updatedAt, "both"),
 			status: item.status,
 			isActive: item.isActive,
 			createdBy: item.createdById,
+			updatedBy: item.updatedById,
+			createdUser: createdUser,
+			updatedUser: updatedUser,
 		},
 	};
 };
@@ -186,5 +238,25 @@ export const deleteProblemCode = async (
 			isActive: false,
 			updatedById: user,
 		},
+	});
+};
+
+export const getProblemsByDepartment = async (
+	departmentId: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	if (!departmentId) throw new Error("departmentId is required.");
+
+	return await tx.problem.findMany({
+		where: {
+			departmentId,
+			isActive: true,
+			status: "active", // only active ones
+		},
+		select: {
+			id: true,
+			problemName: true,
+		},
+		orderBy: { sortOrder: "asc" },
 	});
 };

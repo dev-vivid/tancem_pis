@@ -4,7 +4,6 @@ import { Status } from "@prisma/client";
 import { extractDateTime } from "../../../../shared/utils/date/index";
 import { getMaterialName } from "common/api";
 
-
 export const createMaterialAnalysis = async (
 	materialAnalysisData: {
 		materialId: string;
@@ -62,8 +61,8 @@ export const getAllMaterialAnalysis = async (
 
 	const whereClause: any = {
 		isActive: true,
-		...(status ? {status: status as Status} : {})
-	}
+		...(status ? { status: status as Status } : {}),
+	};
 	const result = await tx.materialAnalysis.findMany({
 		skip,
 		take,
@@ -79,26 +78,39 @@ export const getAllMaterialAnalysis = async (
 			updatedAt: true,
 			updatedById: true,
 			status: true,
-			isActive: true
+			isActive: true,
+			MaterialAnalysis: {
+				select: {
+					description: true,
+					type: true,
+				},
+			},
 		},
 	});
 
-		const data = await Promise.all(
+	const data = await Promise.all(
 		result.map(async (item) => {
-			const materialName = item.materialId && accessToken ? await getMaterialName(item.materialId, accessToken): null;
+			const materialName =
+				item.materialId && accessToken
+					? await getMaterialName(item.materialId, accessToken)
+					: null;
 
 			return {
 				uuid: item.id,
 				code: item.code,
 				materialId: item.materialId,
-				// materialName: materialName,
-				analysisId: item.analysisId, 
+				materialName: materialName?.name || null,
+				analysisId: item.analysisId,
+				analysisDetails: {
+					description: item.MaterialAnalysis?.description || null,
+					type: item.MaterialAnalysis?.type || null,
+				},
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
 				isActive: item.isActive,
-				status: item.status
+				status: item.status,
 			};
 		})
 	);
@@ -108,6 +120,7 @@ export const getAllMaterialAnalysis = async (
 
 export const getByID = async (
 	id: string,
+	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const result = await tx.materialAnalysis.findUnique({
@@ -120,7 +133,13 @@ export const getByID = async (
 			createdById: true,
 			updatedAt: true,
 			status: true,
-			isActive: true
+			isActive: true,
+			MaterialAnalysis: {
+				select: {
+					description: true,
+					type: true,
+				},
+			},
 		},
 	});
 
@@ -128,10 +147,21 @@ export const getByID = async (
 		throw new Error("materialType not found");
 	}
 
+	const materialName =
+		result.materialId && accessToken
+			? await getMaterialName(result.materialId, accessToken)
+			: null;
+	const { MaterialAnalysis, ...rest } = result;
+
 	const data = {
-		...result,
+		...rest,
+		materialName: materialName?.name || null,
 		createdAt: extractDateTime(result.createdAt, "both"),
 		updatedAt: extractDateTime(result.updatedAt, "both"),
+		analysisDetails: {
+			description: result.MaterialAnalysis?.description || null,
+			type: result.MaterialAnalysis?.type || null,
+		},
 	};
 
 	return {
