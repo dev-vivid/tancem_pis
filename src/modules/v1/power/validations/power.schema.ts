@@ -22,7 +22,7 @@ export const createPowerTransactionBodySchema = Joi.object({
 		)
 		.min(1)
 		.required(),
-	initiatorRoleId: Joi.string().required(),
+	initiatorRoleId: Joi.string().optional(),
 	remarks: Joi.string().optional(),
 	status: Joi.string().optional(),
 });
