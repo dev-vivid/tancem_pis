@@ -8,29 +8,27 @@ import getUserData from "@shared/prisma/queries/getUserById";
 export const createMaterialAnalysis = async (
 	materialAnalysisData: {
 		materialId: string;
-		analyses: { analysisId: string }[];
+		analysisId: string[]; // accept string[]
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { materialId, analyses } = materialAnalysisData;
+	const { materialId, analysisId } = materialAnalysisData;
 
-	if (!analyses || analyses.length === 0) {
+	if (!analysisId || analysisId.length === 0) {
 		throw new Error("At least one analysis is required");
 	}
 
-	// Optional: Validate analysis exists
-	for (const a of analyses) {
-		const exists = await tx.analysis.findUnique({
-			where: { id: a.analysisId },
-		});
-		if (!exists) throw new Error(`Analysis not found: ${a.analysisId}`);
+	// Validate all analyses exist
+	for (const id of analysisId) {
+		const exists = await tx.analysis.findUnique({ where: { id } });
+		if (!exists) throw new Error(`Analysis not found: ${id}`);
 	}
 
 	return await tx.materialAnalysis.createMany({
-		data: analyses.map((a) => ({
+		data: analysisId.map((id) => ({
 			materialId,
-			analysisId: a.analysisId,
+			analysisId: id,
 			createdById: user,
 		})),
 	});

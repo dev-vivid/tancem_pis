@@ -104,18 +104,17 @@ export const updateStrength = async (
 						updatedById: user,
 					};
 
-					if (s.day1_strength !== undefined)
-						updateData.day1_strength = s.day1_strength;
-					if (s.day3_strength !== undefined)
-						updateData.day3_strength = s.day3_strength;
-					if (s.day7_strength !== undefined)
-						updateData.day7_strength = s.day7_strength;
-					if (s.day28_strength !== undefined)
-						updateData.day28_strength = s.day28_strength;
+					if (s.day1 !== undefined) updateData.day1_strength = s.day1;
+					if (s.day3 !== undefined) updateData.day3_strength = s.day3;
+					if (s.day7 !== undefined) updateData.day7_strength = s.day7;
+					if (s.day28 !== undefined) updateData.day28_strength = s.day28;
 					if (s.expansion !== undefined) updateData.expansion = s.expansion;
 
 					return {
-						where: { id: s.id },
+						where: {
+							sampleDate: parseDateOnly(s.sampleDate),
+							transactionId: id,
+						},
 						data: updateData,
 					};
 				}),

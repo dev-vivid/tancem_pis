@@ -92,7 +92,7 @@ export const updateStoppage = async (
 		equipmentMainId?: string;
 		equipmentSubGroupId?: string;
 		problems?: {
-			id: string;
+			id?: string;
 			problemId?: string;
 			problemHours?: string; // HH:MM
 			remarks?: string;
@@ -102,42 +102,49 @@ export const updateStoppage = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// Update problems if provided
-	if (data.problems?.length) {
-		for (const p of data.problems) {
-			await tx.stoppageProblem.update({
-				where: { id: p.id },
-				data: {
-					...(p.problemId && { problemId: p.problemId }),
-					...(p.problemHours && { problemHours: p.problemHours }),
-					...(p.remarks && { remarks: p.remarks }),
-					...(p.noOfStoppages !== undefined && {
-						noOfStoppages: p.noOfStoppages,
-					}),
-					updatedById: user,
-				},
-			});
-		}
-	}
+	// --- Separate problems into update & create ---
+	const updateProblems = (data.problems || [])
+		.filter((p) => p.id)
+		.map((p) => ({
+			where: { id: p.id! },
+			data: {
+				...(p.problemId && { problemId: p.problemId }),
+				...(p.problemHours && { problemHours: p.problemHours }),
+				...(p.remarks && { remarks: p.remarks }),
+				...(p.noOfStoppages !== undefined && {
+					noOfStoppages: p.noOfStoppages,
+				}),
+				updatedById: user,
+			},
+		}));
 
-	// Get all active problems for this stoppage
-	const problems = await tx.stoppageProblem.findMany({
+	const createProblems = (data.problems || [])
+		.filter((p) => !p.id)
+		.map((p) => ({
+			stoppageId: id,
+			problemId: p.problemId!,
+			problemHours: p.problemHours ?? "00:00",
+			noOfStoppages: p.noOfStoppages ?? 0,
+			remarks: p.remarks,
+			createdById: user,
+			updatedById: user,
+			isActive: true,
+		}));
+
+	// --- Find current active problems in DB ---
+	const existingProblems = await tx.stoppageProblem.findMany({
 		where: { stoppageId: id, isActive: true },
-		select: { problemHours: true },
+		select: { id: true },
 	});
+	const existingIds = existingProblems.map((p) => p.id);
 
-	// Recalculate totals
-	const totalProblemMinutes = problems.reduce(
-		(sum, p) =>
-			sum + (p.problemHours ? timeStringToMinutes(p.problemHours) : 0),
-		0
-	);
-	const stoppageHours = minutesToTimeString(totalProblemMinutes);
-	const runningHours = minutesToTimeString(
-		Math.max(24 * 60 - totalProblemMinutes, 0)
-	);
+	// IDs sent in request
+	const sentIds = (data.problems || []).filter((p) => p.id).map((p) => p.id!);
 
-	// Update main stoppage
+	// To soft delete
+	const deleteIds = existingIds.filter((eid) => !sentIds.includes(eid));
+
+	// --- Update parent + children ---
 	await tx.stoppage.update({
 		where: { id },
 		data: {
@@ -147,12 +154,56 @@ export const updateStoppage = async (
 			departmentId: data.departmentId,
 			equipmentMainId: data.equipmentMainId,
 			equipmentSubGroupId: data.equipmentSubGroupId,
+			updatedById: user,
+			stoppageproblems: {
+				update: updateProblems,
+				create: createProblems,
+			},
+		},
+	});
+
+	// --- Soft delete problems ---
+	if (deleteIds.length) {
+		await tx.stoppageProblem.updateMany({
+			where: { id: { in: deleteIds } },
+			data: { isActive: false, updatedById: user },
+		});
+	}
+
+	// --- Recalculate totals from active problems ---
+	const problems = await tx.stoppageProblem.findMany({
+		where: { stoppageId: id, isActive: true },
+		select: { problemHours: true },
+	});
+
+	const totalProblemMinutes = problems.reduce(
+		(sum, p) =>
+			sum + (p.problemHours ? timeStringToMinutes(p.problemHours) : 0),
+		0
+	);
+
+	const stoppageHours = minutesToTimeString(totalProblemMinutes);
+	const runningHours = minutesToTimeString(
+		Math.max(24 * 60 - totalProblemMinutes, 0)
+	);
+
+	// --- Update calculated fields ---
+	const updatedStoppage = await tx.stoppage.update({
+		where: { id },
+		data: {
 			stoppageHours,
 			runningHours,
 			totalHours: "24:00",
 			updatedById: user,
 		},
+		include: {
+			stoppageproblems: {
+				where: { isActive: true }, // return only active problems
+			},
+		},
 	});
+
+	// return updatedStoppage;
 };
 
 export const getAllStoppage = async (
@@ -213,7 +264,8 @@ export const getAllStoppage = async (
 					: null;
 
 			return item.stoppageproblems.map((problem) => ({
-				uuid: item.id,
+				uuid: problem.id,
+				stoppageId: item.id,
 				stoppageCode: item.code,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				departmentId: item.departmentId,
@@ -233,7 +285,6 @@ export const getAllStoppage = async (
 				// stoppageUpdatedUser: updatedUser,
 				// stoppageIsActive: item.isActive,
 
-				// stoppageproblemId: problem.id,
 				// problemCode: problem.code,
 				problemId: problem.problemId,
 				problemName: problem.ProblemFk.problemName || null,
