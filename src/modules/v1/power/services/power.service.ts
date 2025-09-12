@@ -175,7 +175,7 @@ export const createPowerTransaction = async (
 			equipmentId: string;
 			units: number;
 		}[];
-		initiatorRoleId: string;
+		initiatorRoleId?: string;
 		remarks?: string;
 		status?: string;
 	},
@@ -187,19 +187,19 @@ export const createPowerTransaction = async (
 	}
 
 	// Create workflow request first
-	const wfRequestId = await createWorkflowRequest({
-		userId: user,
-		initiatorRoleId: data.initiatorRoleId,
-		processId: constants.power_workflow_process_ID,
-		remarks: data.remarks,
-		status: data.status,
-	});
+	// const wfRequestId = await createWorkflowRequest({
+	// 	userId: user,
+	// 	initiatorRoleId: data.initiatorRoleId,
+	// 	processId: constants.power_workflow_process_ID,
+	// 	remarks: data.remarks,
+	// 	status: data.status,
+	// });
 
 	// Create transaction with child details
 	const createdTransaction = await tx.powerTransaction.create({
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
-			wfRequestId,
+			wfRequestId: "",
 			createdById: user,
 			powerDetails: {
 				create: data.powerDetails.map((p) => ({

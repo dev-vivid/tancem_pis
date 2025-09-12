@@ -43,6 +43,12 @@ export const getAllAdjustments = async (
 			updatedAt: true,
 			updatedById: true,
 			isActive: true,
+			transactionTypeId: true,
+			transactionTypeRel: {
+				select: {
+					name: true,
+				},
+			},
 		},
 	});
 
@@ -80,7 +86,11 @@ export const getAllAdjustments = async (
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
 				materialName: materialName?.name || null, // ✅ added
-				transactionType: item.transactionType,
+				// transactionType: item.transactionType,
+				transactionTypeId: item.transactionTypeId,
+				transactionTypeName: item.transactionTypeRel
+					? item.transactionTypeRel.name
+					: null,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
@@ -114,12 +124,18 @@ export const getAdjustmentById = async (
 			remarks: true,
 			transactionDate: true,
 			materialId: true,
-			transactionType: true,
+			transactionTypeId: true,
 			createdAt: true,
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
 			isActive: true,
+			transactionTypeRel: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
 		},
 	});
 
@@ -156,7 +172,10 @@ export const getAdjustmentById = async (
 		transactionDate: extractDateTime(item.transactionDate, "date"),
 		materialId: item.materialId,
 		materialName: materialName ? materialName.name : null,
-		transactionType: item.transactionType,
+		transactionTypeId: item.transactionTypeId,
+		transactionTypeName: item.transactionTypeRel
+			? item.transactionTypeRel.name
+			: null,
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
