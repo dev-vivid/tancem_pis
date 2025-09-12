@@ -246,7 +246,7 @@ export const updateDespatch = async (
 	data: {
 		transactionDate?: string; // optional for partial update
 		details: {
-			id?: string; // existing detail id (if updating)
+			id?: string;
 			materialId?: string;
 			railQuantity?: string;
 			roadQuantity?: string;

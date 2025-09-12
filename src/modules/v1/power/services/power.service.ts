@@ -145,11 +145,11 @@ export const getPowerTransactionById = async (
 		})
 	);
 
-	const [currentState, nextAction, remarks] = await Promise.all([
-		getCurrentState(getPowerTransactionById.wfRequestId),
-		getNextAction(getPowerTransactionById.wfRequestId),
-		getRemarks(getPowerTransactionById.wfRequestId),
-	]);
+	// const [currentState, nextAction, remarks] = await Promise.all([
+	// 	getCurrentState(getPowerTransactionById.wfRequestId),
+	// 	getNextAction(getPowerTransactionById.wfRequestId),
+	// 	getRemarks(getPowerTransactionById.wfRequestId),
+	// ]);
 
 	return {
 		...getPowerTransactionById,
@@ -160,11 +160,11 @@ export const getPowerTransactionById = async (
 		createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
 		updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
 		powerDetails,
-		workflow: {
-			currentState,
-			nextAction,
-			remarks,
-		},
+		// workflow: {
+		// 	currentState,
+		// 	nextAction,
+		// 	remarks,
+		// },
 	};
 };
 
@@ -182,9 +182,9 @@ export const createPowerTransaction = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if (!data.initiatorRoleId) {
-		throw new Error("initiatorRoleId is required");
-	}
+	// if (!data.initiatorRoleId) {
+	// 	throw new Error("initiatorRoleId is required");
+	// }
 
 	// Create workflow request first
 	// const wfRequestId = await createWorkflowRequest({
@@ -216,42 +216,87 @@ export const createPowerTransaction = async (
 export const updatePowerTransaction = async (
 	id: string,
 	data: {
-		transactionDate: Date;
+		transactionDate?: string; // optional for partial update
 		powerDetails?: {
-			equipmentId: string;
-			units: number;
+			id?: string;
+			equipmentId?: string;
+			units?: number;
 		}[];
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// Update main transaction
+	// Parent update
+	const parentUpdate: any = { updatedById: user };
+	if (data.transactionDate !== undefined) {
+		parentUpdate.transactionDate = parseDateOnly(data.transactionDate);
+	}
+
+	// --- Separate child updates ---
+	const updateDetails = (data.powerDetails || [])
+		.filter((d) => d.id)
+		.map((d) => {
+			const updateData: any = { updatedById: user };
+			if (d.equipmentId !== undefined) updateData.equipmentId = d.equipmentId;
+			if (d.units !== undefined) updateData.units = d.units;
+
+			return {
+				where: { id: d.id! },
+				data: updateData,
+			};
+		});
+
+	const createDetails = (data.powerDetails || [])
+		.filter((d) => !d.id)
+		.map((d) => ({
+			equipmentId: d.equipmentId!,
+			units: d.units ?? 0,
+			createdById: user,
+			updatedById: user,
+			isActive: true,
+		}));
+
+	// --- Find current active children in DB ---
+	const existingDetails = await tx.power.findMany({
+		where: { transactionId: id, isActive: true },
+		select: { id: true },
+	});
+	const existingIds = existingDetails.map((d) => d.id);
+
+	// IDs from request
+	const sentIds = (data.powerDetails || [])
+		.filter((d) => d.id)
+		.map((d) => d.id!);
+
+	// To soft delete = in DB but not in request
+	const deleteIds = existingIds.filter((eid) => !sentIds.includes(eid));
+
+	// --- Update parent and child records ---
 	const updatedTransaction = await tx.powerTransaction.update({
 		where: { id },
 		data: {
-			transactionDate: parseDateOnly(data.transactionDate),
-			updatedById: user,
+			...parentUpdate,
+			powerDetails: {
+				update: updateDetails,
+				create: createDetails,
+			},
+		},
+		include: {
+			powerDetails: {
+				where: { isActive: true }, // only return active children
+			},
 		},
 	});
 
-	// Update only existing details
-	if (data.powerDetails?.length) {
-		for (const detail of data.powerDetails) {
-			await tx.power.updateMany({
-				where: {
-					transactionId: id,
-					equipmentId: detail.equipmentId,
-					isActive: true,
-				},
-				data: {
-					units: detail.units,
-					updatedById: user,
-				},
-			});
-		}
+	// --- Soft delete missing children ---
+	if (deleteIds.length) {
+		await tx.power.updateMany({
+			where: { id: { in: deleteIds } },
+			data: { isActive: false, updatedById: user },
+		});
 	}
 
-	return updatedTransaction;
+	// return updatedTransaction;
 };
 
 export const deletePowerTransaction = async (

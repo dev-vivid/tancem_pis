@@ -51,7 +51,7 @@ export const createPowerTransactionUsecase = async (
 
 export const updatePowerTransactionUsecase = async (
 	id: string,
-	transactionData: TPowerTransactionData,
+	transactionData: any,
 	user: string
 ) => {
 	return await updatePowerService(id, transactionData, user);

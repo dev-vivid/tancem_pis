@@ -32,12 +32,17 @@ export const getAllQualityLab = async (
 		pageSize: pageSize?.toString(),
 	});
 
-	const totalRecords = await tx.qualityLab.count();
+	const totalRecords = await tx.qualityLab.count({
+		where: {
+			isActive: true,
+		},
+	});
 
 	const labs = await tx.qualityLab.findMany({
 		skip,
 		take,
 		orderBy: { createdAt: "desc" },
+		where: { isActive: true },
 		select: {
 			id: true,
 			transactionDate: true,
@@ -114,12 +119,21 @@ export const getQualityLabById = async (
 	const equipmentName = item.equipmentId
 		? await api.getEquipmentName(item.equipmentId, accessToken)
 		: null;
+	const createdUser = item.createdById
+		? await getUserData(item.createdById)
+		: null;
+	const updatedUser = item.updatedById
+		? await getUserData(item.updatedById)
+		: null;
 	return {
 		...item,
 		uuid: item.id,
 		materialName: materialName?.name || null,
 		equipmentName: equipmentName?.name || null,
-		createdAt: item.createdAt.toISOString().replace("T", " ").substring(0, 19),
+		createdAt: extractDateTime(item.createdAt, "both"),
+		updatedId: extractDateTime(item.updatedAt, "both"),
+		createdUser: createdUser,
+		updatedUser: updatedUser,
 	};
 };
 
