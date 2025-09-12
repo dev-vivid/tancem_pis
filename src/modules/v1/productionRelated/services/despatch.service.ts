@@ -150,7 +150,7 @@ export const getIddespatch = async (
 				uuid: detail.id,
 				despatchId: despatch.id,
 				// despatchCode: despatch.code,
-				// transactionDate: extractDateTime(despatch.transactionDate, "date"),
+				transactionDate: extractDateTime(despatch.transactionDate, "date"),
 				// despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
 				// despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
 				// despatchCreatedById: despatch.createdById,
