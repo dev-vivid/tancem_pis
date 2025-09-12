@@ -57,6 +57,7 @@ export const updateMaterialAnalysis = async (
 
 export const getAllMaterialAnalysis = async (
 	accessToken: string,
+	materialId: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -67,6 +68,7 @@ export const getAllMaterialAnalysis = async (
 	const whereClause: any = {
 		isActive: true,
 		...(status ? { status: status as Status } : {}),
+		...(materialId ? { materialId } : {}),
 	};
 	const result = await tx.materialAnalysis.findMany({
 		skip,

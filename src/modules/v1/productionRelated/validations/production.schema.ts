@@ -23,7 +23,7 @@ export const productionCreateFormSchema = Joi.object({
 	quantity: Joi.string().required(),
 	fuelConsumption: Joi.string().optional(),
 	remarks: Joi.string().optional(),
-	initiatorRoleId: Joi.string().required(),
+	initiatorRoleId: Joi.string().optional(),
 	workflowRemarks: Joi.string().optional(),
-	status: Joi.string().optional()
+	status: Joi.string().optional(),
 });

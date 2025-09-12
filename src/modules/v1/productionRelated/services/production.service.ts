@@ -181,7 +181,7 @@ type productionData = {
 	quantity: string;
 	fuelConsumption?: string;
 	remarks?: string;
-	initiatorRoleId: string;
+	initiatorRoleId?: string;
 	workflowRemarks?: string;
 	status?: string;
 };
@@ -203,13 +203,13 @@ export const createproduction = async (
 	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
 	// }
 
-	const wfRequestId = await createWorkflowRequest({
-		userId: user,
-		initiatorRoleId: productionData.initiatorRoleId,
-		processId: constants.power_workflow_process_ID,
-		remarks: productionData.workflowRemarks,
-		status: productionData.status,
-	});
+	// const wfRequestId = await createWorkflowRequest({
+	// 	userId: user,
+	// 	initiatorRoleId: productionData.initiatorRoleId,
+	// 	processId: constants.power_workflow_process_ID,
+	// 	remarks: productionData.workflowRemarks,
+	// 	status: productionData.status,
+	// });
 
 	return await tx.production.create({
 		data: {
@@ -217,7 +217,7 @@ export const createproduction = async (
 			equipmentId: productionData.equipmentId,
 			materialId: productionData.materialId,
 			runningHours: productionData.runningHours,
-			wfRequestId,
+			wfRequestId: "",
 			quantity: productionData.quantity ? Number(productionData.quantity) : 0,
 			fuelConsumption: productionData.fuelConsumption
 				? Number(productionData.fuelConsumption)
