@@ -14,7 +14,7 @@ export const getAllMapping = async (
 	next: NextFunction
 ) => {
 	try {
-		const { pageNumber, pageSize, status } = req.query;
+		const { pageNumber, pageSize, status, equipmentId } = req.query;
 		const authHeader = req.headers.authorization;
 
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -26,6 +26,7 @@ export const getAllMapping = async (
 
 		const result = await getAllMappingsUsecase(
 			accessToken,
+			equipmentId as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined

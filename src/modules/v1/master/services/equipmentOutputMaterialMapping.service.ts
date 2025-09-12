@@ -8,6 +8,7 @@ import { getEquipmentName, getMaterialName } from "common/api";
 // ✅ Get all mappings
 export const getAllEquipmentOutputMaterialMappings = async (
 	accessToken: string,
+	equipmentId?: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string,
@@ -18,6 +19,8 @@ export const getAllEquipmentOutputMaterialMappings = async (
 	const whereClause: any = {
 		isActive: true,
 		...(status ? { status: status as Status } : {}),
+		...(equipmentId ? { equipmentId } : {}),
+
 	};
 
 	const totalRecords = await tx.equipmentOutputMaterialMapping.count({

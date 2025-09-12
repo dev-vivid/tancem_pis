@@ -8,6 +8,7 @@ export const mappingFilterQuerySchema = Joi.object({
 		.optional()
 		.pattern(/^[0-9]+$/),
 	status: Joi.string().valid("active", "inActive").optional(),
+	equipmentId: Joi.string().optional(),
 });
 
 export const createMappingBodySchema = Joi.object({

@@ -9,11 +9,12 @@ import {
 
 export const getAllMappingsUsecase = async (
 	accessToken: string,
+	equipmentId: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string
 ) => {
-	return await getAllMappings(accessToken, pageNumber, pageSize, status);
+	return await getAllMappings(accessToken, equipmentId, pageNumber, pageSize, status);
 };
 
 export const getMappingByIdUsecase = async (

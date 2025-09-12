@@ -47,6 +47,18 @@ export const getAllreceipt = async (
 					name: true,
 				},
 			},
+			// ✅ include materialType master table
+			materialTypes: {
+				select: {
+					id: true,
+					materialTypeMaster:{
+						select:{
+							id:true,
+							name:true
+						}
+					}
+				},
+			},
 		},
 	});
 
@@ -72,17 +84,17 @@ export const getAllreceipt = async (
 				materialId: item.materialId,
 				materialName: materialName ? materialName.name : null,
 				materialType: item.materialType,
+        materialTypeName: item.materialTypes?.materialTypeMaster?.name ,
+// ✅ added field
 				transactionType: item.transactionType,
-				transactionTypeName: item.transactionTypes
-					? item.transactionTypes.name
-					: null,
+        transactionTypeName: item.transactionTypes?.name,
 				wfRequestId: item.wfRequestId,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdBy: item.createdById,
 				updatedBy: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser,
+				updatedUser,
 			};
 		})
 	);
@@ -119,6 +131,18 @@ export const getIdreceipt = async (
 					name: true,
 				},
 			},
+			// ✅ include materialType master table
+			materialTypes: {
+				select: {
+					id: true,
+					materialTypeMaster:{
+						select:{
+							id:true,
+							name:true
+						}
+					}
+				},
+			},
 		},
 	});
 
@@ -146,17 +170,17 @@ export const getIdreceipt = async (
 		materialId: item.materialId,
 		materialName: materialName ? materialName.name : null,
 		materialType: item.materialType,
-		transactionType: item.transactionType,
-		transactionTypeName: item.transactionTypes
-			? item.transactionTypes.name
-			: null,
+		materialTypeName: item.materialTypes?.materialTypeMaster?.name || null,
+ // ✅ added field
+    transactionType: item.transactionType,
+    transactionTypeName: item.transactionTypes?.name || null,
 		wfRequestId: item.wfRequestId,
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser,
+		updatedUser,
 	};
 
 	return {
@@ -171,7 +195,7 @@ type receiptData = {
 	materialId: string;
 	materialType: string;
 	transactionType: string;
-	initiatorRoleId: string;
+	initiatorRoleId?: string;
 	remarks?: string;
 	status?: string;
 };
@@ -192,13 +216,13 @@ export const createreceipt = async (
 	// if (!parsedDate || isNaN(parsedDate.getTime())) {
 	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
 	// }
-	const wfRequestId = await createWorkflowRequest({
-		userId: user,
-		initiatorRoleId: receiptData.initiatorRoleId,
-		processId: constants.power_workflow_process_ID,
-		remarks: receiptData.remarks,
-		status: receiptData.status,
-	});
+	// const wfRequestId = await createWorkflowRequest({
+	// 	userId: user,
+	// 	initiatorRoleId: receiptData.initiatorRoleId,
+	// 	processId: constants.power_workflow_process_ID,
+	// 	remarks: receiptData.remarks,
+	// 	status: receiptData.status,
+	// });
 
 	return await tx.receiptConsumption.create({
 		data: {
@@ -207,7 +231,7 @@ export const createreceipt = async (
 			materialId: receiptData.materialId,
 			materialType: receiptData.materialType,
 			transactionType: receiptData.transactionType,
-			wfRequestId,
+			wfRequestId: "",
 			createdById: user,
 		},
 	});
