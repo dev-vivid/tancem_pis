@@ -9,11 +9,18 @@ import {
 
 export const getAllMaterialAnalysisUsecase = async (
 	accessToken: string,
+	materialId: string,
 	pageNumber?: string,
 	pageSize?: string,
 	status?: string
 ) => {
-	return await getAllService(accessToken, pageNumber, pageSize, status);
+	return await getAllService(
+		accessToken,
+		materialId,
+		pageNumber,
+		pageSize,
+		status
+	);
 };
 
 export const getIdMaterialAnalysisUsecase = async (

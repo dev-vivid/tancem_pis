@@ -15,7 +15,7 @@ export const getAllMaterialAnalysis = async (
 	next: NextFunction
 ) => {
 	try {
-		const { pageNumber, pageSize, status } = req.query;
+		const { pageNumber, pageSize, status, materialId } = req.query;
 		const authHeader = req.headers.authorization;
 
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -26,6 +26,7 @@ export const getAllMaterialAnalysis = async (
 		const accessToken = authHeader.split(" ")[1];
 		const result = await getAllMaterialAnalysisUsecase(
 			accessToken,
+			materialId as string,
 			pageNumber as string | undefined,
 			pageSize as string | undefined,
 			status as string | undefined
