@@ -41,23 +41,12 @@ export const updateStoppageBodySchema = Joi.object({
 	departmentId: Joi.string().optional(),
 	equipmentMainId: Joi.string().optional(),
 	equipmentSubGroupId: Joi.string().optional(),
-	problems: Joi.array()
-		.items(
-			Joi.object({
-				id: Joi.string().required(),
-				problemHours: Joi.string()
-					.pattern(/^\d{2}:\d{2}$/) // enforce HH:MM format
-					.optional()
-					.messages({
-						"string.pattern.base":
-							"problemHours must be in HH:MM format (e.g., 02:30)",
-					}),
-				noOfStoppages: Joi.number().optional(),
-				problemId: Joi.string().optional(),
-				remarks: Joi.string().optional(),
-			})
-		)
+	problemId: Joi.string().optional(),
+	problemHours: Joi.string()
+		.pattern(/^\d{2}:\d{2}$/)
 		.optional(),
+	noOfStoppages: Joi.number().optional(),
+	remarks: Joi.string().optional(),
 });
 
 export const updateStoppageParamsSchema = Joi.object({

@@ -24,6 +24,7 @@ export const getStrengthSchedule = async (
 ) => {
 	try {
 		const { transactionDate, materialId } = req.query;
+		const accessToken = req.headers.authorization;
 
 		if (!transactionDate || !materialId) {
 			return res.status(400).json({
@@ -35,6 +36,7 @@ export const getStrengthSchedule = async (
 		}
 
 		const result = await usecase.getStrengthScheduleUsecase(
+			accessToken as string,
 			transactionDate as string,
 			materialId as string
 		);

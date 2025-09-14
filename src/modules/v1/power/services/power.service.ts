@@ -29,11 +29,11 @@ export const getAllPowerTransactions = async (
 		where: { isActive: true },
 	});
 
-	const getWfId = await fetchClosedWorkflowIdsWithoutRole(
-		constants.power_workflow_process_ID,
-		isOpen || "",
-		status || ""
-	);
+	// const getWfId = await fetchClosedWorkflowIdsWithoutRole(
+	// 	constants.power_workflow_process_ID,
+	// 	isOpen || "",
+	// 	status || ""
+	// );
 
 	const transactions = await tx.powerTransaction.findMany({
 		skip,
@@ -87,13 +87,13 @@ export const getAllPowerTransactions = async (
 						equipmentId: power.equipmentId,
 						equipmentName: equipmentName ? equipmentName.name : null,
 						units: power.units,
-						powerCreatedAt: extractDateTime(power.createdAt, "both"),
-						powerUpdatedAt: extractDateTime(power.updatedAt, "both"),
-						powerCreatedById: power.createdById,
-						powerUpdatedById: power.updatedById,
-						powerCreatedUser: createdUser,
-						powerUpdatedUser: updatedUser,
-						powerIsActive: power.isActive,
+						createdAt: extractDateTime(power.createdAt, "both"),
+						updatedAt: extractDateTime(power.updatedAt, "both"),
+						createdById: power.createdById,
+						updatedById: power.updatedById,
+						createdUser: createdUser,
+						updatedUser: updatedUser,
+						isActive: power.isActive,
 					};
 				})
 			);
@@ -103,70 +103,70 @@ export const getAllPowerTransactions = async (
 	return { data: data.flat() };
 };
 
-export const getPowerTransactionById = async (
-	id: string,
-	accessToken: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma
-) => {
-	const getPowerTransactionById = await tx.powerTransaction.findFirst({
-		where: { id, isActive: true },
-		orderBy: { createdAt: "desc" },
-		include: {
-			powerDetails: {
-				where: { isActive: true },
-				orderBy: { createdAt: "desc" },
-			},
-		},
-	});
+// export const getPowerTransactionById = async (
+// 	id: string,
+// 	accessToken: string,
+// 	tx: IPrismaTransactionClient | typeof prisma = prisma
+// ) => {
+// 	const getPowerTransactionById = await tx.powerTransaction.findFirst({
+// 		where: { id, isActive: true },
+// 		orderBy: { createdAt: "desc" },
+// 		include: {
+// 			powerDetails: {
+// 				where: { isActive: true },
+// 				orderBy: { createdAt: "desc" },
+// 			},
+// 		},
+// 	});
 
-	if (!getPowerTransactionById) {
-		throw new Error(`Id not found 404`);
-	}
-	const powerDetails = await Promise.all(
-		getPowerTransactionById.powerDetails.map(async (detail) => {
-			const equipmentName =
-				detail.equipmentId && accessToken
-					? await getEquipmentName(detail.equipmentId, accessToken)
-					: null;
+// 	if (!getPowerTransactionById) {
+// 		throw new Error(`Id not found 404`);
+// 	}
+// 	const powerDetails = await Promise.all(
+// 		getPowerTransactionById.powerDetails.map(async (detail) => {
+// 			const equipmentName =
+// 				detail.equipmentId && accessToken
+// 					? await getEquipmentName(detail.equipmentId, accessToken)
+// 					: null;
 
-			return {
-				uuid: detail.id,
-				code: detail.code,
-				transactionId: detail.transactionId,
-				equipmentId: detail.equipmentId,
-				equipmentName: equipmentName ? equipmentName.name : null,
-				units: detail.units,
-				createdAt: extractDateTime(detail.createdAt, "both"),
-				updatedAt: extractDateTime(detail.updatedAt, "both"),
-				createdById: detail.createdById,
-				updatedById: detail.updatedById,
-				isActive: detail.isActive,
-			};
-		})
-	);
+// 			return {
+// 				uuid: detail.id,
+// 				code: detail.code,
+// 				transactionId: detail.transactionId,
+// 				equipmentId: detail.equipmentId,
+// 				equipmentName: equipmentName ? equipmentName.name : null,
+// 				units: detail.units,
+// 				createdAt: extractDateTime(detail.createdAt, "both"),
+// 				updatedAt: extractDateTime(detail.updatedAt, "both"),
+// 				createdById: detail.createdById,
+// 				updatedById: detail.updatedById,
+// 				isActive: detail.isActive,
+// 			};
+// 		})
+// 	);
 
-	// const [currentState, nextAction, remarks] = await Promise.all([
-	// 	getCurrentState(getPowerTransactionById.wfRequestId),
-	// 	getNextAction(getPowerTransactionById.wfRequestId),
-	// 	getRemarks(getPowerTransactionById.wfRequestId),
-	// ]);
+// 	// const [currentState, nextAction, remarks] = await Promise.all([
+// 	// 	getCurrentState(getPowerTransactionById.wfRequestId),
+// 	// 	getNextAction(getPowerTransactionById.wfRequestId),
+// 	// 	getRemarks(getPowerTransactionById.wfRequestId),
+// 	// ]);
 
-	return {
-		...getPowerTransactionById,
-		transactionDate: extractDateTime(
-			getPowerTransactionById.transactionDate,
-			"date"
-		),
-		createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
-		updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
-		powerDetails,
-		// workflow: {
-		// 	currentState,
-		// 	nextAction,
-		// 	remarks,
-		// },
-	};
-};
+// 	return {
+// 		...getPowerTransactionById,
+// 		transactionDate: extractDateTime(
+// 			getPowerTransactionById.transactionDate,
+// 			"date"
+// 		),
+// 		createdAt: extractDateTime(getPowerTransactionById.createdAt, "both"),
+// 		updatedAt: extractDateTime(getPowerTransactionById.updatedAt, "both"),
+// 		powerDetails,
+// 		// workflow: {
+// 		// 	currentState,
+// 		// 	nextAction,
+// 		// 	remarks,
+// 		// },
+// 	};
+// };
 
 export const createPowerTransaction = async (
 	data: {
@@ -214,89 +214,38 @@ export const createPowerTransaction = async (
 };
 
 export const updatePowerTransaction = async (
-	id: string,
+	detailId: string,
 	data: {
-		transactionDate?: string; // optional for partial update
-		powerDetails?: {
-			id?: string;
-			equipmentId?: string;
-			units?: number;
-		}[];
+		equipmentId?: string;
+		units?: number;
+		transactionDate?: Date;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// Parent update
-	const parentUpdate: any = { updatedById: user };
-	if (data.transactionDate !== undefined) {
-		parentUpdate.transactionDate = parseDateOnly(data.transactionDate);
+	const updateData: any = { updatedById: user };
+
+	if (data.equipmentId !== undefined) {
+		updateData.equipmentId = data.equipmentId;
+	}
+	if (data.units !== undefined) {
+		updateData.units = Number(data.units || 0);
 	}
 
-	// --- Separate child updates ---
-	const updateDetails = (data.powerDetails || [])
-		.filter((d) => d.id)
-		.map((d) => {
-			const updateData: any = { updatedById: user };
-			if (d.equipmentId !== undefined) updateData.equipmentId = d.equipmentId;
-			if (d.units !== undefined) updateData.units = d.units;
-
-			return {
-				where: { id: d.id! },
-				data: updateData,
-			};
-		});
-
-	const createDetails = (data.powerDetails || [])
-		.filter((d) => !d.id)
-		.map((d) => ({
-			equipmentId: d.equipmentId!,
-			units: d.units ?? 0,
-			createdById: user,
-			updatedById: user,
-			isActive: true,
-		}));
-
-	// --- Find current active children in DB ---
-	const existingDetails = await tx.power.findMany({
-		where: { transactionId: id, isActive: true },
-		select: { id: true },
-	});
-	const existingIds = existingDetails.map((d) => d.id);
-
-	// IDs from request
-	const sentIds = (data.powerDetails || [])
-		.filter((d) => d.id)
-		.map((d) => d.id!);
-
-	// To soft delete = in DB but not in request
-	const deleteIds = existingIds.filter((eid) => !sentIds.includes(eid));
-
-	// --- Update parent and child records ---
-	const updatedTransaction = await tx.powerTransaction.update({
-		where: { id },
+	const updatedDetail = await tx.power.update({
+		where: { id: detailId },
 		data: {
-			...parentUpdate,
-			powerDetails: {
-				update: updateDetails,
-				create: createDetails,
-			},
+			...updateData,
+			transaction: data.transactionDate
+				? { update: { transactionDate: parseDateOnly(data.transactionDate) } }
+				: undefined,
 		},
 		include: {
-			powerDetails: {
-				where: { isActive: true }, // only return active children
-			},
+			transaction: true,
 		},
 	});
 
-	// --- Soft delete missing children ---
-	if (deleteIds.length) {
-		await tx.power.updateMany({
-			where: { id: { in: deleteIds } },
-			data: { isActive: false, updatedById: user },
-		});
-	}
-
-	// return updatedTransaction;
+	// return updatedDetail;
 };
 
 export const deletePowerTransaction = async (
@@ -334,4 +283,58 @@ export const deletePowerTransaction = async (
 			data: { isActive: false, updatedById: user },
 		});
 	}
+};
+
+export const getPowerTransactionById = async (
+	id: string,
+	accessToken: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	// Fetch child with parent
+	const powerDetail = await tx.power.findUnique({
+		where: { id: id },
+		include: {
+			transaction: true, // parent PowerTransaction
+		},
+	});
+
+	if (!powerDetail || !powerDetail.isActive) {
+		throw new Error("Power record not found or inactive");
+	}
+
+	const parent = powerDetail.transaction;
+	if (!parent || !parent.isActive) {
+		throw new Error("Parent PowerTransaction not found or inactive");
+	}
+
+	const equipmentName = await getEquipmentName(
+		powerDetail.equipmentId,
+		accessToken
+	);
+	const createdUser = parent.createdById
+		? await getUserData(parent.createdById)
+		: null;
+	const updatedUser = parent.updatedById
+		? await getUserData(parent.updatedById)
+		: null;
+
+	return {
+		uuid: powerDetail.id,
+		transactionId: parent.id,
+		transactionDate: extractDateTime(parent.transactionDate, "date"),
+		wfRequestId: parent.wfRequestId,
+
+		powerCode: powerDetail.code,
+		equipmentId: powerDetail.equipmentId,
+		equipmentName: equipmentName ? equipmentName.name : null,
+		units: powerDetail.units,
+
+		createdAt: extractDateTime(powerDetail.createdAt, "both"),
+		updatedAt: extractDateTime(powerDetail.updatedAt, "both"),
+		createdById: powerDetail.createdById,
+		updatedById: powerDetail.updatedById,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
+		isActive: powerDetail.isActive,
+	};
 };

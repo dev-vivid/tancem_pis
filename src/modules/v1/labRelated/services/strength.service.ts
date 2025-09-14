@@ -1,3 +1,4 @@
+import { getMaterialName } from "common/api";
 import prisma, { IPrismaTransactionClient } from "../../../../shared/prisma";
 import { pageConfig } from "../../../../shared/prisma/query.helper";
 import {
@@ -5,6 +6,7 @@ import {
 	parseDateOnly,
 } from "../../../../shared/utils/date/index";
 import { subDays } from "date-fns";
+import getUserData from "@shared/prisma/queries/getUserById";
 
 // ✅ Create
 export const createStrength = async (
@@ -37,7 +39,8 @@ export const createStrength = async (
 
 export const getStrengthSchedule = async (
 	transactionDate: string,
-	materialId: string
+	materialId: string,
+	accessToken: string
 ) => {
 	const trnDate = parseDateOnly(transactionDate);
 
@@ -60,6 +63,9 @@ export const getStrengthSchedule = async (
 			transaction: { materialId, isActive: true },
 			sampleDate: { in: sampleDates.map((d) => d.date) },
 		},
+		include: {
+			transaction: true, // ✅ so we can access createdById, updatedById, materialId
+		},
 	});
 
 	// Build response
@@ -79,9 +85,28 @@ export const getStrengthSchedule = async (
 		};
 	});
 
+	// Pick transaction metadata (if exists in first sample)
+	const transaction = existing[0]?.transaction;
+
+	// Add material name + user info
+	const materialName = materialId
+		? await getMaterialName(materialId, accessToken)
+		: null;
+
+	const createdUser = transaction?.createdById
+		? await getUserData(transaction.createdById)
+		: null;
+
+	const updatedUser = transaction?.updatedById
+		? await getUserData(transaction.updatedById)
+		: null;
+
 	return {
 		transactionDate,
 		materialId,
+		materialName: materialName ? materialName.name : null,
+		createdUser,
+		updatedUser,
 		samples: schedule,
 	};
 };
@@ -150,14 +175,36 @@ export const getAllStrength = async (
 		},
 	});
 
-	const data = rows.map((t) => ({
-		id: t.id,
-		transactionDate: extractDateTime(t.transactionDate, "date"),
-		materialId: t.materialId,
-		sampleCount: t.samples.length,
-		createdAt: t.createdAt.toISOString().replace("T", " ").substring(0, 19),
-		createdById: t.createdById,
-	}));
+	// Map + async fetch for material & user data
+	const data = await Promise.all(
+		rows.map(async (t) => {
+			const materialName = t.materialId
+				? await getMaterialName(t.materialId, accessToken)
+				: null;
+
+			const createdUser = t.createdById
+				? await getUserData(t.createdById)
+				: null;
+
+			const updatedUser = t.updatedById
+				? await getUserData(t.updatedById)
+				: null;
+
+			return {
+				id: t.id,
+				transactionDate: extractDateTime(t.transactionDate, "date"),
+				materialId: t.materialId,
+				materialName: materialName ? materialName.name : null,
+				sampleCount: t.samples.length,
+				createdAt: extractDateTime(t.createdAt, "both"),
+				createdById: t.createdById,
+				updatedAt: t.updatedAt,
+				updatedById: t.updatedById,
+				createdUser,
+				updatedUser,
+			};
+		})
+	);
 
 	return { totalRecords, data };
 };
@@ -179,10 +226,24 @@ export const getStrengthById = async (
 
 	if (!transaction) throw new Error("Strength transaction not found");
 
+	// 🔹 Fetch extra info
+	const materialName = transaction.materialId
+		? await getMaterialName(transaction.materialId, accessToken)
+		: null;
+
+	const createdUser = transaction.createdById
+		? await getUserData(transaction.createdById)
+		: null;
+
+	const updatedUser = transaction.updatedById
+		? await getUserData(transaction.updatedById)
+		: null;
+
 	return {
 		id: transaction.id,
 		transactionDate: extractDateTime(transaction.transactionDate, "date"),
 		materialId: transaction.materialId,
+		materialName: materialName ? materialName.name : null,
 		samples: transaction.samples.map((s) => ({
 			id: s.id,
 			sampleDate: extractDateTime(s.sampleDate, "date"),
@@ -192,11 +253,12 @@ export const getStrengthById = async (
 			day28_strength: s.day28_strength,
 			expansion: s.expansion,
 		})),
-		createdAt: transaction.createdAt
-			.toISOString()
-			.replace("T", " ")
-			.substring(0, 19),
+		createdAt: extractDateTime(transaction.createdAt, "both"),
 		createdById: transaction.createdById,
+		updatedAt: extractDateTime(transaction.updatedAt, "both"),
+		updatedById: transaction.updatedById,
+		createdUser,
+		updatedUser,
 	};
 };
 
