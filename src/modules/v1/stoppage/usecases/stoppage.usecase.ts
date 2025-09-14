@@ -59,7 +59,7 @@ export const stoppageByIdUsecase = async (id: string, accessToken: string) => {
 
 export const updateStoppageUsecase = async (
 	id: string,
-	transactionData: TUpdateStoppage,
+	transactionData: any,
 	user: string
 ) => {
 	return await updateStoppage(id, transactionData, user);

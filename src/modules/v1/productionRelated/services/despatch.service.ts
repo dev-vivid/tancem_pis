@@ -108,78 +108,53 @@ export const getAlldespatch = async (
 };
 
 export const getIddespatch = async (
-	id: string,
+	detailId: string,
 	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	if (!id) {
-		throw new Error("Despatch ID is required.");
-	}
-
-	const despatch = await tx.despatch.findFirst({
-		where: { id, isActive: true },
-		include: {
-			Despatches: {
-				where: { isActive: true },
-				orderBy: { createdAt: "desc" },
-			},
-		},
+	const detail = await tx.despatchDetails.findFirst({
+		where: { id: detailId, isActive: true },
+		include: { despatch: true },
 	});
 
-	if (!despatch) {
-		return null;
-	}
+	if (!detail) return null;
 
-	const data = await Promise.all(
-		despatch.Despatches.map(async (detail) => {
-			const materialName =
-				detail.materialId && accessToken
-					? await getMaterialName(detail.materialId, accessToken)
-					: null;
+	const materialName =
+		detail.materialId && accessToken
+			? await getMaterialName(detail.materialId, accessToken)
+			: null;
 
-			const createdUser = detail.createdById
-				? await getUserData(detail.createdById)
-				: null;
+	const createdUser = detail.createdById
+		? await getUserData(detail.createdById)
+		: null;
 
-			const updatedUser = detail.updatedById
-				? await getUserData(detail.updatedById)
-				: null;
+	const updatedUser = detail.updatedById
+		? await getUserData(detail.updatedById)
+		: null;
 
-			return {
-				// ---- Parent (Despatch) ----
-				uuid: detail.id,
-				despatchId: despatch.id,
-				// despatchCode: despatch.code,
-				transactionDate: extractDateTime(despatch.transactionDate, "date"),
-				// despatchCreatedAt: extractDateTime(despatch.createdAt, "both"),
-				// despatchUpdatedAt: extractDateTime(despatch.updatedAt, "both"),
-				// despatchCreatedById: despatch.createdById,
-				// despatchUpdatedById: despatch.updatedById,
-				// despatchCreatedUser: createdUser,
-				// despatchUpdatedUser: updatedUser,
-				// despatchIsActive: despatch.isActive,
+	return {
+		uuid: detail.id,
+		despatchId: detail.despatchId,
+		despatchCode: detail.despatch.code,
+		transactionDate: extractDateTime(detail.despatch.transactionDate, "date"),
+		wfRequestId: "",
 
-				// ---- Child (DespatchDetails) ----
-				materialCode: detail.code,
-				materialId: detail.materialId,
-				materialName: materialName ? materialName.name : null,
-				railQuantity: detail.railQuantity,
-				roadQuantity: detail.roadQuantity,
-				exportQuantity: detail.exportQuantity,
-				inlandQuantity: detail.inlandQuantity,
+		materialCode: detail.code,
+		materialId: detail.materialId,
+		materialName: materialName?.name ?? null,
+		railQuantity: detail.railQuantity,
+		roadQuantity: detail.roadQuantity,
+		exportQuantity: detail.exportQuantity,
+		inlandQuantity: detail.inlandQuantity,
 
-				createdAt: extractDateTime(detail.createdAt, "both"),
-				updatedAt: extractDateTime(detail.updatedAt, "both"),
-				createdById: detail.createdById,
-				updatedById: detail.updatedById,
-				isActive: detail.isActive,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
-			};
-		})
-	);
-
-	return { data };
+		createdAt: extractDateTime(detail.createdAt, "both"),
+		updatedAt: extractDateTime(detail.updatedAt, "both"),
+		createdById: detail.createdById,
+		updatedById: detail.updatedById,
+		isActive: detail.isActive,
+		createdUser: createdUser,
+		updatedUser: updatedUser,
+	};
 };
 
 export const createdespatch = async (
@@ -242,57 +217,42 @@ export const createdespatch = async (
 };
 
 export const updateDespatch = async (
-	despatchId: string,
+	detailId: string,
 	data: {
-		transactionDate?: string; // optional for partial update
-		details: {
-			id?: string;
-			materialId?: string;
-			railQuantity?: string;
-			roadQuantity?: string;
-			exportQuantity?: string;
-			inlandQuantity?: string;
-		}[];
+		materialId?: string;
+		railQuantity?: string;
+		roadQuantity?: string;
+		exportQuantity?: string;
+		inlandQuantity?: string;
+		transactionDate?: Date;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// parent update (only fields provided)
-	const parentUpdate: any = { updatedById: user };
-	if (data.transactionDate !== undefined) {
-		parentUpdate.transactionDate = parseDateOnly(data.transactionDate);
-	}
+	const updateData: any = { updatedById: user };
 
-	const updated = await tx.despatch.update({
-		where: { id: despatchId },
+	if (data.materialId !== undefined) updateData.materialId = data.materialId;
+	if (data.railQuantity !== undefined)
+		updateData.railQuantity = Number(data.railQuantity || 0);
+	if (data.roadQuantity !== undefined)
+		updateData.roadQuantity = Number(data.roadQuantity || 0);
+	if (data.exportQuantity !== undefined)
+		updateData.exportQuantity = Number(data.exportQuantity || 0);
+	if (data.inlandQuantity !== undefined)
+		updateData.inlandQuantity = Number(data.inlandQuantity || 0);
+
+	const updatedDetail = await tx.despatchDetails.update({
+		where: { id: detailId },
 		data: {
-			...parentUpdate,
-			Despatches: {
-				update: data.details
-					.filter((d) => d.id)
-					.map((d) => {
-						// dynamic update
-						const updateData: any = { updatedById: user };
-						if (d.materialId !== undefined)
-							updateData.materialId = d.materialId;
-						if (d.railQuantity !== undefined)
-							updateData.railQuantity = Number(d.railQuantity);
-						if (d.roadQuantity !== undefined)
-							updateData.roadQuantity = Number(d.roadQuantity);
-						if (d.exportQuantity !== undefined)
-							updateData.exportQuantity = Number(d.exportQuantity);
-						if (d.inlandQuantity !== undefined)
-							updateData.inlandQuantity = Number(d.inlandQuantity);
-
-						return {
-							where: { id: d.id! },
-							data: updateData,
-						};
-					}),
-			},
+			...updateData,
+			despatch: data.transactionDate
+				? { update: { transactionDate: parseDateOnly(data.transactionDate) } } // 👈 parent update
+				: undefined,
 		},
-		include: { Despatches: true },
+		include: { despatch: true },
 	});
+
+	return updatedDetail;
 };
 
 export const deletedespatch = async (

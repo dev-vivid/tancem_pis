@@ -33,7 +33,7 @@ strengthRouter.post(
 
 strengthRouter.put(
 	"/strengthEdit/:id",
-	validateRequest(strengthFormSchema, "body"),
+	// validateRequest(strengthFormSchema, "body"),
 	updateStrength
 );
 

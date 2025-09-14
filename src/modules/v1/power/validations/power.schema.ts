@@ -31,15 +31,8 @@ export const updatePowerTransactionBodySchema = Joi.object({
 	transactionDate: Joi.string()
 		.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
 		.optional(),
-	powerDetails: Joi.array()
-		.items(
-			Joi.object({
-				id: Joi.string().optional(),
-				equipmentId: Joi.string().optional(),
-				units: Joi.number().precision(2).optional(),
-			}).min(1)
-		)
-		.optional(),
+	equipmentId: Joi.string().optional(),
+	units: Joi.number().precision(2).optional(),
 }).min(1);
 
 export const updatePowerTransactionParamsSchema = Joi.object({

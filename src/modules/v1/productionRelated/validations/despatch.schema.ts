@@ -8,19 +8,12 @@ export const despatchFilterQuerySchema = Joi.object({
 export const despatchFormSchema = Joi.object({
 	transactionDate: Joi.string()
 		.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
-		.required(),
-	details: Joi.array()
-		.items(
-			Joi.object({
-				id: Joi.string().optional(),
-				materialId: Joi.string().optional(),
-				railQuantity: Joi.string().optional(),
-				roadQuantity: Joi.string().optional(),
-				exportQuantity: Joi.string().optional(),
-				inlandQuantity: Joi.string().optional(),
-			})
-		)
-		.required(),
+		.optional(),
+	materialId: Joi.string().optional(),
+	railQuantity: Joi.string().optional(),
+	roadQuantity: Joi.string().optional(),
+	exportQuantity: Joi.string().optional(),
+	inlandQuantity: Joi.string().optional(),
 });
 
 export const despatchCreateFormSchema = Joi.object({

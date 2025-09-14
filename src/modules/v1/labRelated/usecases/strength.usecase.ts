@@ -11,10 +11,11 @@ export const createStrengthUsecase = async (data: any, user: string) =>
 	await createStrength(data, user);
 
 export const getStrengthScheduleUsecase = async (
+	accessToken: string,
 	transactionDate: string,
 	materialId: string
 ) => {
-	return await getStrengthSchedule(transactionDate, materialId);
+	return await getStrengthSchedule(accessToken, transactionDate, materialId);
 };
 
 export const getAllStrengthUsecase = async (

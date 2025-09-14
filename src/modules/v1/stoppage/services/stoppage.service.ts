@@ -91,119 +91,87 @@ export const updateStoppage = async (
 		departmentId?: string;
 		equipmentMainId?: string;
 		equipmentSubGroupId?: string;
-		problems?: {
-			id?: string;
-			problemId?: string;
-			problemHours?: string; // HH:MM
-			remarks?: string;
-			noOfStoppages?: number;
-		}[];
+		problemId?: string;
+		problemHours?: string; // HH:MM
+		remarks?: string;
+		noOfStoppages?: number;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// --- Separate problems into update & create ---
-	const updateProblems = (data.problems || [])
-		.filter((p) => p.id)
-		.map((p) => ({
-			where: { id: p.id! },
+	// 1. Find parent stoppage id
+	const child = await tx.stoppageProblem.findUnique({
+		where: { id: id },
+		select: { stoppageId: true },
+	});
+
+	if (!child) {
+		throw new Error("StoppageProblem not found");
+	}
+	const stoppageId = child.stoppageId;
+
+	// 2. Determine if any child fields are present
+	const hasChildFields =
+		data.problemId !== undefined ||
+		data.problemHours !== undefined ||
+		data.remarks !== undefined ||
+		data.noOfStoppages !== undefined;
+
+	// 3. Update child if fields exist
+	if (hasChildFields) {
+		await tx.stoppageProblem.update({
+			where: { id: id },
 			data: {
-				...(p.problemId && { problemId: p.problemId }),
-				...(p.problemHours && { problemHours: p.problemHours }),
-				...(p.remarks && { remarks: p.remarks }),
-				...(p.noOfStoppages !== undefined && {
-					noOfStoppages: p.noOfStoppages,
-				}),
+				...(data.problemId ? { problemId: data.problemId } : {}),
+				...(data.problemHours ? { problemHours: data.problemHours } : {}),
+				...(data.remarks ? { remarks: data.remarks } : {}),
+				...(data.noOfStoppages !== undefined
+					? { noOfStoppages: data.noOfStoppages }
+					: {}),
 				updatedById: user,
 			},
-		}));
-
-	const createProblems = (data.problems || [])
-		.filter((p) => !p.id)
-		.map((p) => ({
-			stoppageId: id,
-			problemId: p.problemId!,
-			problemHours: p.problemHours ?? "00:00",
-			noOfStoppages: p.noOfStoppages ?? 0,
-			remarks: p.remarks,
-			createdById: user,
-			updatedById: user,
-			isActive: true,
-		}));
-
-	// --- Find current active problems in DB ---
-	const existingProblems = await tx.stoppageProblem.findMany({
-		where: { stoppageId: id, isActive: true },
-		select: { id: true },
-	});
-	const existingIds = existingProblems.map((p) => p.id);
-
-	// IDs sent in request
-	const sentIds = (data.problems || []).filter((p) => p.id).map((p) => p.id!);
-
-	// To soft delete
-	const deleteIds = existingIds.filter((eid) => !sentIds.includes(eid));
-
-	// --- Update parent + children ---
-	await tx.stoppage.update({
-		where: { id },
-		data: {
-			transactionDate: data.transactionDate
-				? parseDateOnly(data.transactionDate)
-				: undefined,
-			departmentId: data.departmentId,
-			equipmentMainId: data.equipmentMainId,
-			equipmentSubGroupId: data.equipmentSubGroupId,
-			updatedById: user,
-			stoppageproblems: {
-				update: updateProblems,
-				create: createProblems,
-			},
-		},
-	});
-
-	// --- Soft delete problems ---
-	if (deleteIds.length) {
-		await tx.stoppageProblem.updateMany({
-			where: { id: { in: deleteIds } },
-			data: { isActive: false, updatedById: user },
 		});
 	}
 
-	// --- Recalculate totals from active problems ---
-	const problems = await tx.stoppageProblem.findMany({
-		where: { stoppageId: id, isActive: true },
+	// 4. Recalculate parent totals from all child problems
+	const allProblems = await tx.stoppageProblem.findMany({
+		where: { stoppageId },
 		select: { problemHours: true },
 	});
 
-	const totalProblemMinutes = problems.reduce(
-		(sum, p) =>
-			sum + (p.problemHours ? timeStringToMinutes(p.problemHours) : 0),
-		0
-	);
+	const totalProblemMinutes = allProblems.reduce((sum, p) => {
+		if (p.problemHours) return sum + timeStringToMinutes(p.problemHours);
+		return sum;
+	}, 0);
 
 	const stoppageHours = minutesToTimeString(totalProblemMinutes);
-	const runningHours = minutesToTimeString(
-		Math.max(24 * 60 - totalProblemMinutes, 0)
-	);
+	const totalHours = "24:00";
+	const runningMinutes = Math.max(24 * 60 - totalProblemMinutes, 0);
+	const runningHours = minutesToTimeString(runningMinutes);
 
-	// --- Update calculated fields ---
-	const updatedStoppage = await tx.stoppage.update({
-		where: { id },
+	// 5. Update parent stoppage
+	const updated = await tx.stoppage.update({
+		where: { id: stoppageId },
 		data: {
-			stoppageHours,
+			...(data.transactionDate
+				? { transactionDate: parseDateOnly(data.transactionDate) }
+				: {}),
+			...(data.departmentId ? { departmentId: data.departmentId } : {}),
+			...(data.equipmentMainId
+				? { equipmentMainId: data.equipmentMainId }
+				: {}),
+			...(data.equipmentSubGroupId
+				? { equipmentSubGroupId: data.equipmentSubGroupId }
+				: {}),
 			runningHours,
-			totalHours: "24:00",
+			stoppageHours,
+			totalHours,
 			updatedById: user,
 		},
-		include: {
-			stoppageproblems: {
-				where: { isActive: true }, // return only active problems
-			},
-		},
+		include: { stoppageproblems: true },
 	});
 
-	// return updatedStoppage;
+	// return updated;
 };
 
 export const getAllStoppage = async (
@@ -291,7 +259,7 @@ export const getAllStoppage = async (
 				problemHours: problem.problemHours,
 				noOfStoppages: problem.noOfStoppages,
 				remarks: problem.remarks,
-				reatedAt: extractDateTime(problem.createdAt, "both"),
+				createdAt: extractDateTime(problem.createdAt, "both"),
 				updatedAt: extractDateTime(problem.updatedAt, "both"),
 				createdById: problem.createdById,
 				updatedById: problem.updatedById,
@@ -309,98 +277,79 @@ export const getStoppageById = async (
 	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const stoppageById = await tx.stoppage.findFirst({
-		where: { id, isActive: true },
-		orderBy: { createdAt: "desc" },
+	// 1. Fetch the child with its parent
+	const problem = await tx.stoppageProblem.findFirst({
+		where: { id: id, isActive: true },
 		include: {
-			stoppageproblems: {
-				where: { isActive: true },
-				orderBy: { createdAt: "desc" },
-				include: {
-					ProblemFk: true,
-				},
-			},
+			stoppageFk: true, // parent stoppage
+			ProblemFk: true, // problem details
 		},
 	});
 
-	if (!stoppageById) {
-		throw new Error(`Id not found 404`);
+	if (!problem) {
+		throw new Error("StoppageProblem not found");
 	}
 
-	const equipmentName =
-		stoppageById.equipmentMainId && accessToken
-			? await getEquipmentName(stoppageById.equipmentMainId, accessToken)
-			: null;
-	const departmentName =
-		stoppageById.departmentId && accessToken
-			? await getDepartmentName(stoppageById.departmentId, accessToken)
-			: null;
-	const equipmentSubGroupName =
-		stoppageById.equipmentSubGroupId && accessToken
-			? await getEquipmentSubGroupName(
-					stoppageById.equipmentSubGroupId,
-					accessToken
-			  )
-			: null;
+	const parent = problem.stoppageFk;
 
-	const createdUser = stoppageById.createdById
-		? await getUserData(stoppageById.createdById)
+	// 2. Fetch related names
+	const equipmentName = parent.equipmentMainId
+		? await getEquipmentName(parent.equipmentMainId, accessToken)
 		: null;
 
-	const updatedUser = stoppageById.updatedById
-		? await getUserData(stoppageById.updatedById)
+	const equipmentSubGroupName = parent.equipmentSubGroupId
+		? await getEquipmentSubGroupName(parent.equipmentSubGroupId, accessToken)
 		: null;
+
+	const departmentName = parent.departmentId
+		? await getDepartmentName(parent.departmentId, accessToken)
+		: null;
+
+	const createdUser = problem.createdById
+		? await getUserData(problem.createdById)
+		: null;
+	const updatedUser = problem.updatedById
+		? await getUserData(problem.updatedById)
+		: null;
+
 	const validSubGroup =
 		equipmentSubGroupName &&
-		equipmentSubGroupName.equipmentGroupId === stoppageById.equipmentMainId
+		equipmentSubGroupName.equipmentGroupId === parent.equipmentMainId
 			? equipmentSubGroupName
 			: null;
 
-	const stoppageProblems = stoppageById.stoppageproblems.map((problem) => ({
-		...problem,
-		problemName: problem.ProblemFk?.problemName || null,
+	// 3. Map to response
+	const data = {
+		uuid: problem.id,
+		stoppageId: parent.id,
+		stoppageCode: parent.code,
+		transactionDate: extractDateTime(parent.transactionDate, "date"),
+		departmentId: parent.departmentId,
+		departmentName: departmentName ? departmentName.name : null,
+		equipmentMainId: parent.equipmentMainId,
+		equipmentMainName: equipmentName ? equipmentName.name : null,
+		equipmentSubGroupId: parent.equipmentSubGroupId,
+		equipmentSubGroupName: validSubGroup ? validSubGroup.name : null,
+		runningHours: parent.runningHours,
+		stoppageHours: parent.stoppageHours,
+		totalHours: parent.totalHours,
+
+		// child problem details
+		problemId: problem.problemId,
+		problemName: problem.ProblemFk.problemName || null,
+		problemHours: problem.problemHours,
+		noOfStoppages: problem.noOfStoppages,
+		remarks: problem.remarks,
 		createdAt: extractDateTime(problem.createdAt, "both"),
 		updatedAt: extractDateTime(problem.updatedAt, "both"),
-	}));
-
-	return {
-		uuid: stoppageById.id,
-		stoppageCode: stoppageById.code,
-		transactionDate: extractDateTime(stoppageById.transactionDate, "date"),
-		departmentId: stoppageById.departmentId,
-		departmentName: departmentName ? departmentName.name : null,
-		equipmentMainId: stoppageById.equipmentMainId,
-		equipmentMainName: equipmentName ? equipmentName.name : null,
-		equipmentSubGroupId: stoppageById.equipmentSubGroupId,
-		equipmentSubGroupName: validSubGroup ? validSubGroup.name : null,
-		runningHours: stoppageById.runningHours,
-		stoppageHours: stoppageById.stoppageHours,
-		totalHours: stoppageById.totalHours,
-		// stoppageCreatedAt: extractDateTime(stoppageById.createdAt, "both"),
-		// stoppageUpdatedAt: extractDateTime(stoppageById.updatedAt, "both"),
-		// stoppageCreatedById: stoppageById.createdById,
-		// stoppageUpdatedById: stoppageById.updatedById,
-		// stoppageCreatedUser: createdUser,
-		// stoppageUpdatedUser: updatedUser,
-		// stoppageIsActive: stoppageById.isActive,
-
-		stoppageproblems: stoppageById.stoppageproblems.map((problem) => ({
-			stoppageproblemId: problem.id,
-			problemCode: problem.code,
-			problemId: problem.problemId,
-			problemName: problem.ProblemFk?.problemName || null,
-			problemHours: problem.problemHours,
-			noOfStoppages: problem.noOfStoppages,
-			remarks: problem.remarks,
-			problemCreatedAt: extractDateTime(problem.createdAt, "both"),
-			problemUpdatedAt: extractDateTime(problem.updatedAt, "both"),
-			problemCreatedById: problem.createdById,
-			problemUpdatedById: problem.updatedById,
-			problemIsActive: problem.isActive,
-			createdUser: createdUser,
-			updatedUser: updatedUser,
-		})),
+		createdById: problem.createdById,
+		updatedById: problem.updatedById,
+		isActive: problem.isActive,
+		createdUser,
+		updatedUser,
 	};
+
+	return data;
 };
 
 export const deleteStoppage = async (
@@ -408,32 +357,63 @@ export const deleteStoppage = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// First, check if stoppage exists and is active
-	const existing = await tx.stoppage.findFirst({
-		where: { id, isActive: true },
+	// 1. Find the child and its parent
+	const child = await tx.stoppageProblem.findUnique({
+		where: { id: id },
+		select: { stoppageId: true },
 	});
 
-	if (!existing) {
-		throw new Error(`Stoppage with id ${id} not found or already deleted`);
+	if (!child) {
+		throw new Error("StoppageProblem not found");
 	}
 
-	// Soft delete main stoppage
-	const deletedStoppage = await tx.stoppage.update({
-		where: { id },
+	const stoppageId = child.stoppageId;
+
+	// 2. Soft delete the specific child
+	await tx.stoppageProblem.update({
+		where: { id: id },
 		data: {
 			isActive: false,
 			updatedById: user,
 		},
 	});
 
-	// Also soft delete its problems
-	await tx.stoppageProblem.updateMany({
-		where: { stoppageId: id, isActive: true },
-		data: {
-			isActive: false,
-			updatedById: user,
-		},
+	// 3. Get all remaining active child problems
+	const remainingChildren = await tx.stoppageProblem.findMany({
+		where: { stoppageId, isActive: true },
+		select: { problemHours: true },
 	});
 
-	return deletedStoppage;
+	if (remainingChildren.length > 0) {
+		// Recalculate totals for parent
+		const totalProblemMinutes = remainingChildren.reduce((sum, p) => {
+			if (p.problemHours) return sum + timeStringToMinutes(p.problemHours);
+			return sum;
+		}, 0);
+
+		const stoppageHours = minutesToTimeString(totalProblemMinutes);
+		const totalHours = "24:00";
+		const runningMinutes = Math.max(24 * 60 - totalProblemMinutes, 0);
+		const runningHours = minutesToTimeString(runningMinutes);
+
+		// Update parent stoppage totals
+		await tx.stoppage.update({
+			where: { id: stoppageId },
+			data: {
+				runningHours,
+				stoppageHours,
+				totalHours,
+				updatedById: user,
+			},
+		});
+	} else {
+		// No children left → soft delete parent
+		await tx.stoppage.update({
+			where: { id: stoppageId },
+			data: {
+				isActive: false,
+				updatedById: user,
+			},
+		});
+	}
 };

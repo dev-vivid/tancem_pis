@@ -51,12 +51,12 @@ export const getAllreceipt = async (
 			materialTypes: {
 				select: {
 					id: true,
-					materialTypeMaster:{
-						select:{
-							id:true,
-							name:true
-						}
-					}
+					materialTypeMaster: {
+						select: {
+							id: true,
+							name: true,
+						},
+					},
 				},
 			},
 		},
@@ -84,10 +84,10 @@ export const getAllreceipt = async (
 				materialId: item.materialId,
 				materialName: materialName ? materialName.name : null,
 				materialType: item.materialType,
-        materialTypeName: item.materialTypes?.materialTypeMaster?.name ,
-// ✅ added field
+				materialTypeName: item.materialTypes?.materialTypeMaster?.name,
+				// ✅ added field
 				transactionType: item.transactionType,
-        transactionTypeName: item.transactionTypes?.name,
+				transactionTypeName: item.transactionTypes?.name,
 				wfRequestId: item.wfRequestId,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
@@ -135,12 +135,12 @@ export const getIdreceipt = async (
 			materialTypes: {
 				select: {
 					id: true,
-					materialTypeMaster:{
-						select:{
-							id:true,
-							name:true
-						}
-					}
+					materialTypeMaster: {
+						select: {
+							id: true,
+							name: true,
+						},
+					},
 				},
 			},
 		},
@@ -171,9 +171,9 @@ export const getIdreceipt = async (
 		materialName: materialName ? materialName.name : null,
 		materialType: item.materialType,
 		materialTypeName: item.materialTypes?.materialTypeMaster?.name || null,
- // ✅ added field
-    transactionType: item.transactionType,
-    transactionTypeName: item.transactionTypes?.name || null,
+		// ✅ added field
+		transactionType: item.transactionType,
+		transactionTypeName: item.transactionTypes?.name || null,
 		wfRequestId: item.wfRequestId,
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),
@@ -190,11 +190,13 @@ export const getIdreceipt = async (
 };
 
 type receiptData = {
-	transactionDate: string; // incoming from req.body
-	quantity: string;
-	materialId: string;
-	materialType: string;
-	transactionType: string;
+	transactionDate: string; // single
+	receiptDetails: {
+		quantity: string;
+		materialId: string;
+		materialType: string;
+		transactionType: string;
+	}[];
 	initiatorRoleId?: string;
 	remarks?: string;
 	status?: string;
@@ -212,7 +214,7 @@ export const createreceipt = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// const parsedDate = parseDDMMYYYY(receiptData.transactionDate);
+	const parsedDate = parseDateOnly(receiptData.transactionDate);
 	// if (!parsedDate || isNaN(parsedDate.getTime())) {
 	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
 	// }
@@ -224,16 +226,18 @@ export const createreceipt = async (
 	// 	status: receiptData.status,
 	// });
 
-	return await tx.receiptConsumption.create({
-		data: {
-			transactionDate: parseDateOnly(receiptData.transactionDate),
-			quantity: receiptData.quantity ? Number(receiptData.quantity) : 0,
-			materialId: receiptData.materialId,
-			materialType: receiptData.materialType,
-			transactionType: receiptData.transactionType,
-			wfRequestId: "",
-			createdById: user,
-		},
+	const records = receiptData.receiptDetails.map((r) => ({
+		transactionDate: parsedDate,
+		quantity: r.quantity ? Number(r.quantity) : 0,
+		materialId: r.materialId,
+		materialType: r.materialType,
+		transactionType: r.transactionType,
+		wfRequestId: "",
+		createdById: user,
+	}));
+
+	const created = await tx.receiptConsumption.createMany({
+		data: records,
 	});
 };
 
@@ -246,20 +250,33 @@ export const updatereceipt = async (
 	if (!id) {
 		throw new Error("ID is required for updating receipt.");
 	}
-	// const parsedDate = parseDDMMYYYY(receiptData.transactionDate);
-	// if (!parsedDate || isNaN(parsedDate.getTime())) {
-	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	// }
+
+	const updateData: any = { updatedById: user };
+
+	// update only when provided
+	if (receiptData.transactionDate) {
+		updateData.transactionDate = parseDateOnly(receiptData.transactionDate);
+	}
+
+	if (receiptData.quantity) {
+		updateData.quantity = Number(receiptData.quantity);
+	}
+
+	if (receiptData.materialId) {
+		updateData.materialId = receiptData.materialId;
+	}
+
+	if (receiptData.materialType) {
+		updateData.materialType = receiptData.materialType;
+	}
+
+	if (receiptData.transactionType) {
+		updateData.transactionType = receiptData.transactionType;
+	}
+
 	return await tx.receiptConsumption.update({
 		where: { id },
-		data: {
-			transactionDate: parseDateOnly(receiptData.transactionDate),
-			quantity: receiptData.quantity ? Number(receiptData.quantity) : 0,
-			materialId: receiptData.materialId,
-			materialType: receiptData.materialType,
-			transactionType: receiptData.transactionType,
-			updatedById: user,
-		},
+		data: updateData,
 	});
 };
 

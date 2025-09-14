@@ -10,7 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	receiptFilterQuerySchema,
 	receiptFormSchema,
-	receiptCreateFormSchema
+	receiptCreateFormSchema,
 } from "../validations/receipt.schema";
 
 const receiptRouter = express.Router();
@@ -34,6 +34,6 @@ receiptRouter.put(
 	updatereceipt
 );
 
-receiptRouter.patch("/receiptDelete/:id", deletereceipt);
+receiptRouter.patch("/deleteReceipt/:id", deletereceipt);
 
 export default receiptRouter;
