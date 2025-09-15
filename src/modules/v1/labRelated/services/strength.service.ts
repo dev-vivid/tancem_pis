@@ -38,9 +38,9 @@ export const createStrength = async (
 };
 
 export const getStrengthSchedule = async (
+	accessToken: string,
 	transactionDate: string,
-	materialId: string,
-	accessToken: string
+	materialId: string
 ) => {
 	const trnDate = parseDateOnly(transactionDate);
 
