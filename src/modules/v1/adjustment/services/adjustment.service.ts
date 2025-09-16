@@ -190,38 +190,6 @@ export const getAdjustmentById = async (
 	};
 };
 
-// export const createAdjustment = async (
-//   data: {
-//     toSourceId: string;
-//     quantity: string;
-//     remarks: string;
-//     transactionDate: Date;
-//     materialId: string;
-//     type: transaction_type;
-//   },
-//   userId: string,
-//   tx: IPrismaTransactionClient | typeof prisma = prisma
-
-// ) => {
-//   return prisma.adjustment.create({
-//     data: {
-//     toSourceId: data.toSourceId,
-//     quantity: data.quantity,
-//     remarks: data.remarks,
-//     transactionDate: data.transactionDate,
-//     materialId: data.materialId,
-//     type: data.type,
-//     createdById: userId,
-//     updatedById: userId
-
-//       //  Correct way to assign the relation
-//       // transactionType: {
-//       //   connect: { id: data.transactionTypeId }
-//       // }
-//     }
-//   });
-// };
-
 // 3. Create Adjustment
 export const createAdjustment = async (
 	adjustmentData: {
@@ -287,7 +255,7 @@ export const updateAdjustment = async (
 		remarks?: string;
 		transactionDate: Date;
 		materialId?: string;
-		transactionTypeId: string;
+		transactionTypeId?: string;
 	},
 	userId: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma

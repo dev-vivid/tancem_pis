@@ -40,7 +40,7 @@ export const getAllProductionCategory = async (
 				: null;
 
 			return {
-				id: item.id,
+				uuid: item.id,
 				code: item.code,
 				name: item.name,
 				// categoryCode: item.productCatagoryCode,
@@ -123,7 +123,6 @@ export const createProductionCategory = async (
 			name: data.name,
 			// productCatagoryCode: data.categoryName?? null,
 			createdById: user,
-			isActive: true, // keep consistency with delete
 		},
 	});
 };

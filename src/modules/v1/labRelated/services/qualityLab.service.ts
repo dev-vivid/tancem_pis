@@ -126,14 +126,20 @@ export const getQualityLabById = async (
 		? await getUserData(item.updatedById)
 		: null;
 	return {
-		...item,
 		uuid: item.id,
-		materialName: materialName?.name || null,
-		equipmentName: equipmentName?.name || null,
+		transactionDate: extractDateTime(item.transactionDate, "date"),
+		materialId: item.materialId,
+		materialName: materialName?.name || "",
+		equipmentId: item.equipmentId,
+		equipmentName: equipmentName?.name || "",
+		ist: item.ist,
+		fst: item.fst,
+		blaine: item.blaine,
+		isActive: item.isActive,
 		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedId: extractDateTime(item.updatedAt, "both"),
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		updatedAt: extractDateTime(item.updatedAt, "both"),
+		createdUser,
+		updatedUser,
 	};
 };
 
@@ -154,7 +160,7 @@ export const updateQualityLab = async (
 	return await tx.qualityLab.update({
 		where: { id },
 		data: {
-			transactionDate: data.transactionDate,
+			transactionDate: parseDateOnly(data.transactionDate),
 			materialId: data.materialId,
 			equipmentId: data.equipmentId,
 			ist: data.ist,
