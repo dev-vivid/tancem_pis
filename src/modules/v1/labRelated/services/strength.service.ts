@@ -37,66 +37,123 @@ export const createStrength = async (
 	});
 };
 
+// Revised getStrengthSchedule
 export const getStrengthSchedule = async (
 	accessToken: string,
-	transactionDate: string,
+	transactionDate: string, // e.g. "2025-07-03"
 	materialId: string
 ) => {
 	const trnDate = parseDateOnly(transactionDate);
 
-	// Required sample days based on your format
-	const testDays: Record<string, number> = {
-		day1_strength: 2,
-		day3_strength: 4,
-		day7_strength: 8,
-		day28_strength: 29,
-	};
+	// offsets: number of days between sampleDate and the transaction date
+	const testDays: {
+		key: "day1" | "day3" | "day7" | "day28";
+		daysBefore: number;
+		label: string;
+	}[] = [
+		{ key: "day1", daysBefore: 2, label: "Day 1" },
+		{ key: "day3", daysBefore: 4, label: "Day 3" },
+		{ key: "day7", daysBefore: 8, label: "Day 7" },
+		{ key: "day28", daysBefore: 29, label: "Day 28" },
+	];
 
-	const sampleDates = Object.entries(testDays).map(([key, days]) => ({
-		key,
-		date: subDays(trnDate, days),
+	// compute sample dates (Date objects)
+	const sampleDates = testDays.map((t) => ({
+		key: t.key,
+		label: t.label,
+		sampleDate: subDays(trnDate, t.daysBefore),
 	}));
 
-	// Fetch existing samples from DB
+	// fetch any existing samples for these sampleDates for the given material
+	const sampleDateStrings = sampleDates.map(
+		(d) => d.sampleDate.toISOString().split("T")[0]
+	);
+
 	const existing = await prisma.strengthSamples.findMany({
 		where: {
 			transaction: { materialId, isActive: true },
-			sampleDate: { in: sampleDates.map((d) => d.date) },
+			sampleDate: { in: sampleDates.map((d) => d.sampleDate) },
+			// if your DB stores date-only, you can compare directly; else adjust accordingly
 		},
-		include: {
-			transaction: true, // ✅ so we can access createdById, updatedById, materialId
-		},
+		include: { transaction: true },
 	});
 
-	// Build response
-	const schedule = sampleDates.map(({ date, key }) => {
-		const sample = existing.find(
-			(s) =>
-				s.sampleDate.toISOString().split("T")[0] ===
-				date.toISOString().split("T")[0]
+	// normalize existing samples into map by date string (YYYY-MM-DD)
+	const existingByDate = new Map<string, any>();
+	for (const s of existing) {
+		const key = s.sampleDate.toISOString().split("T")[0];
+		existingByDate.set(key, s);
+	}
+	let editableKey: string | null = null;
+	// build list of candidates with their filled-status
+	const candidates = sampleDates.map((sd) => {
+		const keyStr = sd.sampleDate.toISOString().split("T")[0];
+		const sample = existingByDate.get(keyStr);
+		const filled =
+			!!sample &&
+			((sd.key === "day1" && sample.day1_strength) ||
+				(sd.key === "day3" && sample.day3_strength) ||
+				(sd.key === "day7" && sample.day7_strength) ||
+				(sd.key === "day28" && sample.day28_strength));
+		return { key: sd.key, daysBefore: sd.sampleDate, sample, filled };
+	});
+
+	// choose editableKey: first candidate that is not filled, else default to 'day1'
+	for (const c of candidates) {
+		if (!c.filled) {
+			editableKey = c.key;
+			break;
+		}
+	}
+	if (!editableKey) editableKey = "day1";
+
+	// Build schedule: for each Day (Day1..Day28) include sampleDate and values from the appropriate sampleRecords
+	const schedule = sampleDates.map((sd) => {
+		// For this row we must show day1, day3, day7, day28 values,
+		// each value comes from the sample that corresponds to THAT test's sampleDate.
+		const day1Sample = existingByDate.get(
+			subDays(trnDate, testDays.find((t) => t.key === "day1")!.daysBefore)
+				.toISOString()
+				.split("T")[0]
+		);
+		const day3Sample = existingByDate.get(
+			subDays(trnDate, testDays.find((t) => t.key === "day3")!.daysBefore)
+				.toISOString()
+				.split("T")[0]
+		);
+		const day7Sample = existingByDate.get(
+			subDays(trnDate, testDays.find((t) => t.key === "day7")!.daysBefore)
+				.toISOString()
+				.split("T")[0]
+		);
+		const day28Sample = existingByDate.get(
+			subDays(trnDate, testDays.find((t) => t.key === "day28")!.daysBefore)
+				.toISOString()
+				.split("T")[0]
 		);
 
 		return {
-			sampleDate: date.toISOString().split("T")[0],
-			day1: key === "day1_strength" ? sample?.day1_strength ?? 0 : 0,
-			day3: key === "day3_strength" ? sample?.day3_strength ?? 0 : 0,
-			day7: key === "day7_strength" ? sample?.day7_strength ?? 0 : 0,
-			day28: key === "day28_strength" ? sample?.day28_strength ?? 0 : 0,
+			key: sd.key,
+			label: sd.label,
+			sampleDate: extractDateTime(sd.sampleDate, "date"),
+			day1: day1Sample ? Number(day1Sample.day1_strength ?? 0) : 0,
+			day3: day3Sample ? Number(day3Sample.day3_strength ?? 0) : 0,
+			day7: day7Sample ? Number(day7Sample.day7_strength ?? 0) : 0,
+			day28: day28Sample ? Number(day28Sample.day28_strength ?? 0) : 0,
+			expansion:
+				existingByDate.get(sd.sampleDate.toISOString().split("T")[0])
+					?.expansion ?? 0,
+			editable: sd.key === editableKey, // only the chosen day is editable
 		};
 	});
 
-	// Pick transaction metadata (if exists in first sample)
-	const transaction = existing[0]?.transaction;
-
-	// Add material name + user info
 	const materialName = materialId
 		? await getMaterialName(materialId, accessToken)
 		: null;
-
+	const transaction = existing[0]?.transaction;
 	const createdUser = transaction?.createdById
 		? await getUserData(transaction.createdById)
 		: null;
-
 	const updatedUser = transaction?.updatedById
 		? await getUserData(transaction.updatedById)
 		: null;
@@ -191,7 +248,7 @@ export const getAllStrength = async (
 				: null;
 
 			return {
-				id: t.id,
+				uuid: t.id,
 				transactionDate: extractDateTime(t.transactionDate, "date"),
 				materialId: t.materialId,
 				materialName: materialName ? materialName.name : null,
@@ -213,28 +270,20 @@ export const getAllStrength = async (
 export const getStrengthById = async (
 	id: string,
 	accessToken: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma
+	tx = prisma
 ) => {
 	const transaction = await tx.strengthTransactions.findUnique({
 		where: { id },
-		include: {
-			samples: {
-				orderBy: { sampleDate: "desc" }, // ✅ Order by latest first
-			},
-		},
+		include: { samples: { orderBy: { sampleDate: "desc" } } },
 	});
-
 	if (!transaction) throw new Error("Strength transaction not found");
 
-	// 🔹 Fetch extra info
 	const materialName = transaction.materialId
 		? await getMaterialName(transaction.materialId, accessToken)
 		: null;
-
 	const createdUser = transaction.createdById
 		? await getUserData(transaction.createdById)
 		: null;
-
 	const updatedUser = transaction.updatedById
 		? await getUserData(transaction.updatedById)
 		: null;
@@ -246,18 +295,11 @@ export const getStrengthById = async (
 		materialName: materialName ? materialName.name : null,
 		samples: transaction.samples.map((s) => ({
 			id: s.id,
-			sampleDate1: extractDateTime(s.sampleDate, "date"),
+			sampleDate: extractDateTime(s.sampleDate, "date"),
 			day1_strength: s.day1_strength,
-
-			sampleDate3: extractDateTime(s.sampleDate, "date"),
 			day3_strength: s.day3_strength,
-
-			sampleDate7: extractDateTime(s.sampleDate, "date"),
 			day7_strength: s.day7_strength,
-
-			sampleDate28: extractDateTime(s.sampleDate, "date"),
 			day28_strength: s.day28_strength,
-
 			expansion: s.expansion,
 		})),
 		createdAt: extractDateTime(transaction.createdAt, "both"),

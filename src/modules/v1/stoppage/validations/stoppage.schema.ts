@@ -28,7 +28,7 @@ export const createStoppageBodySchema = Joi.object({
 					}),
 				noOfStoppages: Joi.number().optional(),
 				problemId: Joi.string().required(),
-				remarks: Joi.string().optional(),
+				remarks: Joi.string().optional().allow(""),
 			})
 		)
 		.required(),
@@ -46,7 +46,7 @@ export const updateStoppageBodySchema = Joi.object({
 		.pattern(/^\d{2}:\d{2}$/)
 		.optional(),
 	noOfStoppages: Joi.number().optional(),
-	remarks: Joi.string().optional(),
+	remarks: Joi.string().optional().allow(""),
 });
 
 export const updateStoppageParamsSchema = Joi.object({
