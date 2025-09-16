@@ -10,6 +10,7 @@ import { validateRequest } from "../../../../middleware/validateRequest";
 import {
 	qualityLabFilterQuerySchema,
 	qualityLabFormSchema,
+	qualityLabUpdateFormSchema,
 } from "../validations/qualityLab.schema";
 
 const qualityLabRouter = express.Router();
@@ -30,7 +31,7 @@ qualityLabRouter.post(
 
 qualityLabRouter.put(
 	"/qualityLabEdit/:id",
-	validateRequest(qualityLabFormSchema, "body"),
+	validateRequest(qualityLabUpdateFormSchema, "body"),
 	updateQualityLab
 );
 

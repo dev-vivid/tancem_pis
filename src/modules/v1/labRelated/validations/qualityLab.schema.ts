@@ -13,3 +13,12 @@ export const qualityLabFormSchema = Joi.object({
 	fst: Joi.string().optional(),
 	blaine: Joi.string().optional(),
 });
+
+export const qualityLabUpdateFormSchema = Joi.object({
+	transactionDate: Joi.string().optional(),
+	materialId: Joi.string().optional(),
+	equipmentId: Joi.string().optional(),
+	ist: Joi.string().optional(),
+	fst: Joi.string().optional(),
+	blaine: Joi.string().optional(),
+});
