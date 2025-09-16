@@ -144,10 +144,15 @@ export const getAllAnalysisLab = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
-			_count: {
-				select: {
-					LabAnalysisTypes: {
-						where: { isActive: true }, // ✅ count only active ones
+			LabAnalysisTypes: {
+				where: { isActive: true },
+				include: {
+					MaterialAnalysis: {
+						select: {
+							id: true,
+							type: true,
+							description: true,
+						},
 					},
 				},
 			},
@@ -166,12 +171,18 @@ export const getAllAnalysisLab = async (
 			const updatedUser = item.updatedById
 				? await getUserData(item.updatedById)
 				: null;
+
 			return {
 				uuid: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
 				materialName: materialName?.name ?? null,
-				analysisTypeCount: item._count.LabAnalysisTypes,
+				analysisTypeCount: item.LabAnalysisTypes.length,
+				analysis: item.LabAnalysisTypes.map((a) => ({
+					id: a.MaterialAnalysis.id,
+					type: a.MaterialAnalysis.type,
+					name: a.MaterialAnalysis.description,
+				})),
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
