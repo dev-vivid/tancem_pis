@@ -74,7 +74,7 @@ export const createStoppage = async (
 				create: stoppagedata.problems.map((p) => ({
 					problemId: p.problemId,
 					problemHours: p.problemHours,
-					remarks: p.remarks,
+					remarks: p.remarks && p.remarks.trim() !== "" ? p.remarks : null,
 					noOfStoppages: p.noOfStoppages,
 					createdById: user,
 				})),
@@ -124,7 +124,14 @@ export const updateStoppage = async (
 			data: {
 				...(data.problemId ? { problemId: data.problemId } : {}),
 				...(data.problemHours ? { problemHours: data.problemHours } : {}),
-				...(data.remarks ? { remarks: data.remarks } : {}),
+				...(data.remarks !== undefined
+					? {
+							remarks:
+								data.remarks && data.remarks.trim() !== ""
+									? data.remarks
+									: null,
+					  }
+					: {}),
 				...(data.noOfStoppages !== undefined
 					? { noOfStoppages: data.noOfStoppages }
 					: {}),
