@@ -161,8 +161,8 @@ export const createdespatch = async (
 	despatchData: {
 		transactionDate: string;
 		initiatorRoleId?: string;
-		remarks: string;
-		status: string;
+		remarks?: string;
+		status?: string;
 		details: {
 			materialId: string;
 			railQuantity?: string;
@@ -174,8 +174,6 @@ export const createdespatch = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// const createdDespatches = [];
-
 	// for (const data of despatchData) {
 	// 	if (!data.initiatorRoleId) throw new Error("initiatorRoleId is required");
 
@@ -209,9 +207,6 @@ export const createdespatch = async (
 		},
 		include: { Despatches: true },
 	});
-
-	// 	createdDespatches.push(created);
-	// }
 
 	// return createdDespatches;
 };

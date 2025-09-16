@@ -246,11 +246,18 @@ export const getStrengthById = async (
 		materialName: materialName ? materialName.name : null,
 		samples: transaction.samples.map((s) => ({
 			id: s.id,
-			sampleDate: extractDateTime(s.sampleDate, "date"),
+			sampleDate1: extractDateTime(s.sampleDate, "date"),
 			day1_strength: s.day1_strength,
+
+			sampleDate3: extractDateTime(s.sampleDate, "date"),
 			day3_strength: s.day3_strength,
+
+			sampleDate7: extractDateTime(s.sampleDate, "date"),
 			day7_strength: s.day7_strength,
+
+			sampleDate28: extractDateTime(s.sampleDate, "date"),
 			day28_strength: s.day28_strength,
+
 			expansion: s.expansion,
 		})),
 		createdAt: extractDateTime(transaction.createdAt, "both"),
