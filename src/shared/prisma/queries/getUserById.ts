@@ -7,10 +7,7 @@ const getUserData = async (userId: string) => {
 	`;
 	const [result]: any[] = await userManagementDb.execute(query, [userId]);
 
-	const userData = {
-		id: result[0].id,
-		userName: `${result[0].first_name} ${result[0].last_name}`,
-	};
+	const userData = `${result[0].first_name} ${result[0].last_name}`;
 
 	return userData;
 };

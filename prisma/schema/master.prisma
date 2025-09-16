@@ -28,7 +28,6 @@ model Problem {
   description     String?           @db.VarChar(200)
   departmentId    String            @map("department_id") @db.VarChar(36)
   problemName     String            @map("problem") @db.VarChar(36)
-  requestId       String?           @map("wf_request_id") @db.VarChar(36)
   sortOrder       Int               @default(0) @map("sort_order")
   status          Status            @default(active)
   createdAt       DateTime          @default(now()) @map("created_at")
@@ -36,6 +35,7 @@ model Problem {
   updatedById     String?           @map("updated_by_id") @db.VarChar(36)
   createdById     String?           @map("created_by_id") @db.VarChar(36)
   isActive        Boolean           @default(true) @map("is_active")
+  requestId       String?           @map("wf_request_id") @db.VarChar(36)
   ProblemCode     ProblemCode[]
   StoppageProblem StoppageProblem[]
 
@@ -76,8 +76,8 @@ model TransactionType {
   createdById          String?              @map("created_by_id") @db.VarChar(36)
   updatedById          String?              @map("updated_by_id") @db.VarChar(36)
   isActive             Boolean              @default(true) @map("is_active")
-  receiptsconsumptions ReceiptConsumption[]
   adjustments          Adjustment[]
+  receiptsconsumptions ReceiptConsumption[]
 
   @@index([code])
   @@map("transaction_type")
@@ -87,7 +87,6 @@ model ProductionCategory {
   id          String   @id @unique @default(uuid()) @db.VarChar(36)
   code        Int      @unique @default(autoincrement())
   name        String   @db.VarChar(50)
-  // productCatagoryCode String   @map("product_category_code")
   status      Status   @default(active)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
@@ -96,23 +95,21 @@ model ProductionCategory {
   isActive    Boolean  @default(true) @map("is_active")
 
   @@index([code])
-  // @@index([productCatagoryCode])
   @@map("production_category")
 }
 
 model MaterialType {
-  id                   String             @id @unique @default(uuid()) @db.VarChar(36)
-  code                 Int                @unique @default(autoincrement())
-  materialId           String             @map("material_id") @db.VarChar(36)
-  materialTypeMasterId String             @map("material_type_id") @db.VarChar(36)
-  status               Status             @default(active)
-  createdAt            DateTime           @default(now()) @map("created_at")
-  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
-  createdById          String?            @map("created_by_id") @db.VarChar(36)
-  updatedById          String?            @map("updated_by_id") @db.VarChar(36)
-  isActive             Boolean            @default(true) @map("is_active")
-  materialTypeMaster   MaterialTypeMaster @relation(fields: [materialTypeMasterId], references: [id])
-
+  id                      String               @id @unique @default(uuid()) @db.VarChar(36)
+  code                    Int                  @unique @default(autoincrement())
+  materialId              String               @map("material_id") @db.VarChar(36)
+  materialTypeMasterId    String               @map("material_type_id") @db.VarChar(36)
+  status                  Status               @default(active)
+  createdAt               DateTime             @default(now()) @map("created_at")
+  updatedAt               DateTime             @default(now()) @updatedAt @map("updated_at")
+  createdById             String?              @map("created_by_id") @db.VarChar(36)
+  updatedById             String?              @map("updated_by_id") @db.VarChar(36)
+  isActive                Boolean              @default(true) @map("is_active")
+  materialTypeMaster      MaterialTypeMaster   @relation(fields: [materialTypeMasterId], references: [id])
   receiptsconsumptionsRef ReceiptConsumption[]
 
   @@index([code])
@@ -224,10 +221,8 @@ model Stoppage {
   code                Int               @unique @default(autoincrement())
   transactionDate     DateTime          @map("transaction_date") @db.Date
   departmentId        String            @map("department_id") @db.VarChar(36)
-  // equipmentId            String            @map("equipment_id") @db.VarChar(36)
   equipmentMainId     String            @map("equipment_main_id") @db.VarChar(36)
   equipmentSubGroupId String            @map("equipment_sub_group_id") @db.VarChar(36)
-  // equipmentSubSubGroupId String            @map("equipment_sub_Sub_group_id") @db.VarChar(36)
   runningHours        String?           @map("running_hours") @db.VarChar(5)
   stoppageHours       String?           @map("stoppage_hours") @db.VarChar(5)
   totalHours          String?           @map("total_hours") @db.VarChar(5)
@@ -238,7 +233,6 @@ model Stoppage {
   isActive            Boolean           @default(true) @map("is_active")
   stoppageproblems    StoppageProblem[]
 
-  // @@index([equipmentId])
   @@index([departmentId])
   @@index([code])
   @@map("stoppage")
@@ -266,26 +260,26 @@ model StoppageProblem {
 }
 
 model Adjustment {
-  id                String            @id @unique @default(uuid()) @db.VarChar(36)
-  code              Int               @unique @default(autoincrement())
-  toSourceId        String?           @map("to_source_id") @db.VarChar(36)
-  quantity          Decimal           @map("quantity") @db.Decimal(10, 2)
-  remarks           String?           @map("remarks") @db.Text
-  transactionDate   DateTime          @map("transaction_date") @db.Date
-  materialId        String?           @map("material_id") @db.VarChar(36)
-  transactionType   transaction_type? @map("type")
-  transactionTypeId String            @map("transaction_type_id") @db.VarChar(36)
-  wfRequestId       String            @map("wf_request_id") @db.VarChar(36)
-  approvalStatus    approveStatus?    @map("approval_status")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
-  createdById       String?           @map("created_by_id") @db.VarChar(36)
-  updatedById       String?           @map("updated_by_id") @db.VarChar(36)
-  isActive          Boolean           @default(true) @map("is_active")
-
-  transactionTypeRel TransactionType @relation(fields: [transactionTypeId], references: [id])
+  id                 String            @id @unique @default(uuid()) @db.VarChar(36)
+  code               Int               @unique @default(autoincrement())
+  toSourceId         String?           @map("to_source_id") @db.VarChar(36)
+  quantity           Decimal           @map("quantity") @db.Decimal(10, 2)
+  remarks            String?           @map("remarks") @db.Text
+  transactionDate    DateTime          @map("transaction_date") @db.Date
+  materialId         String?           @map("material_id") @db.VarChar(36)
+  transactionType    transaction_type? @map("type")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById        String?           @map("created_by_id") @db.VarChar(36)
+  updatedById        String?           @map("updated_by_id") @db.VarChar(36)
+  isActive           Boolean           @default(true) @map("is_active")
+  approvalStatus     approveStatus?    @map("approval_status")
+  wfRequestId        String            @map("wf_request_id") @db.VarChar(36)
+  transactionTypeId  String            @map("transaction_type_id") @db.VarChar(36)
+  transactionTypeRel TransactionType   @relation(fields: [transactionTypeId], references: [id])
 
   @@index([materialId])
+  @@index([transactionTypeId], map: "adjustment_transaction_type_id_fkey")
   @@map("adjustment")
 }
 
@@ -339,13 +333,13 @@ model PowerTransaction {
   id              String         @id @unique @default(uuid()) @db.VarChar(36)
   code            Int            @unique @default(autoincrement())
   transactionDate DateTime       @map("transaction_date") @db.Date
-  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus? @map("approval_status")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
   createdById     String?        @map("created_by_id") @db.VarChar(36)
   updatedById     String?        @map("updated_by_id") @db.VarChar(36)
   isActive        Boolean        @default(true) @map("is_active")
+  approvalStatus  approveStatus? @map("approval_status")
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
   powerDetails    Power[]
 
   @@index([code])
@@ -380,13 +374,13 @@ model QualityLab {
   ist             String         @map("initial_setting_time") @db.VarChar(36)
   fst             String         @map("final_setting_time") @db.VarChar(36)
   blaine          String         @map("blaine") @db.VarChar(36)
-  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus? @map("approval_status")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
   createdById     String?        @map("created_by_id") @db.VarChar(36)
   updatedById     String?        @map("updated_by_id") @db.VarChar(36)
   isActive        Boolean        @default(true) @map("is_active")
+  approvalStatus  approveStatus? @map("approval_status")
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
 
   @@index([equipmentId])
   @@index([materialId])
@@ -399,7 +393,6 @@ model AnalysisLab {
   code             Int                @unique @default(autoincrement())
   transactionDate  DateTime           @map("transaction_date") @db.Date
   materialId       String             @map("material_id") @db.VarChar(36)
-  // analysisId       String   @map("analysis_id") @db.VarChar(36)
   wfRequestId      String             @map("wf_request_id") @db.VarChar(36)
   approvalStatus   approveStatus?     @map("approval_status")
   createdAt        DateTime           @default(now()) @map("created_at")
@@ -407,41 +400,230 @@ model AnalysisLab {
   createdById      String?            @map("created_by_id") @db.VarChar(36)
   updatedById      String?            @map("updated_by_id") @db.VarChar(36)
   isActive         Boolean            @default(true) @map("is_active")
-  // MaterialAnalysis Analysis @relation(fields: [analysisId], references: [id])
-  // analyses         LabAnalysisTypes[] @relation("LabToTypes")
   LabAnalysisTypes LabAnalysisTypes[]
 
   @@index([materialId])
   @@index([code])
-  // @@index([analysisId])
-  // @@index([materialId,analysisId])
   @@map("lab_analysis")
 }
 
 model LabAnalysisTypes {
-  //? Primary Key
-  id   String @id @unique @default(uuid()) @db.VarChar(36)
-  //? Readable reference Key
-  code Int    @unique @default(autoincrement())
-
-  //? Columns
+  id               String      @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int         @unique @default(autoincrement())
   AnalysisLabId    String      @map("analysis_lab_id") @db.VarChar(36)
   analysisId       String      @map("analysis_id") @db.VarChar(36)
-  MaterialAnalysis Analysis    @relation(fields: [analysisId], references: [id])
-  //? Default columns
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @default(now()) @updatedAt @map("updated_at")
   createdById      String?     @map("created_by_id") @db.VarChar(36)
   updatedById      String?     @map("updated_by_id") @db.VarChar(36)
   isActive         Boolean     @default(true) @map("is_active")
+  MaterialAnalysis Analysis    @relation(fields: [analysisId], references: [id])
   lab              AnalysisLab @relation(fields: [AnalysisLabId], references: [id])
 
-  //? Indexing
-  // @@index([])
   @@index([code])
   @@index([analysisId])
-  //? Table name in DB
+  @@index([AnalysisLabId], map: "lab_analysis_types_analysis_lab_id_fkey")
   @@map("lab_analysis_types")
+}
+
+model externalLabTestingReport {
+  id                   String   @id @unique @default(uuid()) @db.VarChar(36)
+  code                 Int      @unique @default(autoincrement())
+  transactionDate      DateTime @map("transaction_date") @db.Date
+  despatchDate         DateTime @map("despatch_date") @db.Date
+  reportReceivedDate   DateTime @map("report_received_date") @db.Date
+  testingType          String   @map("testing_type") @db.VarChar(36)
+  materialId           String   @map("material_id") @db.VarChar(36)
+  thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
+  remarks              String   @map("remarks") @db.Text
+  labUploadFile        String?  @map("lab_file_name") @db.Text
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById          String?  @map("created_by_id") @db.VarChar(36)
+  updatedById          String?  @map("updated_by_id") @db.VarChar(36)
+  isActive             Boolean  @default(true) @map("is_active")
+
+  @@index([code])
+  @@map("external_lab_testing_report")
+}
+
+model Despatch {
+  id              String            @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int               @unique @default(autoincrement())
+  transactionDate DateTime          @map("transaction_date") @db.Date
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById     String?           @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean           @default(true) @map("is_active")
+  updatedById     String?           @map("updated_by_id") @db.VarChar(36)
+  approvalStatus  approveStatus?    @map("approval_status")
+  wfRequestId     String            @map("wf_request_id") @db.VarChar(36)
+  Despatches      DespatchDetails[]
+
+  @@index([code])
+  @@map("despatch")
+}
+
+model DespatchDetails {
+  id             String   @id @unique @default(uuid()) @db.VarChar(36)
+  code           Int      @unique @default(autoincrement())
+  materialId     String   @map("material_id") @db.VarChar(36)
+  despatchId     String   @map("despatch_id") @db.VarChar(36)
+  railQuantity   Decimal  @map("quantity") @db.Decimal(10, 2)
+  roadQuantity   Decimal  @map("road_quantity") @db.Decimal(10, 2)
+  exportQuantity Decimal  @map("export_quantity") @db.Decimal(10, 2)
+  inlandQuantity Decimal  @map("inland_quantity") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById    String?  @map("created_by_id") @db.VarChar(36)
+  isActive       Boolean  @default(true) @map("is_active")
+  updatedById    String?  @map("updated_by_id") @db.VarChar(36)
+  despatch       Despatch @relation(fields: [despatchId], references: [id])
+
+  @@index([code])
+  @@index([materialId])
+  @@index([despatchId], map: "despatch_details_despatch_id_fkey")
+  @@map("despatch_details")
+}
+
+model ReceiptConsumption {
+  id               String          @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int             @unique @default(autoincrement())
+  transactionDate  DateTime        @map("transaction_date") @db.Date
+  materialType     String          @map("material_type") @db.VarChar(36)
+  materialId       String          @map("material_id") @db.VarChar(36)
+  transactionType  String          @map("transaction_type") @db.VarChar(36)
+  quantity         Decimal         @map("quantity") @db.Decimal(10, 2)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
+  createdById      String?         @map("created_by_id") @db.VarChar(36)
+  isActive         Boolean         @default(true) @map("is_active")
+  updatedById      String?         @map("updated_by_id") @db.VarChar(36)
+  approvalStatus   approveStatus?  @map("approval_status")
+  wfRequestId      String          @map("wf_request_id") @db.VarChar(36)
+  materialTypes    MaterialType    @relation(fields: [materialType], references: [id])
+  transactionTypes TransactionType @relation(fields: [transactionType], references: [id])
+
+  @@index([materialType])
+  @@index([materialId])
+  @@index([transactionType], map: "receipt_consumption_transaction_type_fkey")
+  @@map("receipt_consumption")
+}
+
+model Production {
+  id              String         @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int            @unique @default(autoincrement())
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  equipmentId     String         @map("material_type") @db.VarChar(36)
+  materialId      String         @map("material_id") @db.VarChar(36)
+  runningHours    String?        @map("running_hours") @db.VarChar(5)
+  quantity        Decimal        @map("quantity") @db.Decimal(10, 2)
+  fuelConsumption Decimal        @map("fuelConsumption") @db.Decimal(10, 2)
+  remarks         String?        @map("remarks") @db.Text
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdById     String?        @map("created_by_id") @db.VarChar(36)
+  isActive        Boolean        @default(true) @map("is_active")
+  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
+  approvalStatus  approveStatus? @map("approval_status")
+  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
+
+  @@index([equipmentId])
+  @@index([materialId])
+  @@map("production")
+}
+
+model budget {
+  id              String   @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int      @unique @default(autoincrement())
+  financialYear   String   @map("financial_year") @db.VarChar(36)
+  transactionDate DateTime @map("transaction_date") @db.Date
+  materialId      String?  @map("material_id") @db.VarChar(36)
+  budgetCode      String?  @map("budget_code") @db.VarChar(36)
+  budgetValue     Decimal  @map("budget_value") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById     String?  @map("created_by_id") @db.VarChar(36)
+  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
+  isActive        Boolean  @default(true) @map("is_active")
+
+  @@index([code])
+  @@map("budget")
+}
+
+model MaterialMappingMaster {
+  id               String   @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int      @unique @default(autoincrement())
+  materialMasterId String   @map("material_id") @db.VarChar(36)
+  sourceId         String   @map("source_id") @db.VarChar(36)
+  createdById      String?  @map("created_by_id") @db.VarChar(36)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedById      String?  @map("updated_by_id") @db.VarChar(36)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  status           Status   @default(active)
+  isActive         Boolean  @default(true) @map("is_active")
+  material         Material @relation(fields: [materialMasterId], references: [id])
+
+  @@index([materialMasterId], map: "material_mapping_master_material_id_fkey")
+  @@map("material_mapping_master")
+}
+
+model Material {
+  id                  String                  @id @unique @default(uuid()) @db.VarChar(36)
+  code                Int                     @unique @default(autoincrement())
+  materialTypeId      String                  @map("material_type") @db.VarChar(36)
+  materialDescription String                  @map("material_description") @db.VarChar(200)
+  strength            YesNo
+  analysis            YesNo
+  quality             YesNo
+  glCode              String                  @map("gl_code") @db.VarChar(50)
+  orderOfAppearance   String                  @map("order_of_appearance")
+  isActive            Boolean                 @default(true) @map("is_active")
+  status              Status                  @default(active)
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @default(now()) @updatedAt @map("updated_at")
+  createdById         String?                 @map("created_by_id") @db.VarChar(36)
+  updatedById         String?                 @map("updated_by_id") @db.VarChar(36)
+  materialMappings    MaterialMappingMaster[]
+
+  @@index([code])
+  @@map("material")
+}
+
+model strengthTransactions {
+  id              String            @id @unique @default(uuid()) @db.VarChar(36)
+  code            Int               @unique @default(autoincrement())
+  transactionDate DateTime          @map("transaction_date") @db.Date
+  materialId      String            @map("material_id") @db.VarChar(36)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById     String?           @map("created_by_id") @db.VarChar(36)
+  updatedById     String?           @map("updated_by_id") @db.VarChar(36)
+  isActive        Boolean           @default(true) @map("is_active")
+  samples         strengthSamples[] @relation("TransactionSamples")
+
+  @@map("strength_transactions")
+}
+
+model strengthSamples {
+  id             String               @id @unique @default(uuid()) @db.VarChar(36)
+  code           Int                  @unique @default(autoincrement())
+  transactionId  String               @map("transaction_id") @db.VarChar(36)
+  sampleDate     DateTime             @map("sample_date") @db.Date
+  day1_strength  Decimal              @map("day1_strenght") @db.Decimal(10, 2)
+  day3_strength  Decimal              @map("day3_strenght") @db.Decimal(10, 2)
+  day7_strength  Decimal              @map("day7_strenght") @db.Decimal(10, 2)
+  day28_strength Decimal              @map("day28_strenght") @db.Decimal(10, 2)
+  expansion      Decimal              @map("expansion") @db.Decimal(10, 2)
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @default(now()) @updatedAt @map("updated_at")
+  createdById    String?              @map("created_by_id") @db.VarChar(36)
+  updatedById    String?              @map("updated_by_id") @db.VarChar(36)
+  isActive       Boolean              @default(true) @map("is_active")
+  transaction    strengthTransactions @relation("TransactionSamples", fields: [transactionId], references: [id])
+
+  @@index([transactionId], map: "strength_samples_transaction_id_fkey")
+  @@map("strength_samples")
 }
 
 enum transaction_type {
@@ -463,238 +645,7 @@ enum Status {
   inActive
 }
 
-model externalLabTestingReport {
-  id                   String   @id @unique @default(uuid()) @db.VarChar(36)
-  code                 Int      @unique @default(autoincrement())
-  transactionDate      DateTime @map("transaction_date") @db.Date
-  despatchDate         DateTime @map("despatch_date") @db.Date
-  reportReceivedDate   DateTime @map("report_received_date") @db.Date
-  testingType          String   @map("testing_type") @db.VarChar(36)
-  materialId           String   @map("material_id") @db.VarChar(36)
-  thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
-  remarks              String   @map("remarks") @db.Text
-  labUploadFile        String?  @map("lab_file_name") @db.Text
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById          String?  @map("created_by_id") @db.VarChar(36)
-  updatedById          String?  @map("updated_by_id") @db.VarChar(36)
-  isActive             Boolean  @default(true) @map("is_active")
-
-  //? Indexing
-  // @@index([])
-  @@index([code])
-  //? Table name in DB
-  @@map("external_lab_testing_report")
-}
-
-model Despatch {
-  id              String         @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int            @unique @default(autoincrement())
-  transactionDate DateTime       @map("transaction_date") @db.Date
-  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus? @map("approval_status")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
-  createdById     String?        @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean        @default(true) @map("is_active")
-  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
-
-  Despatches DespatchDetails[]
-
-  @@index([code])
-  @@map("despatch")
-}
-
-model DespatchDetails {
-  id             String   @id @unique @default(uuid()) @db.VarChar(36)
-  code           Int      @unique @default(autoincrement())
-  materialId     String   @map("material_id") @db.VarChar(36)
-  despatchId     String   @map("despatch_id") @db.VarChar(36)
-  railQuantity   Decimal  @map("quantity") @db.Decimal(10, 2)
-  roadQuantity   Decimal  @map("road_quantity") @db.Decimal(10, 2)
-  exportQuantity Decimal  @map("export_quantity") @db.Decimal(10, 2)
-  inlandQuantity Decimal  @map("inland_quantity") @db.Decimal(10, 2)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById    String?  @map("created_by_id") @db.VarChar(36)
-  isActive       Boolean  @default(true) @map("is_active")
-  updatedById    String?  @map("updated_by_id") @db.VarChar(36)
-
-  despatch Despatch @relation(fields: [despatchId], references: [id])
-
-  @@index([code])
-  @@index([materialId])
-  @@map("despatch_details")
-}
-
-model ReceiptConsumption {
-  id              String         @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int            @unique @default(autoincrement())
-  transactionDate DateTime       @map("transaction_date") @db.Date
-  materialType    String         @map("material_type") @db.VarChar(36)
-  materialId      String         @map("material_id") @db.VarChar(36)
-  transactionType String         @map("transaction_type") @db.VarChar(36)
-  quantity        Decimal        @map("quantity") @db.Decimal(10, 2)
-  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus? @map("approval_status")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
-  createdById     String?        @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean        @default(true) @map("is_active")
-  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
-
-  materialTypes    MaterialType    @relation(fields: [materialType], references: [id])
-  transactionTypes TransactionType @relation(fields: [transactionType], references: [id])
-
-  @@index([materialType])
-  @@index([materialId])
-  @@map("receipt_consumption")
-}
-
-model Production {
-  id              String         @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int            @unique @default(autoincrement())
-  transactionDate DateTime       @map("transaction_date") @db.Date
-  equipmentId     String         @map("material_type") @db.VarChar(36)
-  materialId      String         @map("material_id") @db.VarChar(36)
-  runningHours    String?        @map("running_hours") @db.VarChar(5)
-  quantity        Decimal        @map("quantity") @db.Decimal(10, 2)
-  fuelConsumption Decimal        @map("fuelConsumption") @db.Decimal(10, 2)
-  remarks         String?        @map("remarks") @db.Text
-  wfRequestId     String         @map("wf_request_id") @db.VarChar(36)
-  approvalStatus  approveStatus? @map("approval_status")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
-  createdById     String?        @map("created_by_id") @db.VarChar(36)
-  isActive        Boolean        @default(true) @map("is_active")
-  updatedById     String?        @map("updated_by_id") @db.VarChar(36)
-
-  @@index([equipmentId])
-  @@index([materialId])
-  @@map("production")
-}
-
-model budget {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  financialYear   String   @map("financial_year") @db.VarChar(36)
-  transactionDate DateTime @map("transaction_date") @db.Date
-  materialId      String?  @map("material_id") @db.VarChar(36)
-  budgetCode      String?  @map("budget_code") @db.VarChar(36)
-  budgetValue     Decimal  @map("budget_value") @db.Decimal(10, 2)
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
-
-  // ? Indexing
-  // @@index([])
-  @@index([code])
-  // ? Table name in DB
-  @@map("budget")
-}
-
-model MaterialMappingMaster {
-  id               String   @id @unique @default(uuid()) @db.VarChar(36)
-  code             Int      @unique @default(autoincrement())
-  materialMasterId String   @map("material_id") @db.VarChar(36)
-  sourceId         String   @map("source_id") @db.VarChar(36)
-  createdById      String?  @map("created_by_id") @db.VarChar(36)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedById      String?  @map("updated_by_id") @db.VarChar(36)
-  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
-  status           Status   @default(active)
-  isActive         Boolean  @default(true) @map("is_active")
-
-  material Material @relation(fields: [materialMasterId], references: [id])
-
-  @@map("material_mapping_master")
-}
-
-model Material {
-  id   String @id @unique @default(uuid()) @db.VarChar(36)
-  code Int    @unique @default(autoincrement())
-
-  materialTypeId      String   @map("material_type") @db.VarChar(36)
-  materialDescription String   @map("material_description") @db.VarChar(200)
-  strength            YesNo
-  analysis            YesNo
-  quality             YesNo
-  glCode              String   @map("gl_code") @db.VarChar(50)
-  orderOfAppearance   String   @map("order_of_appearance")
-  isActive            Boolean  @default(true) @map("is_active")
-  status              Status   @default(active)
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById         String?  @map("created_by_id") @db.VarChar(36)
-  updatedById         String?  @map("updated_by_id") @db.VarChar(36)
-
-  materialMappings MaterialMappingMaster[]
-
-  //? Indexing
-  @@index([code])
-  //? Table name in DB
-  @@map("material")
-}
-
 enum YesNo {
   Yes
   No
-}
-
-model strengthTransactions {
-  //? Primary Key
-  id   String @id @unique @default(uuid()) @db.VarChar(36)
-  //? Readable reference Key
-  code Int    @unique @default(autoincrement())
-
-  //? Columns
-  transactionDate DateTime @map("transaction_date") @db.Date
-  materialId      String   @map("material_id") @db.VarChar(36)
-
-  //? Default columns
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById String?  @map("created_by_id") @db.VarChar(36)
-  updatedById String?  @map("updated_by_id") @db.VarChar(36)
-  isActive    Boolean  @default(true) @map("is_active")
-
-  samples strengthSamples[] @relation("TransactionSamples")
-  //? Indexing
-  // @@index([])
-
-  //? Table name in DB
-  @@map("strength_transactions")
-}
-
-model strengthSamples {
-  //? Primary Key
-  id   String @id @unique @default(uuid()) @db.VarChar(36)
-  //? Readable reference Key
-  code Int    @unique @default(autoincrement())
-
-  //? Columns
-  transactionId  String   @map("transaction_id") @db.VarChar(36)
-  sampleDate     DateTime @map("sample_date") @db.Date
-  day1_strength  Decimal  @map("day1_strenght") @db.Decimal(10, 2)
-  day3_strength  Decimal  @map("day3_strenght") @db.Decimal(10, 2)
-  day7_strength  Decimal  @map("day7_strenght") @db.Decimal(10, 2)
-  day28_strength Decimal  @map("day28_strenght") @db.Decimal(10, 2)
-  expansion      Decimal  @map("expansion") @db.Decimal(10, 2)
-
-  transaction strengthTransactions @relation("TransactionSamples", fields: [transactionId], references: [id])
-
-  //? Default columns
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById String?  @map("created_by_id") @db.VarChar(36)
-  updatedById String?  @map("updated_by_id") @db.VarChar(36)
-  isActive    Boolean  @default(true) @map("is_active")
-
-  //? Indexing
-  // @@index([])
-
-  //? Table name in DB
-  @@map("strength_samples")
 }

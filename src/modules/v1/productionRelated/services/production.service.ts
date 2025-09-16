@@ -63,10 +63,6 @@ export const getAllproduction = async (
 				? await getUserData(item.createdById)
 				: null;
 
-			const updatedUser = item.updatedById
-				? await getUserData(item.updatedById)
-				: null;
-
 			return {
 				uuid: item.id,
 				productionCode: item.code,
@@ -81,11 +77,8 @@ export const getAllproduction = async (
 				remarks: item.remarks,
 				wfRequestId: item.wfRequestId,
 				createdAt: extractDateTime(item.createdAt, "both"),
-				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdBy: item.createdById,
-				updatedBy: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdByUser: createdUser,
 			};
 		})
 	);
