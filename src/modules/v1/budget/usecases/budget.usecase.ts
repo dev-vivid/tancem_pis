@@ -11,11 +11,11 @@ export const getAllBudgetsUsecase = async (
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	return await getAllBudgets(accessToken,pageNumber, pageSize);
+	return await getAllBudgets(accessToken, pageNumber, pageSize);
 };
 
 export const getBudgetByIdUsecase = async (id: string, accessToken: string) => {
-	return await getBudgetById(id,accessToken);
+	return await getBudgetById(id, accessToken);
 };
 
 export const createBudgetUsecase = async (
@@ -23,6 +23,7 @@ export const createBudgetUsecase = async (
 		financialYear: string;
 		transactionDate: Date;
 		materialId: string;
+		productionCategoryId: string;
 		budgetCode: string;
 		budgetValue: number;
 	},
@@ -37,6 +38,7 @@ export const updateBudgetUsecase = async (
 		financialYear: string;
 		transactionDate: Date;
 		materialId: string;
+		productionCategoryId: string;
 		budgetCode: string;
 		budgetValue: number;
 	}>,

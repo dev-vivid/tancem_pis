@@ -32,7 +32,7 @@ export const createAdjustmentBodySchema = Joi.object({
 	}),
 
 	transactionDate: Joi.string()
-		.pattern(/^\d{2}[-/]\d{2}[-/]\d{4}$/)
+		.pattern(/^\d{2}-\d{2}-\d{4}$/)
 		.required(),
 
 	materialId: Joi.string().uuid().optional().messages({
@@ -69,9 +69,12 @@ export const updateAdjustmentBodySchema = Joi.object({
 		"string.base": "Remarks must be a string",
 	}),
 
-	transactionDate: Joi.date().optional().messages({
-		"date.base": "Transaction date must be a valid date",
-	}),
+	transactionDate: Joi.string()
+		.pattern(/^\d{2}-\d{2}-\d{4}$/)
+		.optional()
+		.messages({
+			"date.base": "Transaction date must be a valid date",
+		}),
 
 	materialId: Joi.string().uuid().optional().messages({
 		"string.guid": "Invalid UUID format for materialId",

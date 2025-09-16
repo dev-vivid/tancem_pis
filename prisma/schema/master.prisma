@@ -84,15 +84,18 @@ model TransactionType {
 }
 
 model ProductionCategory {
-  id          String   @id @unique @default(uuid()) @db.VarChar(36)
-  code        Int      @unique @default(autoincrement())
-  name        String   @db.VarChar(50)
-  status      Status   @default(active)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById String?  @map("created_by_id") @db.VarChar(36)
-  updatedById String?  @map("updated_by_id") @db.VarChar(36)
-  isActive    Boolean  @default(true) @map("is_active")
+  id                     String   @id @unique @default(uuid()) @db.VarChar(36)
+  code                   Int      @unique @default(autoincrement())
+  name                   String   @db.VarChar(50)
+  productionCategoryCode String?  @map("product_category_code") @db.VarChar(50)
+  status                 Status   @default(active)
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById            String?  @map("created_by_id") @db.VarChar(36)
+  updatedById            String?  @map("updated_by_id") @db.VarChar(36)
+  isActive               Boolean  @default(true) @map("is_active")
+
+  budgets budget[]
 
   @@index([code])
   @@map("production_category")
@@ -412,6 +415,7 @@ model LabAnalysisTypes {
   code             Int         @unique @default(autoincrement())
   AnalysisLabId    String      @map("analysis_lab_id") @db.VarChar(36)
   analysisId       String      @map("analysis_id") @db.VarChar(36)
+  value            Decimal?    @db.Decimal(10, 4)
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @default(now()) @updatedAt @map("updated_at")
   createdById      String?     @map("created_by_id") @db.VarChar(36)
@@ -534,18 +538,21 @@ model Production {
 }
 
 model budget {
-  id              String   @id @unique @default(uuid()) @db.VarChar(36)
-  code            Int      @unique @default(autoincrement())
-  financialYear   String   @map("financial_year") @db.VarChar(36)
-  transactionDate DateTime @map("transaction_date") @db.Date
-  materialId      String?  @map("material_id") @db.VarChar(36)
-  budgetCode      String?  @map("budget_code") @db.VarChar(36)
-  budgetValue     Decimal  @map("budget_value") @db.Decimal(10, 2)
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById     String?  @map("created_by_id") @db.VarChar(36)
-  updatedById     String?  @map("updated_by_id") @db.VarChar(36)
-  isActive        Boolean  @default(true) @map("is_active")
+  id                   String   @id @unique @default(uuid()) @db.VarChar(36)
+  code                 Int      @unique @default(autoincrement())
+  financialYear        String   @map("financial_year") @db.VarChar(36)
+  transactionDate      DateTime @map("transaction_date") @db.Date
+  materialId           String?  @map("material_id") @db.VarChar(36)
+  productionCategoryId String?  @map("production_category_id") @db.VarChar(36)
+  budgetCode           String?  @map("budget_code") @db.VarChar(36)
+  budgetValue          Decimal  @map("budget_value") @db.Decimal(10, 2)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById          String?  @map("created_by_id") @db.VarChar(36)
+  updatedById          String?  @map("updated_by_id") @db.VarChar(36)
+  isActive             Boolean  @default(true) @map("is_active")
+
+  productionCategory ProductionCategory? @relation(fields: [productionCategoryId], references: [id])
 
   @@index([code])
   @@map("budget")

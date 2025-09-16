@@ -28,6 +28,7 @@ export const getAllproduction = async (
 	const production = await tx.production.findMany({
 		skip,
 		take,
+		where: { isActive: true },
 		orderBy: {
 			createdAt: "desc",
 		},
@@ -46,6 +47,7 @@ export const getAllproduction = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			isActive: true,
 		},
 	});
 
@@ -77,6 +79,7 @@ export const getAllproduction = async (
 				remarks: item.remarks,
 				wfRequestId: item.wfRequestId,
 				createdAt: extractDateTime(item.createdAt, "both"),
+				isActive: item.isActive,
 				createdBy: item.createdById,
 				createdByUser: createdUser,
 			};
@@ -94,14 +97,8 @@ export const getIdproduction = async (
 	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const totalRecords = await tx.production.count({
-		where: {
-			isActive: true,
-		},
-	});
-
-	const item = await tx.production.findUnique({
-		where: { id },
+	const item = await tx.production.findFirst({
+		where: { id, isActive: true },
 		select: {
 			id: true,
 			code: true,
@@ -117,6 +114,7 @@ export const getIdproduction = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			isActive: true,
 		},
 	});
 
@@ -156,12 +154,13 @@ export const getIdproduction = async (
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
+		isActive: item.isActive,
 		createdUser: createdUser,
 		updatedUser: updatedUser,
 	};
 
 	return {
-		totalRecords,
+		totalRecords: 1,
 		data,
 	};
 };
@@ -215,7 +214,8 @@ export const createproduction = async (
 			fuelConsumption: productionData.fuelConsumption
 				? Number(productionData.fuelConsumption)
 				: 0,
-			remarks: productionData.remarks,
+			remarks: productionData.remarks || undefined,
+
 			createdById: user,
 		},
 	});

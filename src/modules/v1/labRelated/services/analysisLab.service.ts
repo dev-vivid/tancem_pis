@@ -43,13 +43,16 @@ export const createAnalysisLab = async (
 		},
 	});
 
-	if (data.analysisId && data.analysisId.length > 0) {
+	if (data.analysisValues && data.analysisValues.length > 0) {
 		await tx.labAnalysisTypes.createMany({
-			data: data.analysisId.map((analysisId: string) => ({
-				AnalysisLabId: lab.id,
-				analysisId,
-				createdById: user,
-			})),
+			data: data.analysisValues.map(
+				(a: { analysisId: string; value?: number }) => ({
+					AnalysisLabId: lab.id,
+					analysisId: a.analysisId,
+					value: a.value ?? null,
+					createdById: user,
+				})
+			),
 		});
 	}
 
@@ -71,7 +74,59 @@ export const updateAnalysisLab = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const lab = await tx.analysisLab.update({
+	const existing = await tx.analysisLab.findUnique({
+		where: { id, isActive: true },
+		include: { LabAnalysisTypes: true },
+	});
+
+	if (!existing) {
+		throw new Error("Analysis Lab not found");
+	}
+
+	// Get existing active analysisIds
+	const existingIds = existing.LabAnalysisTypes.map((a) => a.analysisId);
+
+	// Get analysisIds from request
+	const incoming = data.analysisValues ?? [];
+	const incomingIds = incoming.map((a: any) => a.analysisId);
+
+	for (const id of existingIds) {
+		if (!incomingIds.includes(id)) {
+			await tx.labAnalysisTypes.updateMany({
+				where: { AnalysisLabId: existing.id, analysisId: id },
+				data: { isActive: false, updatedById: user },
+			});
+		}
+	}
+
+	for (const a of incoming) {
+		const found = existing.LabAnalysisTypes.find(
+			(e) => e.analysisId === a.analysisId && e.isActive
+		);
+
+		if (found) {
+			// Update value if exists
+			await tx.labAnalysisTypes.update({
+				where: { id: found.id },
+				data: {
+					value: a.value ?? null,
+					updatedById: user,
+				},
+			});
+		} else {
+			// Insert new
+			await tx.labAnalysisTypes.create({
+				data: {
+					AnalysisLabId: existing.id,
+					analysisId: a.analysisId,
+					value: a.value ?? null,
+					createdById: user,
+				},
+			});
+		}
+	}
+
+	await tx.analysisLab.update({
 		where: { id },
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
@@ -79,41 +134,6 @@ export const updateAnalysisLab = async (
 			updatedById: user,
 		},
 	});
-
-	const existing = await tx.labAnalysisTypes.findMany({
-		where: { AnalysisLabId: id },
-		select: { analysisId: true },
-	});
-
-	const existingIds = existing.map((e) => e.analysisId);
-	const newIds: string[] = data.analysisId || [];
-
-	const toAdd = newIds.filter((x) => !existingIds.includes(x));
-	const toRemove = existingIds.filter((x) => !newIds.includes(x));
-
-	if (toRemove.length > 0) {
-		await tx.labAnalysisTypes.updateMany({
-			where: {
-				AnalysisLabId: id,
-				analysisId: { in: toRemove },
-			},
-			data: {
-				isActive: false,
-				updatedById: user,
-				updatedAt: new Date(),
-			},
-		});
-	}
-
-	if (toAdd.length > 0) {
-		await tx.labAnalysisTypes.createMany({
-			data: toAdd.map((analysisId: string) => ({
-				AnalysisLabId: id,
-				analysisId,
-				createdById: user,
-			})),
-		});
-	}
 };
 
 export const getAllAnalysisLab = async (
@@ -178,14 +198,13 @@ export const getAllAnalysisLab = async (
 				materialId: item.materialId,
 				materialName: materialName?.name ?? null,
 				analysisTypeCount: item.LabAnalysisTypes.length,
-				analysisType:
-					item.LabAnalysisTypes.length > 0
-						? {
-								analysisType: item.LabAnalysisTypes[0].MaterialAnalysis.type,
-								analysisName:
-									item.LabAnalysisTypes[0].MaterialAnalysis.description,
-						  }
-						: null,
+				analysisTypes:
+					item.LabAnalysisTypes.map((a) => ({
+						id: a.MaterialAnalysis.id,
+						type: a.MaterialAnalysis.type,
+						name: a.MaterialAnalysis.description,
+						value: a.value?.toString() ?? null, // Include the new value field
+					})) || [],
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
@@ -247,6 +266,7 @@ export const getAnalysisLabById = async (
 			id: a.MaterialAnalysis.id,
 			type: a.MaterialAnalysis.type,
 			name: a.MaterialAnalysis.description,
+			value: a.value?.toString() ?? null,
 		})),
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),

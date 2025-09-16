@@ -27,7 +27,7 @@ export const getAllBudgets = async (
 			code: true,
 			financialYear: true,
 			transactionDate: true,
-			materialId: true,
+			productionCategoryId: true,
 			budgetCode: true,
 			budgetValue: true,
 			createdAt: true,
@@ -35,15 +35,20 @@ export const getAllBudgets = async (
 			updatedAt: true,
 			updatedById: true,
 			isActive: true,
+			productionCategory: {
+				select: {
+					name: true,
+				},
+			},
 		},
 	});
 
 	const data = await Promise.all(
 		budgets.map(async (item) => {
-			const materialName =
-				item.materialId && accessToken
-					? await getMaterialName(item.materialId, accessToken)
-					: null;
+			// const materialName =
+			// 	item.materialId && accessToken
+			// 		? await getMaterialName(item.materialId, accessToken)
+			// 		: null;
 
 			const createdUser = item.createdById
 				? await getUserData(item.createdById)
@@ -53,13 +58,21 @@ export const getAllBudgets = async (
 				: null;
 
 			return {
-				...item,
-				materialName: materialName?.name || null,
+				uuid: item.id,
+				code: item.code,
+				financialYear: item.financialYear,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
+				productionCategoryId: item.productionCategoryId,
+				budgetCode: item.budgetCode,
+				budgetValue: item.budgetValue,
 				createdAt: extractDateTime(item.createdAt, "both"),
+				createdById: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				updatedById: item.updatedById,
+				isActive: item.isActive,
+				productionCategory: item.productionCategory,
+				createdUser,
+				updatedUser,
 			};
 		})
 	);
@@ -80,7 +93,7 @@ export const getBudgetById = async (
 			code: true,
 			financialYear: true,
 			transactionDate: true,
-			materialId: true,
+			productionCategoryId: true,
 			budgetCode: true,
 			budgetValue: true,
 			createdAt: true,
@@ -88,15 +101,20 @@ export const getBudgetById = async (
 			updatedAt: true,
 			updatedById: true,
 			isActive: true,
+			productionCategory: {
+				select: {
+					name: true,
+				},
+			},
 		},
 	});
 
 	if (!budget) throw new Error("Budget record not found");
 
-	const materialName =
-		budget.materialId && accessToken
-			? await getMaterialName(budget.materialId, accessToken)
-			: null;
+	// const materialName =
+	// 	budget.materialId && accessToken
+	// 		? await getMaterialName(budget.materialId, accessToken)
+	// 		: null;
 
 	const createdUser = budget.createdById
 		? await getUserData(budget.createdById)
@@ -106,13 +124,22 @@ export const getBudgetById = async (
 		: null;
 
 	const data = {
-		...budget,
-		materialName: materialName?.name || null,
+		uuid: budget.id,
+		code: budget.code,
+		financialYear: budget.financialYear,
 		transactionDate: extractDateTime(budget.transactionDate, "date"),
+		productionCategoryId: budget.productionCategoryId,
+		budgetCode: budget.budgetCode,
+		budgetValue: budget.budgetValue,
 		createdAt: extractDateTime(budget.createdAt, "both"),
+		createdById: budget.createdById,
 		updatedAt: extractDateTime(budget.updatedAt, "both"),
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		updatedById: budget.updatedById,
+		isActive: budget.isActive,
+		productionCategory: budget.productionCategory,
+		// materialName: materialName?.name || null,
+		createdUser,
+		updatedUser,
 	};
 
 	return { data };
@@ -124,6 +151,7 @@ export const createBudget = async (
 		financialYear: string;
 		transactionDate: Date;
 		materialId?: string;
+		productionCategoryId: string;
 		budgetCode: string;
 		budgetValue: number;
 	},

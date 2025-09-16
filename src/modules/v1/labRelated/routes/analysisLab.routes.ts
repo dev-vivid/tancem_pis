@@ -30,7 +30,7 @@ analysisLabRouter.post(
 
 analysisLabRouter.put(
 	"/analysisLabEdit/:id",
-	validateRequest(analysisLabFormSchema, "body"),
+	// validateRequest(analysisLabFormSchema, "body"),
 	updateAnalysisLab
 );
 

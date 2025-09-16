@@ -25,6 +25,7 @@ export const getAllreceipt = async (
 	const receipt = await tx.receiptConsumption.findMany({
 		skip,
 		take,
+		where: { isActive: true },
 		orderBy: {
 			createdAt: "desc",
 		},
@@ -41,6 +42,7 @@ export const getAllreceipt = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			isActive: true,
 			transactionTypes: {
 				select: {
 					id: true,
@@ -93,6 +95,7 @@ export const getAllreceipt = async (
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdBy: item.createdById,
 				updatedBy: item.updatedById,
+				isActive: item.isActive,
 				createdUser,
 				updatedUser,
 			};
@@ -110,8 +113,8 @@ export const getIdreceipt = async (
 	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const item = await tx.receiptConsumption.findUnique({
-		where: { id },
+	const item = await tx.receiptConsumption.findFirst({
+		where: { id, isActive: true },
 		select: {
 			id: true,
 			code: true,
@@ -125,6 +128,7 @@ export const getIdreceipt = async (
 			createdById: true,
 			updatedAt: true,
 			updatedById: true,
+			isActive: true,
 			transactionTypes: {
 				select: {
 					id: true,
@@ -179,6 +183,7 @@ export const getIdreceipt = async (
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
+		isActive: item.isActive,
 		createdUser,
 		updatedUser,
 	};

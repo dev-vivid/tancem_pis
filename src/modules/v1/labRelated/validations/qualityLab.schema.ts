@@ -6,19 +6,23 @@ export const qualityLabFilterQuerySchema = Joi.object({
 });
 
 export const qualityLabFormSchema = Joi.object({
-	transactionDate: Joi.string().required(),
+	transactionDate: Joi.string()
+		.pattern(/^\d{2}-\d{2}-\d{4}$/)
+		.required(),
 	materialId: Joi.string().required(),
 	equipmentId: Joi.string().required(),
 	ist: Joi.string().optional(),
 	fst: Joi.string().optional(),
-	blaine: Joi.string().optional(),
+	blaine: Joi.string().optional().allow(""),
 });
 
 export const qualityLabUpdateFormSchema = Joi.object({
-	transactionDate: Joi.string().optional(),
+	transactionDate: Joi.string()
+		.pattern(/^\d{2}-\d{2}-\d{4}$/)
+		.optional(),
 	materialId: Joi.string().optional(),
 	equipmentId: Joi.string().optional(),
 	ist: Joi.string().optional(),
 	fst: Joi.string().optional(),
-	blaine: Joi.string().optional(),
+	blaine: Joi.string().optional().allow(""),
 });
