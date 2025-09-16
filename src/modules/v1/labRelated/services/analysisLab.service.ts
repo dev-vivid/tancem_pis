@@ -178,11 +178,14 @@ export const getAllAnalysisLab = async (
 				materialId: item.materialId,
 				materialName: materialName?.name ?? null,
 				analysisTypeCount: item.LabAnalysisTypes.length,
-				analysis: item.LabAnalysisTypes.map((a) => ({
-					id: a.MaterialAnalysis.id,
-					type: a.MaterialAnalysis.type,
-					name: a.MaterialAnalysis.description,
-				})),
+				analysisType:
+					item.LabAnalysisTypes.length > 0
+						? {
+								analysisType: item.LabAnalysisTypes[0].MaterialAnalysis.type,
+								analysisName:
+									item.LabAnalysisTypes[0].MaterialAnalysis.description,
+						  }
+						: null,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
