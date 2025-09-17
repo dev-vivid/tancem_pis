@@ -26,12 +26,12 @@ import receiptRouter from "@module/v1/productionRelated/routes/receipt.routes";
 import labReport from "@module/v1/labRelated/routes/externalLabTestingReport.routes";
 import budgetRouter from "@module/v1/budget/routes/budget.routes";
 import strengthRouter from "@module/v1/labRelated/routes/strength.routes";
-// import materialMappingMaster from "@module/v1/master/routes/materialMappingMaster.routes";
-// import material from "@module/v1/master/routes/material.routes";
+import materialMappingMaster from "@module/v1/master/routes/materialMappingMaster.routes";
+import material from "@module/v1/master/routes/material.routes";
 import mappingRouter from "@module/v1/master/routes/equipmentOutputMaterialMapping.routes";
 
-// routes.use(``, [baseAuth], materialMappingMaster);
-// routes.use(``, [baseAuth], material);
+routes.use(``, [baseAuth], materialMappingMaster);
+routes.use(``, [baseAuth], material);
 routes.use(``, [baseAuth], budgetRouter);
 routes.use(``, [baseAuth], analysisRouter);
 routes.use(``, [baseAuth], problemCodeRouter);

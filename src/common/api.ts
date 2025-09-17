@@ -92,7 +92,16 @@ export const getMaterialName = async (
 		if (salesResponse.ok) {
 			const salesData = await salesResponse.json();
 			if (salesData?.data?.list) {
-				return salesData.data.list;
+				const list = Array.isArray(salesData.data.list)
+					? salesData.data.list.find((x: any) => x.id === materialId)
+					: salesData.data.list;
+
+				if (list) {
+					return {
+						id: list.id,
+						name: list.productDescription || list.name || "",
+					};
+				}
 			}
 		}
 	} catch (error) {
@@ -113,19 +122,19 @@ export const getMaterialName = async (
 		if (invResponse.ok) {
 			const invData = await invResponse.json();
 
-			// ✅ Case: list is a single object (your API case)
+			// Case: list is a single object
 			if (invData?.data?.list && typeof invData.data.list === "object") {
 				return {
 					id: invData.data.list.id,
-					name: invData.data.list.productDescription,
+					name: invData.data.list.productDescription || "",
 				};
 			}
 
-			// ✅ Case: list is an array (future-proof)
+			// Case: list is an array
 			if (Array.isArray(invData?.data?.list)) {
 				const item = invData.data.list.find((x: any) => x.id === materialId);
 				if (item) {
-					return { id: item.id, name: item.productDescription };
+					return { id: item.id, name: item.productDescription || "" };
 				}
 			}
 		}
@@ -135,7 +144,9 @@ export const getMaterialName = async (
 			error
 		);
 	}
+
 	// ---- 3. Nothing found ----
+	console.warn(`Material not found for ID: ${materialId}`);
 	return null;
 };
 
