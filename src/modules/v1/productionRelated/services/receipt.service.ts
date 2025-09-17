@@ -36,7 +36,7 @@ export const getAllreceipt = async (
 			quantity: true,
 			wfRequestId: true,
 			materialId: true,
-			materialType: true,
+			materialTypeId: true,
 			transactionType: true,
 			createdAt: true,
 			createdById: true,
@@ -49,16 +49,10 @@ export const getAllreceipt = async (
 					name: true,
 				},
 			},
-			// ✅ include materialType master table
-			materialTypes: {
+			materialType: {
 				select: {
 					id: true,
-					materialTypeMaster: {
-						select: {
-							id: true,
-							name: true,
-						},
-					},
+					name: true,
 				},
 			},
 		},
@@ -85,9 +79,8 @@ export const getAllreceipt = async (
 				quantity: item.quantity,
 				materialId: item.materialId,
 				materialName: materialName ? materialName.name : null,
-				materialType: item.materialType,
-				materialTypeName: item.materialTypes?.materialTypeMaster?.name,
-				// ✅ added field
+				materialType: item.materialTypeId,
+				materialTypeName: item.materialType?.name || null,
 				transactionType: item.transactionType,
 				transactionTypeName: item.transactionTypes?.name,
 				wfRequestId: item.wfRequestId,
@@ -121,7 +114,7 @@ export const getIdreceipt = async (
 			transactionDate: true,
 			quantity: true,
 			materialId: true,
-			materialType: true,
+			materialTypeId: true,
 			transactionType: true,
 			wfRequestId: true,
 			createdAt: true,
@@ -135,16 +128,10 @@ export const getIdreceipt = async (
 					name: true,
 				},
 			},
-			// ✅ include materialType master table
-			materialTypes: {
+			materialType: {
 				select: {
 					id: true,
-					materialTypeMaster: {
-						select: {
-							id: true,
-							name: true,
-						},
-					},
+					name: true,
 				},
 			},
 		},
@@ -173,9 +160,8 @@ export const getIdreceipt = async (
 		quantity: item.quantity,
 		materialId: item.materialId,
 		materialName: materialName ? materialName.name : null,
-		materialType: item.materialType,
-		materialTypeName: item.materialTypes?.materialTypeMaster?.name || null,
-		// ✅ added field
+		materialTypeId: item.materialTypeId,
+		materialTypeName: item.materialType?.name || null,
 		transactionType: item.transactionType,
 		transactionTypeName: item.transactionTypes?.name || null,
 		wfRequestId: item.wfRequestId,
@@ -195,7 +181,7 @@ export const getIdreceipt = async (
 };
 
 type receiptData = {
-	transactionDate: string; // single
+	transactionDate: string;
 	receiptDetails: {
 		quantity: string;
 		materialId: string;
@@ -207,22 +193,13 @@ type receiptData = {
 	status?: string;
 };
 
-// function parseDDMMYYYY(dateStr: string): Date | null {
-// 	if (!dateStr) return null;
-// 	const [day, month, year] = dateStr.split("-");
-// 	if (!day || !month || !year) return null;
-// 	return new Date(`${year}-${month}-${day}`); // convert to YYYY-MM-DD
-// }
-
 export const createreceipt = async (
 	receiptData: receiptData,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	const parsedDate = parseDateOnly(receiptData.transactionDate);
-	// if (!parsedDate || isNaN(parsedDate.getTime())) {
-	// 	throw new Error("Invalid transactionDate format. Expected DD-MM-YYYY");
-	// }
+
 	// const wfRequestId = await createWorkflowRequest({
 	// 	userId: user,
 	// 	initiatorRoleId: receiptData.initiatorRoleId,
@@ -235,7 +212,7 @@ export const createreceipt = async (
 		transactionDate: parsedDate,
 		quantity: r.quantity ? Number(r.quantity) : 0,
 		materialId: r.materialId,
-		materialType: r.materialType,
+		materialTypeId: r.materialType,
 		transactionType: r.transactionType,
 		wfRequestId: "",
 		createdById: user,
@@ -248,7 +225,7 @@ export const createreceipt = async (
 
 export const updatereceipt = async (
 	id: string,
-	receiptData: any, // directly from req.body
+	receiptData: any,
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
@@ -258,7 +235,6 @@ export const updatereceipt = async (
 
 	const updateData: any = { updatedById: user };
 
-	// update only when provided
 	if (receiptData.transactionDate) {
 		updateData.transactionDate = parseDateOnly(receiptData.transactionDate);
 	}
