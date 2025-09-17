@@ -20,7 +20,6 @@ export const getAllEquipmentOutputMaterialMappings = async (
 		isActive: true,
 		...(status ? { status: status as Status } : {}),
 		...(equipmentId ? { equipmentId } : {}),
-
 	};
 
 	const totalRecords = await tx.equipmentOutputMaterialMapping.count({
@@ -172,38 +171,30 @@ export const createEquipmentOutputMaterialMapping = async (
 // ✅ Update multiple mappings
 export const updateEquipmentOutputMaterialMapping = async (
 	id: string,
-	mappingsWrapper: {
-		mappings: {
-			equipmentId?: string;
-			materialId?: string;
-			status: Status;
-		}[];
+	mapping: {
+		equipmentId?: string;
+		materialId?: string;
+		status: Status;
 	},
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { mappings } = mappingsWrapper;
-
-	if (!mappings || mappings.length === 0) {
-		throw new Error("At least one mapping is required for update");
+	// Ensure mapping object is provided
+	if (!mapping) {
+		throw new Error("Mapping data is required for update");
 	}
 
-	const updatePromises = mappings.map((mapping) =>
-		tx.equipmentOutputMaterialMapping.update({
-			where: { id },
-			data: {
-				equipmentId: mapping.equipmentId,
-				materialId: mapping.materialId,
-				status: mapping.status,
-				updatedById: user,
-			},
-		})
-	);
+	const updatedRecord = await tx.equipmentOutputMaterialMapping.update({
+		where: { id },
+		data: {
+			equipmentId: mapping.equipmentId,
+			materialId: mapping.materialId,
+			status: mapping.status,
+			updatedById: user,
+		},
+	});
 
-	// Execute all updates in parallel
-	const updatedRecords = await Promise.all(updatePromises);
-
-	// return updatedRecords;
+	// return updatedRecord;
 };
 
 // ✅ Soft delete mapping
