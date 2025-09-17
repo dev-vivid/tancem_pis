@@ -62,6 +62,7 @@ export const getAllproduction = async (
 			const createdUser = item.createdById
 				? await getUserData(item.createdById)
 				: null;
+			console.log(materialName);
 
 			return {
 				uuid: item.id,

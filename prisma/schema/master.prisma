@@ -102,18 +102,17 @@ model ProductionCategory {
 }
 
 model MaterialType {
-  id                      String               @id @unique @default(uuid()) @db.VarChar(36)
-  code                    Int                  @unique @default(autoincrement())
-  materialId              String               @map("material_id") @db.VarChar(36)
-  materialTypeMasterId    String               @map("material_type_id") @db.VarChar(36)
-  status                  Status               @default(active)
-  createdAt               DateTime             @default(now()) @map("created_at")
-  updatedAt               DateTime             @default(now()) @updatedAt @map("updated_at")
-  createdById             String?              @map("created_by_id") @db.VarChar(36)
-  updatedById             String?              @map("updated_by_id") @db.VarChar(36)
-  isActive                Boolean              @default(true) @map("is_active")
-  materialTypeMaster      MaterialTypeMaster   @relation(fields: [materialTypeMasterId], references: [id])
-  receiptsconsumptionsRef ReceiptConsumption[]
+  id                   String             @id @unique @default(uuid()) @db.VarChar(36)
+  code                 Int                @unique @default(autoincrement())
+  materialId           String             @map("material_id") @db.VarChar(36)
+  materialTypeMasterId String             @map("material_type_id") @db.VarChar(36)
+  status               Status             @default(active)
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById          String?            @map("created_by_id") @db.VarChar(36)
+  updatedById          String?            @map("updated_by_id") @db.VarChar(36)
+  isActive             Boolean            @default(true) @map("is_active")
+  materialTypeMaster   MaterialTypeMaster @relation(fields: [materialTypeMasterId], references: [id])
 
   @@index([code])
   @@index([materialTypeMasterId], map: "material_type_material_type_id_fkey")
@@ -121,17 +120,18 @@ model MaterialType {
 }
 
 model MaterialTypeMaster {
-  id               String         @id @unique @default(uuid()) @db.VarChar(36)
-  code             Int            @unique @default(autoincrement())
-  name             String         @db.VarChar(50)
-  materialTypeCode String         @map("material_type_code")
-  status           Status         @default(active)
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at")
-  createdById      String?        @map("created_by_id") @db.VarChar(36)
-  updatedById      String?        @map("updated_by_id") @db.VarChar(36)
-  isActive         Boolean        @default(true) @map("is_active")
-  materialTypes    MaterialType[]
+  id                  String               @id @unique @default(uuid()) @db.VarChar(36)
+  code                Int                  @unique @default(autoincrement())
+  name                String               @db.VarChar(50)
+  materialTypeCode    String               @map("material_type_code")
+  status              Status               @default(active)
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at")
+  createdById         String?              @map("created_by_id") @db.VarChar(36)
+  updatedById         String?              @map("updated_by_id") @db.VarChar(36)
+  isActive            Boolean              @default(true) @map("is_active")
+  materialTypes       MaterialType[]
+  receiptConsumptions ReceiptConsumption[]
 
   @@index([code])
   @@map("material_type_master")
@@ -491,24 +491,24 @@ model DespatchDetails {
 }
 
 model ReceiptConsumption {
-  id               String          @id @unique @default(uuid()) @db.VarChar(36)
-  code             Int             @unique @default(autoincrement())
-  transactionDate  DateTime        @map("transaction_date") @db.Date
-  materialType     String          @map("material_type") @db.VarChar(36)
-  materialId       String          @map("material_id") @db.VarChar(36)
-  transactionType  String          @map("transaction_type") @db.VarChar(36)
-  quantity         Decimal         @map("quantity") @db.Decimal(10, 2)
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
-  createdById      String?         @map("created_by_id") @db.VarChar(36)
-  isActive         Boolean         @default(true) @map("is_active")
-  updatedById      String?         @map("updated_by_id") @db.VarChar(36)
-  approvalStatus   approveStatus?  @map("approval_status")
-  wfRequestId      String          @map("wf_request_id") @db.VarChar(36)
-  materialTypes    MaterialType    @relation(fields: [materialType], references: [id])
-  transactionTypes TransactionType @relation(fields: [transactionType], references: [id])
+  id               String             @id @unique @default(uuid()) @db.VarChar(36)
+  code             Int                @unique @default(autoincrement())
+  transactionDate  DateTime           @map("transaction_date") @db.Date
+  materialTypeId   String             @map("material_type") @db.VarChar(36)
+  materialId       String             @map("material_id") @db.VarChar(36)
+  transactionType  String             @map("transaction_type") @db.VarChar(36)
+  quantity         Decimal            @map("quantity") @db.Decimal(10, 2)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById      String?            @map("created_by_id") @db.VarChar(36)
+  isActive         Boolean            @default(true) @map("is_active")
+  updatedById      String?            @map("updated_by_id") @db.VarChar(36)
+  approvalStatus   approveStatus?     @map("approval_status")
+  wfRequestId      String             @map("wf_request_id") @db.VarChar(36)
+  materialType     MaterialTypeMaster @relation(fields: [materialTypeId], references: [id])
+  transactionTypes TransactionType    @relation(fields: [transactionType], references: [id])
 
-  @@index([materialType])
+  @@index([materialTypeId])
   @@index([materialId])
   @@index([transactionType], map: "receipt_consumption_transaction_type_fkey")
   @@map("receipt_consumption")

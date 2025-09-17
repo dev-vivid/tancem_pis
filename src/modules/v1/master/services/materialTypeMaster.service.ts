@@ -20,7 +20,7 @@ export const getAllMaterialTypeMaster = async (
 		whereClause.status = status;
 	}
 
-	const totalRecords = await tx.equipment.count({
+	const totalRecords = await tx.materialTypeMaster.count({
 		where: whereClause,
 	});
 
