@@ -24,16 +24,9 @@ export const createMappingBodySchema = Joi.object({
 });
 
 export const updateMappingBodySchema = Joi.object({
-	mappings: Joi.array()
-		.items(
-			Joi.object({
-				equipmentId: Joi.string().optional(),
-				materialId: Joi.string().optional(),
-				status: Joi.string().valid("active", "inActive").optional(),
-			})
-		)
-		.min(1)
-		.required(),
+	equipmentId: Joi.string().optional(),
+	materialId: Joi.string().optional(),
+	status: Joi.string().valid("active", "inActive").optional(),
 });
 
 export const updateMappingParamsSchema = Joi.object({
