@@ -9,9 +9,9 @@ export const getAllproductionUsecase = async (
 	pageNumber?: string,
 	pageSize?: string
 ) => {
-	const page = pageNumber ? parseInt(pageNumber, 10) : undefined;
-	const size = pageSize ? parseInt(pageSize, 10) : undefined;
-	return await getAllproduction(accessToken, page, size);
+	// const page = pageNumber ? parseInt(pageNumber, 10) : 1;
+	// const size = pageSize ? parseInt(pageSize, 10) : 10;
+	return await getAllproduction(accessToken, pageNumber, pageSize);
 };
 
 export const getIdproductionUsecase = async (

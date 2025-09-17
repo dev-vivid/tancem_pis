@@ -12,7 +12,7 @@ export const createBudgetBodySchema = Joi.object({
 		.required(),
 	productionCategoryId: Joi.string().required(),
 	materialId: Joi.string().optional(),
-	budgetCode: Joi.string().required(),
+	budgetCode: Joi.string().optional(),
 	budgetValue: Joi.number().required(),
 });
 

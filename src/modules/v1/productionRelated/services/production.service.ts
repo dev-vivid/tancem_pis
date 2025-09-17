@@ -12,14 +12,12 @@ import getUserData from "@shared/prisma/queries/getUserById";
 
 export const getAllproduction = async (
 	accessToken: string,
-	pageNumber?: number,
-	pageSize?: number,
+	pageNumber?: string,
+	pageSize?: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const { skip, take } = pageConfig({
-		pageNumber: pageNumber?.toString(),
-		pageSize: pageSize?.toString(),
-	});
+	const { skip, take } = pageConfig({ pageNumber, pageSize });
+	console.log({ skip, take });
 
 	const totalRecords = await tx.production.count({
 		where: { isActive: true },

@@ -152,7 +152,7 @@ export const createBudget = async (
 		transactionDate: Date;
 		materialId?: string;
 		productionCategoryId: string;
-		budgetCode: string;
+		budgetCode?: string;
 		budgetValue: number;
 	},
 	user: string,
