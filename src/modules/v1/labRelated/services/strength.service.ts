@@ -14,23 +14,70 @@ export const createStrength = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	// Transform the samples data to match the database schema
+	const transformedSamples = [];
+
+	if (data.samples && data.samples.length > 0) {
+		// Process Day 1 sample
+		if (data.samples[0] && data.samples[0].sampleDate1) {
+			transformedSamples.push({
+				sampleDate: parseDateOnly(data.samples[0].sampleDate1),
+				day1_strength: data.samples[0].day1 ?? 0,
+				day3_strength: data.samples[0].day3 ?? 0,
+				day7_strength: data.samples[0].day7 ?? 0,
+				day28_strength: data.samples[0].day28 ?? 0,
+				expansion: data.samples[0].expansion ?? 0,
+				createdById: user,
+			});
+		}
+
+		// Process Day 3 sample
+		if (data.samples[1] && data.samples[1].sampleDate3) {
+			transformedSamples.push({
+				sampleDate: parseDateOnly(data.samples[1].sampleDate3),
+				day1_strength: data.samples[1].day1 ?? 0,
+				day3_strength: data.samples[1].day3 ?? 0,
+				day7_strength: data.samples[1].day7 ?? 0,
+				day28_strength: data.samples[1].day28 ?? 0,
+				expansion: data.samples[1].expansion ?? 0,
+				createdById: user,
+			});
+		}
+
+		// Process Day 7 sample
+		if (data.samples[2] && data.samples[2].sampleDate7) {
+			transformedSamples.push({
+				sampleDate: parseDateOnly(data.samples[2].sampleDate7),
+				day1_strength: data.samples[2].day1 ?? 0,
+				day3_strength: data.samples[2].day3 ?? 0,
+				day7_strength: data.samples[2].day7 ?? 0,
+				day28_strength: data.samples[2].day28 ?? 0,
+				expansion: data.samples[2].expansion ?? 0,
+				createdById: user,
+			});
+		}
+
+		// Process Day 28 sample
+		if (data.samples[3] && data.samples[3].sampleDate28) {
+			transformedSamples.push({
+				sampleDate: parseDateOnly(data.samples[3].sampleDate28),
+				day1_strength: data.samples[3].day1 ?? 0,
+				day3_strength: data.samples[3].day3 ?? 0,
+				day7_strength: data.samples[3].day7 ?? 0,
+				day28_strength: data.samples[3].day28 ?? 0,
+				expansion: data.samples[3].expansion ?? 0,
+				createdById: user,
+			});
+		}
+	}
+
 	return tx.strengthTransactions.create({
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
 			materialId: data.materialId,
 			createdById: user,
 			samples: {
-				create: (data.samples || []).map((s: any) => {
-					return {
-						sampleDate: parseDateOnly(s.sampleDate),
-						day1_strength: s.day1_strength ?? 0,
-						day3_strength: s.day3_strength ?? 0,
-						day7_strength: s.day7_strength ?? 0,
-						day28_strength: s.day28_strength ?? 0,
-						expansion: s.expansion ?? 0,
-						createdById: user,
-					};
-				}),
+				create: transformedSamples,
 			},
 		},
 		include: { samples: true },
@@ -85,7 +132,6 @@ export const getStrengthSchedule = async (
 		existingByDate.set(key, s);
 	}
 	let editableKey: string | null = null;
-	// build list of candidates with their filled-status
 	const candidates = sampleDates.map((sd) => {
 		const keyStr = sd.sampleDate.toISOString().split("T")[0];
 		const sample = existingByDate.get(keyStr);
@@ -98,7 +144,6 @@ export const getStrengthSchedule = async (
 		return { key: sd.key, daysBefore: sd.sampleDate, sample, filled };
 	});
 
-	// choose editableKey: first candidate that is not filled, else default to 'day1'
 	for (const c of candidates) {
 		if (!c.filled) {
 			editableKey = c.key;
@@ -107,10 +152,7 @@ export const getStrengthSchedule = async (
 	}
 	if (!editableKey) editableKey = "day1";
 
-	// Build schedule: for each Day (Day1..Day28) include sampleDate and values from the appropriate sampleRecords
 	const schedule = sampleDates.map((sd) => {
-		// For this row we must show day1, day3, day7, day28 values,
-		// each value comes from the sample that corresponds to THAT test's sampleDate.
 		const day1Sample = existingByDate.get(
 			subDays(trnDate, testDays.find((t) => t.key === "day1")!.daysBefore)
 				.toISOString()
@@ -167,6 +209,7 @@ export const getStrengthSchedule = async (
 		samples: schedule,
 	};
 };
+
 // ✅ Update
 export const updateStrength = async (
 	id: string,
@@ -174,6 +217,109 @@ export const updateStrength = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
+	// Get the transaction first to access its samples
+	const transaction = await tx.strengthTransactions.findUnique({
+		where: { id },
+		include: { samples: true },
+	});
+
+	if (!transaction) {
+		throw new Error("Strength transaction not found");
+	}
+
+	// Create a map for sample dates to identify which samples to update
+	const sampleMap = new Map<string, string>();
+	transaction.samples.forEach((sample) => {
+		const dateStr = sample.sampleDate.toISOString().split("T")[0];
+		sampleMap.set(dateStr, sample.id);
+	});
+
+	const updateOperations = [];
+
+	// Process Day 1 sample
+	if (data.samples[0] && data.samples[0].sampleDate1) {
+		const sampleDate = parseDateOnly(data.samples[0].sampleDate1);
+		const dateStr = sampleDate.toISOString().split("T")[0];
+		const sampleId = sampleMap.get(dateStr);
+
+		if (sampleId) {
+			updateOperations.push({
+				where: { id: sampleId },
+				data: {
+					day1_strength: data.samples[0].day1 ?? 0,
+					day3_strength: data.samples[0].day3 ?? 0,
+					day7_strength: data.samples[0].day7 ?? 0,
+					day28_strength: data.samples[0].day28 ?? 0,
+					expansion: data.samples[0].expansion ?? 0,
+					updatedById: user,
+				},
+			});
+		}
+	}
+
+	// Process Day 3 sample
+	if (data.samples[1] && data.samples[1].sampleDate3) {
+		const sampleDate = parseDateOnly(data.samples[1].sampleDate3);
+		const dateStr = sampleDate.toISOString().split("T")[0];
+		const sampleId = sampleMap.get(dateStr);
+
+		if (sampleId) {
+			updateOperations.push({
+				where: { id: sampleId },
+				data: {
+					day1_strength: data.samples[1].day1 ?? 0,
+					day3_strength: data.samples[1].day3 ?? 0,
+					day7_strength: data.samples[1].day7 ?? 0,
+					day28_strength: data.samples[1].day28 ?? 0,
+					expansion: data.samples[1].expansion ?? 0,
+					updatedById: user,
+				},
+			});
+		}
+	}
+
+	// Process Day 7 sample
+	if (data.samples[2] && data.samples[2].sampleDate7) {
+		const sampleDate = parseDateOnly(data.samples[2].sampleDate7);
+		const dateStr = sampleDate.toISOString().split("T")[0];
+		const sampleId = sampleMap.get(dateStr);
+
+		if (sampleId) {
+			updateOperations.push({
+				where: { id: sampleId },
+				data: {
+					day1_strength: data.samples[2].day1 ?? 0,
+					day3_strength: data.samples[2].day3 ?? 0,
+					day7_strength: data.samples[2].day7 ?? 0,
+					day28_strength: data.samples[2].day28 ?? 0,
+					expansion: data.samples[2].expansion ?? 0,
+					updatedById: user,
+				},
+			});
+		}
+	}
+
+	// Process Day 28 sample
+	if (data.samples[3] && data.samples[3].sampleDate28) {
+		const sampleDate = parseDateOnly(data.samples[3].sampleDate28);
+		const dateStr = sampleDate.toISOString().split("T")[0];
+		const sampleId = sampleMap.get(dateStr);
+
+		if (sampleId) {
+			updateOperations.push({
+				where: { id: sampleId },
+				data: {
+					day1_strength: data.samples[3].day1 ?? 0,
+					day3_strength: data.samples[3].day3 ?? 0,
+					day7_strength: data.samples[3].day7 ?? 0,
+					day28_strength: data.samples[3].day28 ?? 0,
+					expansion: data.samples[3].expansion ?? 0,
+					updatedById: user,
+				},
+			});
+		}
+	}
+
 	return tx.strengthTransactions.update({
 		where: { id },
 		data: {
@@ -181,25 +327,7 @@ export const updateStrength = async (
 			materialId: data.materialId,
 			updatedById: user,
 			samples: {
-				updateMany: (data.samples || []).map((s: any) => {
-					const updateData: any = {
-						updatedById: user,
-					};
-
-					if (s.day1 !== undefined) updateData.day1_strength = s.day1;
-					if (s.day3 !== undefined) updateData.day3_strength = s.day3;
-					if (s.day7 !== undefined) updateData.day7_strength = s.day7;
-					if (s.day28 !== undefined) updateData.day28_strength = s.day28;
-					if (s.expansion !== undefined) updateData.expansion = s.expansion;
-
-					return {
-						where: {
-							sampleDate: parseDateOnly(s.sampleDate),
-							transactionId: id,
-						},
-						data: updateData,
-					};
-				}),
+				updateMany: updateOperations,
 			},
 		},
 		include: { samples: true },
