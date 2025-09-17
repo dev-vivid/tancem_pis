@@ -27,7 +27,7 @@ strengthRouter.get("/strength/schedule", getStrengthSchedule);
 
 strengthRouter.post(
 	"/strengthAdd",
-	validateRequest(strengthFormSchema, "body"),
+	// validateRequest(strengthFormSchema, "body"),
 	createStrength
 );
 

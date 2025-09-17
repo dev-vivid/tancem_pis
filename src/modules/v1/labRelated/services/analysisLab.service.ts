@@ -7,25 +7,6 @@ import {
 } from "../../../../shared/utils/date/index";
 import getUserData from "@shared/prisma/queries/getUserById";
 
-// export const createAnalysisLab = async (data: any, user: string) => {
-// 	const analysisExists = await prisma.analysis.findUnique({
-// 		where: { id: data.analysisId },
-// 	});
-
-// 	if (!analysisExists) {
-// 		throw new Error("Provided analysisId does not exist in Analysis table");
-// 	}
-
-// 	return await prisma.analysisLab.create({
-// 		data: {
-// 			transactionDate: new Date(data.transactionDate),
-// 			materialId: data.materialId,
-// 			// analysisId: data.analysisId,
-// 			createdById: user,
-// 		},
-// 	});
-// };
-
 // ✅ Get all with pagination
 
 export const createAnalysisLab = async (
@@ -33,7 +14,6 @@ export const createAnalysisLab = async (
 	user: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	// return await prisma.$transaction(async (tx) => {
 	const lab = await tx.analysisLab.create({
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
@@ -192,6 +172,17 @@ export const getAllAnalysisLab = async (
 				? await getUserData(item.updatedById)
 				: null;
 
+			let analysisTypeStr = "-";
+			let analysisValueStr = "-";
+			if (item.LabAnalysisTypes.length > 0) {
+				analysisTypeStr = item.LabAnalysisTypes.map(
+					(a) => a.MaterialAnalysis.type
+				).join(", ");
+				analysisValueStr = item.LabAnalysisTypes.map(
+					(a) => a.value?.toString() ?? "-"
+				).join(", ");
+			}
+
 			return {
 				uuid: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
@@ -203,8 +194,10 @@ export const getAllAnalysisLab = async (
 						id: a.MaterialAnalysis.id,
 						type: a.MaterialAnalysis.type,
 						name: a.MaterialAnalysis.description,
-						value: a.value?.toString() ?? null, // Include the new value field
+						value: a.value?.toString() ?? null,
 					})) || [],
+				analysisTypeStr,
+				analysisValueStr,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
