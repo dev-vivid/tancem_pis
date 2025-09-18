@@ -53,7 +53,20 @@ export const getAllExternalLabTestingReports = async (
 	next: NextFunction
 ) => {
 	try {
-		const result = await usecase.getAllExternalLabTestingReportsUsecase();
+		const { pageNumber, pageSize } = req.query;
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await usecase.getAllExternalLabTestingReportsUsecase(
+			accessToken as string,
+			pageNumber as string | undefined,
+			pageSize as string | undefined
+		);
 		res.send(responses.generate("success", { data: result }));
 	} catch (err) {
 		next(err);
@@ -72,8 +85,23 @@ export const getExternalLabTestingReportById = async (
 				.status(400)
 				.json({ code: "bad_request", message: "ID is required" });
 		}
-		const result = await usecase.getExternalLabTestingReportByIdUsecase(id);
-		res.send(responses.generate("success", { data: result }));
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ message: "Unauthorized: No access token provided" });
+		}
+		const accessToken = authHeader.split(" ")[1];
+
+		const result = await usecase.getExternalLabTestingReportByIdUsecase(
+			id,
+			accessToken as string
+		);
+		const response = responses.generate("success", {
+			data: result,
+		});
+
+		res.status(response.statusCode).send(response);
 	} catch (err) {
 		next(err);
 	}
