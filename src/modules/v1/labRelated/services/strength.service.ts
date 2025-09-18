@@ -120,7 +120,6 @@ export const getStrengthSchedule = async (
 		where: {
 			transaction: { materialId, isActive: true },
 			sampleDate: { in: sampleDates.map((d) => d.sampleDate) },
-			// if your DB stores date-only, you can compare directly; else adjust accordingly
 		},
 		include: { transaction: true },
 	});
@@ -228,10 +227,10 @@ export const updateStrength = async (
 	}
 
 	// Create a map for sample dates to identify which samples to update
-	const sampleMap = new Map<string, string>();
+	const sampleMap = new Map<string, any>();
 	transaction.samples.forEach((sample) => {
 		const dateStr = sample.sampleDate.toISOString().split("T")[0];
-		sampleMap.set(dateStr, sample.id);
+		sampleMap.set(dateStr, sample);
 	});
 
 	const updateOperations = [];
@@ -240,17 +239,17 @@ export const updateStrength = async (
 	if (data.samples[0] && data.samples[0].sampleDate1) {
 		const sampleDate = parseDateOnly(data.samples[0].sampleDate1);
 		const dateStr = sampleDate.toISOString().split("T")[0];
-		const sampleId = sampleMap.get(dateStr);
+		const sample = sampleMap.get(dateStr);
 
-		if (sampleId) {
+		if (sample) {
 			updateOperations.push({
-				where: { id: sampleId },
+				where: { id: sample.id },
 				data: {
-					day1_strength: data.samples[0].day1 ?? 0,
-					day3_strength: data.samples[0].day3 ?? 0,
-					day7_strength: data.samples[0].day7 ?? 0,
-					day28_strength: data.samples[0].day28 ?? 0,
-					expansion: data.samples[0].expansion ?? 0,
+					day1_strength: data.samples[0].day1 ?? sample.day1_strength,
+					day3_strength: data.samples[0].day3 ?? sample.day3_strength,
+					day7_strength: data.samples[0].day7 ?? sample.day7_strength,
+					day28_strength: data.samples[0].day28 ?? sample.day28_strength,
+					expansion: data.samples[0].expansion ?? sample.expansion,
 					updatedById: user,
 				},
 			});
@@ -261,17 +260,17 @@ export const updateStrength = async (
 	if (data.samples[1] && data.samples[1].sampleDate3) {
 		const sampleDate = parseDateOnly(data.samples[1].sampleDate3);
 		const dateStr = sampleDate.toISOString().split("T")[0];
-		const sampleId = sampleMap.get(dateStr);
+		const sample = sampleMap.get(dateStr);
 
-		if (sampleId) {
+		if (sample) {
 			updateOperations.push({
-				where: { id: sampleId },
+				where: { id: sample.id },
 				data: {
-					day1_strength: data.samples[1].day1 ?? 0,
-					day3_strength: data.samples[1].day3 ?? 0,
-					day7_strength: data.samples[1].day7 ?? 0,
-					day28_strength: data.samples[1].day28 ?? 0,
-					expansion: data.samples[1].expansion ?? 0,
+					day1_strength: data.samples[1].day1 ?? sample.day1_strength,
+					day3_strength: data.samples[1].day3 ?? sample.day3_strength,
+					day7_strength: data.samples[1].day7 ?? sample.day7_strength,
+					day28_strength: data.samples[1].day28 ?? sample.day28_strength,
+					expansion: data.samples[1].expansion ?? sample.expansion,
 					updatedById: user,
 				},
 			});
@@ -282,17 +281,17 @@ export const updateStrength = async (
 	if (data.samples[2] && data.samples[2].sampleDate7) {
 		const sampleDate = parseDateOnly(data.samples[2].sampleDate7);
 		const dateStr = sampleDate.toISOString().split("T")[0];
-		const sampleId = sampleMap.get(dateStr);
+		const sample = sampleMap.get(dateStr);
 
-		if (sampleId) {
+		if (sample) {
 			updateOperations.push({
-				where: { id: sampleId },
+				where: { id: sample.id },
 				data: {
-					day1_strength: data.samples[2].day1 ?? 0,
-					day3_strength: data.samples[2].day3 ?? 0,
-					day7_strength: data.samples[2].day7 ?? 0,
-					day28_strength: data.samples[2].day28 ?? 0,
-					expansion: data.samples[2].expansion ?? 0,
+					day1_strength: data.samples[2].day1 ?? sample.day1_strength,
+					day3_strength: data.samples[2].day3 ?? sample.day3_strength,
+					day7_strength: data.samples[2].day7 ?? sample.day7_strength,
+					day28_strength: data.samples[2].day28 ?? sample.day28_strength,
+					expansion: data.samples[2].expansion ?? sample.expansion,
 					updatedById: user,
 				},
 			});
@@ -303,17 +302,17 @@ export const updateStrength = async (
 	if (data.samples[3] && data.samples[3].sampleDate28) {
 		const sampleDate = parseDateOnly(data.samples[3].sampleDate28);
 		const dateStr = sampleDate.toISOString().split("T")[0];
-		const sampleId = sampleMap.get(dateStr);
+		const sample = sampleMap.get(dateStr);
 
-		if (sampleId) {
+		if (sample) {
 			updateOperations.push({
-				where: { id: sampleId },
+				where: { id: sample.id },
 				data: {
-					day1_strength: data.samples[3].day1 ?? 0,
-					day3_strength: data.samples[3].day3 ?? 0,
-					day7_strength: data.samples[3].day7 ?? 0,
-					day28_strength: data.samples[3].day28 ?? 0,
-					expansion: data.samples[3].expansion ?? 0,
+					day1_strength: data.samples[3].day1 ?? sample.day1_strength,
+					day3_strength: data.samples[3].day3 ?? sample.day3_strength,
+					day7_strength: data.samples[3].day7 ?? sample.day7_strength,
+					day28_strength: data.samples[3].day28 ?? sample.day28_strength,
+					expansion: data.samples[3].expansion ?? sample.expansion,
 					updatedById: user,
 				},
 			});
@@ -327,7 +326,7 @@ export const updateStrength = async (
 			materialId: data.materialId,
 			updatedById: user,
 			samples: {
-				updateMany: updateOperations,
+				update: updateOperations,
 			},
 		},
 		include: { samples: true },
