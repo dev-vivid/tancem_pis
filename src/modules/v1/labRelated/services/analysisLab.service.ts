@@ -299,28 +299,27 @@ export const updateAnalysisLab = async (
 		throw new Error("Analysis record not found");
 	}
 
-	const updateData: any = { updatedById: user };
-
-	if (data.value !== undefined) updateData.value = data.value;
-	if (data.analysisId !== undefined) updateData.analysisId = data.analysisId;
-
-	// Update the analysis record
+	// 1️⃣ Update child row (LabAnalysisTypes)
 	await tx.labAnalysisTypes.update({
 		where: { id },
 		data: {
-			...updateData,
-			lab:
-				data.transactionDate || data.materialId
-					? {
-							update: {
-								...(data.transactionDate
-									? { transactionDate: parseDateOnly(data.transactionDate) }
-									: {}),
-								...(data.materialId ? { materialId: data.materialId } : {}),
-								updatedById: user,
-							},
-					  }
-					: undefined,
+			value: data.value ?? undefined,
+			analysisId: data.analysisId ?? undefined,
+			updatedById: user,
 		},
 	});
+
+	// 2️⃣ Update parent row (AnalysisLab) if needed
+	if (data.transactionDate || data.materialId) {
+		await tx.analysisLab.update({
+			where: { id: analysisRecord.AnalysisLabId },
+			data: {
+				...(data.transactionDate
+					? { transactionDate: parseDateOnly(data.transactionDate) }
+					: {}),
+				...(data.materialId ? { materialId: data.materialId } : {}),
+				updatedById: user,
+			},
+		});
+	}
 };
