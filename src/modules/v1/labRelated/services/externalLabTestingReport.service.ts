@@ -12,6 +12,7 @@ export const createExternalLabTestingReport = async (
 		despatchDate: string;
 		reportReceivedDate: string;
 		testingType: string;
+		quantitySent?: number | string;
 		materialId: string;
 		thirdPartyVendorName: string;
 		remarks: string;
@@ -30,6 +31,7 @@ export const createExternalLabTestingReport = async (
 			transactionDate: parseDateOnly(data.transactionDate),
 			despatchDate: parseDateOnly(data.despatchDate),
 			reportReceivedDate: parseDateOnly(data.reportReceivedDate),
+			quantitySent: data.quantitySent ?? null,
 			testingType: data.testingType,
 			materialId: data.materialId,
 			thirdPartyVendorName: data.thirdPartyVendorName,
@@ -76,6 +78,7 @@ export const getAllExternalLabTestingReports = async (
 			despatchDate: extractDateTime(report.despatchDate, "date"),
 			reportReceivedDate: extractDateTime(report.reportReceivedDate, "date"),
 			testingType: report.testingType,
+			quantitySent: report.quantitySent ? Number(report.quantitySent) : null,
 			materialId: report.materialId,
 			materialName: materialName ? materialName.name : null,
 			thirdPartyVendorName: report.thirdPartyVendorName,
@@ -124,6 +127,7 @@ export const getExternalLabTestingReportById = async (
 		despatchDate: extractDateTime(report.despatchDate, "date"),
 		reportReceivedDate: extractDateTime(report.reportReceivedDate, "date"),
 		testingType: report.testingType,
+		quantitySent: report.quantitySent ? Number(report.quantitySent) : null,
 		materialId: report.materialId,
 		materialName: materialName ? materialName.name : null,
 		thirdPartyVendorName: report.thirdPartyVendorName,
@@ -167,6 +171,7 @@ export const updateExternalLabTestingReport = async (
 			despatchDate: parseDateOnly(data.despatchDate),
 			reportReceivedDate: parseDateOnly(data.reportReceivedDate),
 			testingType: data.testingType,
+			quantitySent: data.quantitySent ?? null,
 			materialId: data.materialId,
 			thirdPartyVendorName: data.thirdPartyVendorName,
 			remarks: data.remarks,
@@ -182,6 +187,6 @@ export const deleteExternalLabTestingReport = async (
 ) => {
 	return await tx.externalLabTestingReport.update({
 		where: { id },
-		data: { isActive: false }, // soft delete
+		data: { isActive: false },
 	});
 };

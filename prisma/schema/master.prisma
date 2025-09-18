@@ -437,6 +437,7 @@ model externalLabTestingReport {
   despatchDate         DateTime @map("despatch_date") @db.Date
   reportReceivedDate   DateTime @map("report_received_date") @db.Date
   testingType          String   @map("testing_type") @db.VarChar(36)
+  quantitySent         Decimal? @map("quantity_sent") @db.Decimal(10, 4)
   materialId           String   @map("material_id") @db.VarChar(36)
   thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
   remarks              String   @map("remarks") @db.Text
@@ -631,6 +632,31 @@ model strengthSamples {
 
   @@index([transactionId], map: "strength_samples_transaction_id_fkey")
   @@map("strength_samples")
+}
+
+model Strength {
+  id              String   @id @unique @default(uuid()) @db.VarChar(36)
+  transactionDate DateTime @map("transaction_date") @db.Date
+  materialId      String   @map("material_id") @db.VarChar(36)
+
+  sampleDate1  DateTime? @map("sample_date1") @db.Date
+  sampleDate3  DateTime? @map("sample_date3") @db.Date
+  sampleDate7  DateTime? @map("sample_date7") @db.Date
+  sampleDate28 DateTime? @map("sample_date28") @db.Date
+
+  day1      Decimal? @db.Decimal(10, 4)
+  day3      Decimal? @db.Decimal(10, 4)
+  day7      Decimal? @db.Decimal(10, 4)
+  day28     Decimal? @db.Decimal(10, 4)
+  expansion Decimal? @map("strength_expansion") @db.Decimal(10, 4)
+
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id") @db.VarChar(36)
+  updatedById String?  @map("updated_by_id") @db.VarChar(36)
+
+  @@map("strength")
 }
 
 enum transaction_type {
