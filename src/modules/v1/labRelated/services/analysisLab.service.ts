@@ -48,74 +48,6 @@ export const createAnalysisLab = async (
 	// });
 };
 
-export const updateAnalysisLab = async (
-	id: string,
-	data: any,
-	user: string,
-	tx: IPrismaTransactionClient | typeof prisma = prisma
-) => {
-	const existing = await tx.analysisLab.findUnique({
-		where: { id, isActive: true },
-		include: { LabAnalysisTypes: true },
-	});
-
-	if (!existing) {
-		throw new Error("Analysis Lab not found");
-	}
-
-	// Get existing active analysisIds
-	const existingIds = existing.LabAnalysisTypes.map((a) => a.analysisId);
-
-	// Get analysisIds from request
-	const incoming = data.analysisValues ?? [];
-	const incomingIds = incoming.map((a: any) => a.analysisId);
-
-	for (const id of existingIds) {
-		if (!incomingIds.includes(id)) {
-			await tx.labAnalysisTypes.updateMany({
-				where: { AnalysisLabId: existing.id, analysisId: id },
-				data: { isActive: false, updatedById: user },
-			});
-		}
-	}
-
-	for (const a of incoming) {
-		const found = existing.LabAnalysisTypes.find(
-			(e) => e.analysisId === a.analysisId && e.isActive
-		);
-
-		if (found) {
-			// Update value if exists
-			await tx.labAnalysisTypes.update({
-				where: { id: found.id },
-				data: {
-					value: a.value ?? null,
-					updatedById: user,
-				},
-			});
-		} else {
-			// Insert new
-			await tx.labAnalysisTypes.create({
-				data: {
-					AnalysisLabId: existing.id,
-					analysisId: a.analysisId,
-					value: a.value ?? null,
-					createdById: user,
-				},
-			});
-		}
-	}
-
-	await tx.analysisLab.update({
-		where: { id },
-		data: {
-			transactionDate: parseDateOnly(data.transactionDate),
-			materialId: data.materialId,
-			updatedById: user,
-		},
-	});
-};
-
 export const getAllAnalysisLab = async (
 	accessToken: string,
 	pageNumber?: number,
@@ -155,118 +87,139 @@ export const getAllAnalysisLab = async (
 						},
 					},
 				},
+				orderBy: { createdAt: "desc" },
 			},
 		},
 	});
 
-	const data = await Promise.all(
-		labs.map(async (item) => {
-			const materialName = item.materialId
-				? await api.getMaterialName(item.materialId, accessToken)
-				: null;
+	const flattenedData: any[] = [];
 
-			const createdUser = item.createdById
-				? await getUserData(item.createdById)
-				: null;
-			const updatedUser = item.updatedById
-				? await getUserData(item.updatedById)
-				: null;
+	for (const item of labs) {
+		const materialName = item.materialId
+			? await api.getMaterialName(item.materialId, accessToken)
+			: null;
 
-			let analysisTypeStr = "-";
-			let analysisValueStr = "-";
-			if (item.LabAnalysisTypes.length > 0) {
-				analysisTypeStr = item.LabAnalysisTypes.map(
-					(a) => a.MaterialAnalysis.type
-				).join(", ");
-				analysisValueStr = item.LabAnalysisTypes.map(
-					(a) => a.value?.toString() ?? "-"
-				).join(", ");
-			}
-
-			return {
+		// If there are no child analysis records, keep a parent-only row (uuid stays the parent id)
+		if (!item.LabAnalysisTypes || item.LabAnalysisTypes.length === 0) {
+			flattenedData.push({
 				uuid: item.id,
+				labId: item.id,
 				transactionDate: extractDateTime(item.transactionDate, "date"),
 				materialId: item.materialId,
 				materialName: materialName?.name ?? null,
-				analysisTypeCount: item.LabAnalysisTypes.length,
-				analysisTypes:
-					item.LabAnalysisTypes.map((a) => ({
-						id: a.MaterialAnalysis.id,
-						type: a.MaterialAnalysis.type,
-						name: a.MaterialAnalysis.description,
-						value: a.value?.toString() ?? null,
-					})) || [],
-				analysisTypeStr,
-				analysisValueStr,
+				analysisTypeCount: 0,
+				analysisId: null,
+				analysisTypeStr: "-",
+				analysisValueStr: "-",
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
 				updatedById: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
-			};
-		})
-	);
+				createdUser: item.createdById
+					? await getUserData(item.createdById)
+					: null,
+				updatedUser: item.updatedById
+					? await getUserData(item.updatedById)
+					: null,
+			});
+			continue;
+		}
+
+		for (const analysis of item.LabAnalysisTypes) {
+			const createdUser = analysis.createdById
+				? await getUserData(analysis.createdById)
+				: null;
+			const updatedUser = analysis.updatedById
+				? await getUserData(analysis.updatedById)
+				: null;
+
+			flattenedData.push({
+				uuid: analysis.id, // child table id as requested
+				labId: item.id, // parent id for reference
+				transactionDate: extractDateTime(item.transactionDate, "date"),
+				materialId: item.materialId,
+				materialName: materialName?.name ?? null,
+				analysisTypeCount: 1,
+				analysisId: analysis.analysisId,
+				analysisTypeStr: analysis.MaterialAnalysis?.type ?? "-",
+				analysisValueStr: analysis.value?.toString() ?? "-",
+				createdAt: extractDateTime(analysis.createdAt, "both"),
+				updatedAt: extractDateTime(analysis.updatedAt, "both"),
+				createdById: analysis.createdById,
+				updatedById: analysis.updatedById,
+				createdUser,
+				updatedUser,
+			});
+		}
+	}
 
 	return {
 		totalRecords,
-		data,
+		data: flattenedData,
 	};
 };
 
 export const getAnalysisLabById = async (
-	id: string,
+	childId: string, // this is LabAnalysisTypes.id
 	accessToken: string,
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	const item = await tx.analysisLab.findUnique({
-		where: { id },
+	const record = await tx.labAnalysisTypes.findFirst({
+		where: { id: childId, isActive: true },
 		include: {
-			LabAnalysisTypes: {
-				where: { isActive: true },
-				include: {
-					MaterialAnalysis: {
-						select: {
-							id: true,
-							type: true,
-							description: true,
-						},
-					},
+			lab: true,
+			MaterialAnalysis: {
+				select: {
+					id: true,
+					type: true,
+					description: true,
 				},
 			},
 		},
 	});
 
-	if (!item) throw new Error("Analysis Lab not found.");
+	if (!record) throw new Error("Analysis record not found.");
 
-	const materialName = item.materialId
-		? await api.getMaterialName(item.materialId, accessToken)
-		: null;
+	const parent = record.lab;
+	const materialName =
+		parent?.materialId && accessToken
+			? await api.getMaterialName(parent.materialId, accessToken)
+			: null;
 
-	const createdUser = item.createdById
-		? await getUserData(item.createdById)
+	const createdUser = record.createdById
+		? await getUserData(record.createdById)
 		: null;
-	const updatedUser = item.updatedById
-		? await getUserData(item.updatedById)
+	const updatedUser = record.updatedById
+		? await getUserData(record.updatedById)
 		: null;
 
 	return {
-		uuid: item.id,
-		transactionDate: extractDateTime(item.transactionDate, "date"),
-		materialId: item.materialId,
-		materialName: materialName?.name || null,
-		analysis: item.LabAnalysisTypes.map((a) => ({
-			id: a.MaterialAnalysis.id,
-			type: a.MaterialAnalysis.type,
-			name: a.MaterialAnalysis.description,
-			value: a.value?.toString() ?? null,
-		})),
-		createdAt: extractDateTime(item.createdAt, "both"),
-		updatedAt: extractDateTime(item.updatedAt, "both"),
-		createdById: item.createdById,
-		updatedById: item.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		uuid: record.id,
+		labId: parent?.id ?? null,
+		transactionDate: parent
+			? extractDateTime(parent.transactionDate, "date")
+			: null,
+		materialId: parent?.materialId ?? null,
+		materialName: materialName?.name ?? null,
+
+		// // keep the original structured analysis object
+		// analysis: {
+		// 	id: record.MaterialAnalysis?.id ?? null,
+		// 	type: record.MaterialAnalysis?.type ?? null,
+		// 	name: record.MaterialAnalysis?.description ?? null,
+		// 	value: record.value?.toString() ?? null,
+		// },
+		analysisTypeCount: 1,
+		analysisId: record.analysisId,
+		analysisTypeStr: record.MaterialAnalysis?.type ?? "-",
+		analysisValueStr: record.value?.toString() ?? "-",
+
+		createdAt: extractDateTime(record.createdAt, "both"),
+		updatedAt: extractDateTime(record.updatedAt, "both"),
+		createdById: record.createdById,
+		updatedById: record.updatedById,
+		createdUser,
+		updatedUser,
 	};
 };
 
@@ -277,24 +230,97 @@ export const deleteAnalysisLab = async (
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
 	if (!id) {
-		throw new Error("ID is required for deleting analysis.");
+		throw new Error(
+			"Child ID (LabAnalysisTypes.id) is required for deleting analysis."
+		);
 	}
 
-	await tx.analysisLab.update({
-		where: { id },
+	const childRecord = await tx.labAnalysisTypes.findUnique({
+		where: { id: id },
+		select: { AnalysisLabId: true, isActive: true },
+	});
+
+	if (!childRecord) {
+		throw new Error("Analysis child record not found.");
+	}
+
+	await tx.labAnalysisTypes.update({
+		where: { id: id },
 		data: {
 			isActive: false,
 			updatedById: user,
 		},
 	});
 
-	await tx.labAnalysisTypes.updateMany({
+	const parentId = childRecord.AnalysisLabId;
+
+	const remainingChildren = await tx.labAnalysisTypes.count({
 		where: {
-			AnalysisLabId: id, // foreign key
+			AnalysisLabId: parentId,
+			isActive: true,
 		},
+	});
+
+	if (remainingChildren === 0) {
+		await tx.analysisLab.update({
+			where: { id: parentId },
+			data: {
+				isActive: false,
+				updatedById: user,
+			},
+		});
+	} else {
+		await tx.analysisLab.update({
+			where: { id: parentId },
+			data: {
+				updatedById: user,
+			},
+		});
+	}
+};
+
+export const updateAnalysisLab = async (
+	id: string,
+	data: {
+		value: number | null;
+		materialId?: string;
+		transactionDate?: string;
+		analysisId?: string;
+	},
+	user: string,
+	tx: IPrismaTransactionClient | typeof prisma = prisma
+) => {
+	const analysisRecord = await tx.labAnalysisTypes.findUnique({
+		where: { id, isActive: true },
+		include: { lab: true },
+	});
+
+	if (!analysisRecord) {
+		throw new Error("Analysis record not found");
+	}
+
+	const updateData: any = { updatedById: user };
+
+	if (data.value !== undefined) updateData.value = data.value;
+	if (data.analysisId !== undefined) updateData.analysisId = data.analysisId;
+
+	// Update the analysis record
+	await tx.labAnalysisTypes.update({
+		where: { id },
 		data: {
-			isActive: false,
-			updatedById: user,
+			...updateData,
+			lab:
+				data.transactionDate || data.materialId
+					? {
+							update: {
+								...(data.transactionDate
+									? { transactionDate: parseDateOnly(data.transactionDate) }
+									: {}),
+								...(data.materialId ? { materialId: data.materialId } : {}),
+								updatedById: user,
+							},
+					  }
+					: undefined,
 		},
 	});
 };
