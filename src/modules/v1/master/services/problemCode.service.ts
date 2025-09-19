@@ -85,8 +85,8 @@ export const getAllProblemCode = async (
 				updatedBy: item.updatedById,
 				status: item.status,
 				isActive: item.isActive,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -156,8 +156,8 @@ export const getIdProblemCode = async (
 			isActive: item.isActive,
 			createdBy: item.createdById,
 			updatedBy: item.updatedById,
-			createdUser: createdUser,
-			updatedUser: updatedUser,
+			createdUser: createdUser?.userName,
+			updatedUser: updatedUser?.userName,
 		},
 	};
 };

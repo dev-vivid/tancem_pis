@@ -139,8 +139,8 @@ export const getAllAnnualMaterialBudget = async (
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				createdById: item.createdById,
 				updatedById: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 				isActive: item.isActive,
 				status: item.status,
 			};
@@ -209,8 +209,8 @@ export const getAnnualMaterialBudgetByID = async (
 		updatedAt: extractDateTime(result.updatedAt, "both"),
 		createdBy: result.createdById,
 		updatedBy: result.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return { totalRecords, data };

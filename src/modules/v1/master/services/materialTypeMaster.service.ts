@@ -62,8 +62,8 @@ export const getAllMaterialTypeMaster = async (
 				updatedById: item.updatedById,
 				isActive: item.isActive,
 				status: item.status,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -112,8 +112,8 @@ export const getIdMaterialTypeMaster = async (
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
 		updatedById: item.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 

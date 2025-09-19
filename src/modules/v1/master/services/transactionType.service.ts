@@ -60,8 +60,8 @@ export const getAllTransactionTypes = async (
 				...rest,
 				createdAt: extractDateTime(createdAt, "both"),
 				updatedAt: extractDateTime(updatedAt, "both"),
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -113,8 +113,8 @@ export const getTransactionTypeById = async (
 		updatedById: item.updatedById,
 		status: item.status,
 		isActive: item.isActive,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return {

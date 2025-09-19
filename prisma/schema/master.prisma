@@ -442,6 +442,7 @@ model externalLabTestingReport {
   thirdPartyVendorName String   @map("third_party_vendor_name") @db.VarChar(36)
   remarks              String   @map("remarks") @db.Text
   labUploadFile        String?  @map("lab_file_name") @db.Text
+  labUploadFilesJson   Json?    @map("lab_upload_files_json")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
   createdById          String?  @map("created_by_id") @db.VarChar(36)

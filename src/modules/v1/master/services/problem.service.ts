@@ -62,8 +62,8 @@ export const getAllProblems = async (
 					plantDepartmentName: departmentName ? departmentName.name : null,
 					createdAt: extractDateTime(createdAt, "both"),
 					updatedAt: extractDateTime(updatedAt, "both"),
-					createdUser: createdUser,
-					updatedUser: updatedUser,
+					createdUser: createdUser?.userName,
+					updatedUser: updatedUser?.userName,
 				};
 			}
 		)
@@ -121,8 +121,8 @@ export const getIdProblem = async (
 		updatedAt: extractDateTime(problem.updatedAt, "both"),
 		createdBy: problem.createdById,
 		updatedBy: problem.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 		isActive: problem.isActive,
 		status: problem.status,
 	};

@@ -89,8 +89,8 @@ export const getAllreceipt = async (
 				createdBy: item.createdById,
 				updatedBy: item.updatedById,
 				isActive: item.isActive,
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -170,8 +170,8 @@ export const getIdreceipt = async (
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
 		isActive: item.isActive,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return {

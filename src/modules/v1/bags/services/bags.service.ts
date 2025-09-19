@@ -78,10 +78,10 @@ export const getAllBags = async (
 				transferQty: item.transferQty,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				createdBy: item.createdById,
-				createdUser: createdUser,
+				createdUser: createdUser?.userName,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
-				updatedUser: updatedUser,
+				updatedUser: updatedUser?.userName,
 				isActive: item.isActive,
 			};
 		})
@@ -151,10 +151,10 @@ export const getIdBags = async (
 		transferQty: bag.transferQty,
 		createdAt: extractDateTime(bag.createdAt, "both"),
 		createdById: bag.createdById,
-		createdUser: createdUser,
+		createdUser: createdUser?.userName,
 		updatedAt: extractDateTime(bag.updatedAt, "both"),
 		updatedById: bag.updatedById,
-		updatedUser: updatedUser,
+		updatedUser: updatedUser?.userName,
 		isActive: bag.isActive,
 	};
 

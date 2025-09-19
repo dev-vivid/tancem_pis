@@ -73,8 +73,8 @@ export const getAllEquipmentOutputMaterialMappings = async (
 				materialName: material?.name || null,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 				status: item.status,
 				isActive: item.isActive,
 			};
@@ -134,8 +134,8 @@ export const getEquipmentOutputMaterialMappingById = async (
 		materialName: material?.name || null,
 		createdAt: extractDateTime(record.createdAt, "both"),
 		updatedAt: extractDateTime(record.updatedAt, "both"),
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 		status: record.status,
 		isActive: record.isActive,
 	};
