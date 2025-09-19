@@ -141,156 +141,113 @@ export const getStrengthSchedule = async (
 ) => {
 	const trnDate = parseDateOnly(transactionDate);
 
-	// Define test days with offsets
 	const testDays = [
-		{ key: "day1", daysBefore: 2, label: "Day 1" },
-		{ key: "day3", daysBefore: 4, label: "Day 3" },
-		{ key: "day7", daysBefore: 8, label: "Day 7" },
-		{ key: "day28", daysBefore: 29, label: "Day 28" },
+		{ key: "day1", daysBefore: 2 },
+		{ key: "day3", daysBefore: 4 },
+		{ key: "day7", daysBefore: 8 },
+		{ key: "day28", daysBefore: 29 },
 	];
 
-	// Compute sample dates
 	const sampleDates = testDays.map((t) => ({
 		key: t.key,
-		label: t.label,
 		sampleDate: subDays(trnDate, t.daysBefore),
 	}));
 
-	// Fetch records for day1, day3, day7, day28
-	const sampleDateStrings = sampleDates.map(
-		(d) => d.sampleDate.toISOString().split("T")[0]
-	);
-
-	// Query structure for each day's data
-	const day1Records = await prisma.strength.findMany({
+	const records = await prisma.strength.findMany({
 		where: {
-			sampleDate1: { in: sampleDates.map((d) => d.sampleDate) },
 			materialId,
 			isActive: true,
+			OR: [
+				{ sampleDate1: { in: sampleDates.map((d) => d.sampleDate) } },
+				{ sampleDate3: { in: sampleDates.map((d) => d.sampleDate) } },
+				{ sampleDate7: { in: sampleDates.map((d) => d.sampleDate) } },
+				{ sampleDate28: { in: sampleDates.map((d) => d.sampleDate) } },
+			],
 		},
 	});
 
-	const day3Records = await prisma.strength.findMany({
-		where: {
-			sampleDate3: { in: sampleDates.map((d) => d.sampleDate) },
-			materialId,
-			isActive: true,
-		},
-	});
+	const mapDay = (dayField: string) => {
+		const map = new Map();
+		records.forEach((rec) => {
+			const date = rec[dayField as keyof typeof rec] as Date;
+			if (date) map.set(date.toISOString().split("T")[0], rec);
+		});
+		return map;
+	};
 
-	const day7Records = await prisma.strength.findMany({
-		where: {
-			sampleDate7: { in: sampleDates.map((d) => d.sampleDate) },
-			materialId,
-			isActive: true,
-		},
-	});
+	const day1Map = mapDay("sampleDate1");
+	const day3Map = mapDay("sampleDate3");
+	const day7Map = mapDay("sampleDate7");
+	const day28Map = mapDay("sampleDate28");
 
-	const day28Records = await prisma.strength.findMany({
-		where: {
-			sampleDate28: { in: sampleDates.map((d) => d.sampleDate) },
-			materialId,
-			isActive: true,
-		},
-	});
-
-	// Create maps for each day's records
-	const day1Map = new Map();
-	const day3Map = new Map();
-	const day7Map = new Map();
-	const day28Map = new Map();
-	const expansionMap = new Map();
-
-	day1Records.forEach((rec) => {
-		if (rec.sampleDate1) {
-			const dateStr = rec.sampleDate1.toISOString().split("T")[0];
-			day1Map.set(dateStr, Number(rec.day1 ?? 0));
-			expansionMap.set(dateStr, Number(rec.expansion ?? 0));
-		}
-	});
-
-	day3Records.forEach((rec) => {
-		if (rec.sampleDate3) {
-			const dateStr = rec.sampleDate3.toISOString().split("T")[0];
-			day3Map.set(dateStr, Number(rec.day3 ?? 0));
-		}
-	});
-
-	day7Records.forEach((rec) => {
-		if (rec.sampleDate7) {
-			const dateStr = rec.sampleDate7.toISOString().split("T")[0];
-			day7Map.set(dateStr, Number(rec.day7 ?? 0));
-		}
-	});
-
-	day28Records.forEach((rec) => {
-		if (rec.sampleDate28) {
-			const dateStr = rec.sampleDate28.toISOString().split("T")[0];
-			day28Map.set(dateStr, Number(rec.day28 ?? 0));
-		}
-	});
-
-	// Find first record to get creator/updater info
-	const anyRecord = [
-		...day1Records,
-		...day3Records,
-		...day7Records,
-		...day28Records,
-	][0];
-
-	// Determine which day is editable (first unfilled day)
-	let editableKey: string | null = null;
-	for (const sd of sampleDates) {
-		const dateStr = sd.sampleDate.toISOString().split("T")[0];
-		const filled =
-			(sd.key === "day1" && day1Map.has(dateStr)) ||
-			(sd.key === "day3" && day3Map.has(dateStr)) ||
-			(sd.key === "day7" && day7Map.has(dateStr)) ||
-			(sd.key === "day28" && day28Map.has(dateStr));
-
-		if (!filled) {
-			editableKey = sd.key;
-			break;
-		}
-	}
-	if (!editableKey) editableKey = "day1";
-
-	// Build schedule response
-	const schedule = sampleDates.map((sd) => {
-		const dateStr = sd.sampleDate.toISOString().split("T")[0];
-		return {
-			key: sd.key,
-			label: sd.label,
-			sampleDate: extractDateTime(sd.sampleDate, "date"),
-			day1: day1Map.get(dateStr) || 0,
-			day3: day3Map.get(dateStr) || 0,
-			day7: day7Map.get(dateStr) || 0,
-			day28: day28Map.get(dateStr) || 0,
-			expansion: expansionMap.get(dateStr) || 0,
-			editable: sd.key === editableKey,
-		};
-	});
-
-	// Get material name and user info
-	const materialName = materialId
-		? await getMaterialName(materialId, accessToken)
-		: null;
-
-	const createdUser = anyRecord?.createdById
-		? await getUserData(anyRecord.createdById)
-		: null;
-
-	const updatedUser = anyRecord?.updatedById
-		? await getUserData(anyRecord.updatedById)
-		: null;
+	const anyRecord = records[0];
 
 	return {
 		transactionDate,
 		materialId,
-		materialName: materialName ? materialName.name : null,
-		createdUser,
-		updatedUser,
-		samples: schedule,
+		materialName: materialId
+			? (await getMaterialName(materialId, accessToken))?.name
+			: null,
+		createdUser: anyRecord?.createdById
+			? (await getUserData(anyRecord.createdById))?.userName
+			: null,
+		updatedUser: anyRecord?.updatedById
+			? (await getUserData(anyRecord.updatedById))?.userName
+			: null,
+		samples: [
+			day1Map.size
+				? {
+						sampleDate1: extractDateTime(
+							[...day1Map.values()][0].sampleDate1,
+							"date"
+						),
+						day1: [...day1Map.values()][0].day1,
+						day3: 0,
+						day7: 0,
+						day28: 0,
+						expansion: [...day1Map.values()][0].expansion,
+				  }
+				: null,
+			day3Map.size
+				? {
+						sampleDate3: extractDateTime(
+							[...day3Map.values()][0].sampleDate3,
+							"date"
+						),
+						day1: 0,
+						day3: [...day3Map.values()][0].day3,
+						day7: 0,
+						day28: 0,
+						expansion: 0,
+				  }
+				: null,
+			day7Map.size
+				? {
+						sampleDate7: extractDateTime(
+							[...day7Map.values()][0].sampleDate7,
+							"date"
+						),
+						day1: 0,
+						day3: 0,
+						day7: [...day7Map.values()][0].day7,
+						day28: 0,
+						expansion: 0,
+				  }
+				: null,
+			day28Map.size
+				? {
+						sampleDate28: extractDateTime(
+							[...day28Map.values()][0].sampleDate28,
+							"date"
+						),
+						day1: 0,
+						day3: 0,
+						day7: 0,
+						day28: [...day28Map.values()][0].day28,
+						expansion: 0,
+				  }
+				: null,
+		].filter(Boolean),
 	};
 };
 
@@ -358,7 +315,7 @@ export const getAllStrength = async (
 			});
 
 			return {
-				uuid: record.id, // Using ID of first record as reference
+				uuid: record.id,
 				transactionDate: extractDateTime(t.transactionDate, "date"),
 				materialId: t.materialId,
 				materialName: materialName ? materialName.name : null,
@@ -369,8 +326,8 @@ export const getAllStrength = async (
 					? extractDateTime(record.updatedAt, "both")
 					: null,
 				updatedById: record.updatedById,
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -412,7 +369,7 @@ export const getStrengthById = async (
 	if (day1Record && day1Record.sampleDate1) {
 		samples.push({
 			id: day1Record.id,
-			sampleDate: extractDateTime(day1Record.sampleDate1, "date"),
+			sampleDate1: extractDateTime(day1Record.sampleDate1, "date"),
 			day1_strength: day1Record.day1,
 			day3_strength: 0,
 			day7_strength: 0,
@@ -426,7 +383,7 @@ export const getStrengthById = async (
 	if (day3Record && day3Record.sampleDate3) {
 		samples.push({
 			id: day3Record.id,
-			sampleDate: extractDateTime(day3Record.sampleDate3, "date"),
+			sampleDate3: extractDateTime(day3Record.sampleDate3, "date"),
 			day1_strength: 0,
 			day3_strength: day3Record.day3,
 			day7_strength: 0,
@@ -440,7 +397,7 @@ export const getStrengthById = async (
 	if (day7Record && day7Record.sampleDate7) {
 		samples.push({
 			id: day7Record.id,
-			sampleDate: extractDateTime(day7Record.sampleDate7, "date"),
+			sampleDate7: extractDateTime(day7Record.sampleDate7, "date"),
 			day1_strength: 0,
 			day3_strength: 0,
 			day7_strength: day7Record.day7,
@@ -454,7 +411,7 @@ export const getStrengthById = async (
 	if (day28Record && day28Record.sampleDate28) {
 		samples.push({
 			id: day28Record.id,
-			sampleDate: extractDateTime(day28Record.sampleDate28, "date"),
+			sampleDate28: extractDateTime(day28Record.sampleDate28, "date"),
 			day1_strength: 0,
 			day3_strength: 0,
 			day7_strength: 0,
@@ -486,8 +443,8 @@ export const getStrengthById = async (
 		createdById: record.createdById,
 		updatedAt: extractDateTime(record.updatedAt, "both"),
 		updatedById: record.updatedById,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 

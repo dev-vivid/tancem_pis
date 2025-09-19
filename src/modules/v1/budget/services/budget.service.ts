@@ -71,8 +71,8 @@ export const getAllBudgets = async (
 				updatedById: item.updatedById,
 				isActive: item.isActive,
 				productionCategory: item.productionCategory,
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -138,8 +138,8 @@ export const getBudgetById = async (
 		isActive: budget.isActive,
 		productionCategory: budget.productionCategory,
 		// materialName: materialName?.name || null,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return { data };

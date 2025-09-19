@@ -5,6 +5,7 @@ import { extractDateTime, parseDateOnly } from "../../../../shared/utils/date";
 import { UPLOAD_PATH, BASE_URL, BASE_PATH } from "../../../../config";
 import getUserData from "@shared/prisma/queries/getUserById";
 import { getMaterialName } from "common/api";
+import { Prisma } from "@prisma/client";
 
 export const createExternalLabTestingReport = async (
 	data: {
@@ -21,11 +22,6 @@ export const createExternalLabTestingReport = async (
 	files: TUploadFileResult[],
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	let labFile: string | null = null;
-	if (files && files.length > 0) {
-		labFile = files[0].location;
-	}
-	// console.log(data);
 	const result = await tx.externalLabTestingReport.create({
 		data: {
 			transactionDate: parseDateOnly(data.transactionDate),
@@ -36,12 +32,12 @@ export const createExternalLabTestingReport = async (
 			materialId: data.materialId,
 			thirdPartyVendorName: data.thirdPartyVendorName,
 			remarks: data.remarks,
-			labUploadFile: labFile,
+			labUploadFilesJson: files.length > 0 ? files : Prisma.JsonNull,
 			createdById: user,
 		},
 	});
 
-	// return result;
+	return result;
 };
 
 export const getAllExternalLabTestingReports = async (
@@ -72,8 +68,10 @@ export const getAllExternalLabTestingReports = async (
 			? await getUserData(report.updatedById)
 			: null;
 
-		formattedReports.push({
+		// Create base report data without file-specific fields
+		const baseReportData = {
 			uuid: report.id,
+			code: report.code,
 			transactionDate: extractDateTime(report.transactionDate, "date"),
 			despatchDate: extractDateTime(report.despatchDate, "date"),
 			reportReceivedDate: extractDateTime(report.reportReceivedDate, "date"),
@@ -83,16 +81,34 @@ export const getAllExternalLabTestingReports = async (
 			materialName: materialName ? materialName.name : null,
 			thirdPartyVendorName: report.thirdPartyVendorName,
 			remarks: report.remarks,
-			labUploadFileUrl: report.labUploadFile
-				? `${BASE_URL}/${BASE_PATH}/${report.labUploadFile.replace(/\\/g, "/")}`
-				: null,
 			createdAt: extractDateTime(report.createdAt, "both"),
 			updatedAt: extractDateTime(report.updatedAt, "both"),
 			createdById: report.createdById,
 			updatedById: report.updatedById,
 			createdUser: createdUser?.userName,
 			updatedUser: updatedUser?.userName,
-		});
+		};
+
+		// Handle files from JSON field
+		const filesJson = report.labUploadFilesJson as TUploadFileResult[] | null;
+		if (filesJson && Array.isArray(filesJson) && filesJson.length > 0) {
+			filesJson.forEach((file: TUploadFileResult) => {
+				formattedReports.push({
+					...baseReportData,
+					labUploadFileUrl: file.location
+						? `${BASE_URL}/${BASE_PATH}/${file.location.replace(/\\/g, "/")}`
+						: null,
+					fileName: file.originalname,
+				});
+			});
+		} else {
+			// Add the report even if there are no files
+			formattedReports.push({
+				...baseReportData,
+				labUploadFileUrl: null,
+				fileName: null,
+			});
+		}
 	}
 
 	return formattedReports;
@@ -121,8 +137,10 @@ export const getExternalLabTestingReportById = async (
 		? await getUserData(report.updatedById)
 		: null;
 
-	return {
+	// Base report data
+	const baseReportData = {
 		uuid: report.id,
+		code: report.code,
 		transactionDate: extractDateTime(report.transactionDate, "date"),
 		despatchDate: extractDateTime(report.despatchDate, "date"),
 		reportReceivedDate: extractDateTime(report.reportReceivedDate, "date"),
@@ -132,15 +150,35 @@ export const getExternalLabTestingReportById = async (
 		materialName: materialName ? materialName.name : null,
 		thirdPartyVendorName: report.thirdPartyVendorName,
 		remarks: report.remarks,
-		labUploadFileUrl: report.labUploadFile
-			? `${BASE_URL}/${BASE_PATH}/${report.labUploadFile.replace(/\\/g, "/")}`
-			: null,
 		createdAt: extractDateTime(report.createdAt, "both"),
 		updatedAt: extractDateTime(report.updatedAt, "both"),
 		createdById: report.createdById,
 		updatedById: report.updatedById,
 		createdUser: createdUser?.userName,
 		updatedUser: updatedUser?.userName,
+	};
+
+	// Format files array with role info
+	const filesJson = (report.labUploadFilesJson as TUploadFileResult[]) || [];
+	const formattedFiles = await Promise.all(
+		filesJson.map(async (file) => {
+			const userData = report.createdById
+				? await getUserData(report.createdById)
+				: null;
+			return {
+				filename: file.originalname,
+				url: file.location
+					? `${BASE_URL}/${BASE_PATH}/${file.location.replace(/\\/g, "/")}`
+					: null,
+				role: userData?.roleName || null,
+			};
+		})
+	);
+
+	// Return base report and files array
+	return {
+		...baseReportData,
+		files: formattedFiles,
 	};
 };
 
@@ -151,11 +189,6 @@ export const updateExternalLabTestingReport = async (
 	files: TUploadFileResult[],
 	tx: IPrismaTransactionClient | typeof prisma = prisma
 ) => {
-	let labFile: string | null = null;
-	if (files && files.length > 0) {
-		labFile = files[0].location;
-		// labFile = files[0].key;
-	}
 	const existing = await tx.externalLabTestingReport.findUnique({
 		where: { id },
 	});
@@ -163,6 +196,10 @@ export const updateExternalLabTestingReport = async (
 	if (!existing) {
 		throw new Error(`data not found`);
 	}
+
+	const existingFiles =
+		(existing.labUploadFilesJson as TUploadFileResult[]) || [];
+	const updatedFiles = [...existingFiles, ...files];
 
 	return await tx.externalLabTestingReport.update({
 		where: { id },
@@ -175,7 +212,8 @@ export const updateExternalLabTestingReport = async (
 			materialId: data.materialId,
 			thirdPartyVendorName: data.thirdPartyVendorName,
 			remarks: data.remarks,
-			labUploadFile: labFile ?? data.labUploadFile, // update if new file, else keep old
+			labUploadFilesJson:
+				updatedFiles.length > 0 ? updatedFiles : Prisma.JsonNull,
 			updatedById: user,
 		},
 	});
