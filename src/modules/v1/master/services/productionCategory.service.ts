@@ -50,8 +50,8 @@ export const getAllProductionCategory = async (
 				updatedById: item.updatedById,
 				isActive: item.isActive,
 				status: item.status,
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -101,8 +101,8 @@ export const getIdProductionCategory = async (
 		updatedById: item.updatedById,
 		status: item.status,
 		isActive: item.isActive,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return { totalRecords, data };

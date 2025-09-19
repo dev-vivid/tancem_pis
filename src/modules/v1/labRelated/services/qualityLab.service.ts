@@ -89,8 +89,8 @@ export const getAllQualityLab = async (
 				isActive: item.isActive,
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -138,8 +138,8 @@ export const getQualityLabById = async (
 		isActive: item.isActive,
 		createdAt: extractDateTime(item.createdAt, "both"),
 		updatedAt: extractDateTime(item.updatedAt, "both"),
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 

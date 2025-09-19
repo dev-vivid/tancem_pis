@@ -120,8 +120,8 @@ export const getAllMaterialType = async (
 				updatedBy: item.updatedById,
 				isActive: item.isActive,
 				status: item.status,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -188,8 +188,8 @@ export const getByID = async (
 		updatedById: result.updatedById,
 		isActive: result.isActive,
 		status: result.status,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return {

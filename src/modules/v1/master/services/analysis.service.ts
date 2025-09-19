@@ -71,8 +71,8 @@ export const getAllanalysis = async (
 				materialName: materialObj?.name || "",
 				createdAt: extractDateTime(item.createdAt, "both"),
 				updatedAt: extractDateTime(item.updatedAt, "both"),
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -206,8 +206,8 @@ export const getIdanalysis = async (
 		updatedAt: extractDateTime(item.updatedAt, "both"), // fixed field name
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 		status: item.status,
 		isActive: item.isActive,
 	};

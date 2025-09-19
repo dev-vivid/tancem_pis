@@ -62,7 +62,10 @@ export const getAllproduction = async (
 			const createdUser = item.createdById
 				? await getUserData(item.createdById)
 				: null;
-			console.log(materialName);
+
+			const updatedUser = item.updatedById
+				? await getUserData(item.updatedById)
+				: null;
 
 			return {
 				uuid: item.id,
@@ -80,7 +83,9 @@ export const getAllproduction = async (
 				createdAt: extractDateTime(item.createdAt, "both"),
 				isActive: item.isActive,
 				createdBy: item.createdById,
-				createdByUser: createdUser,
+				createdUser: createdUser?.userName,
+				updatedBy: item.updatedById,
+				updatedUser: updatedUser?.userName,
 			};
 		})
 	);
@@ -154,8 +159,8 @@ export const getIdproduction = async (
 		createdBy: item.createdById,
 		updatedBy: item.updatedById,
 		isActive: item.isActive,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return {

@@ -95,8 +95,8 @@ export const getAllAdjustments = async (
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 				isActive: item.isActive,
 			};
 		})
@@ -180,8 +180,8 @@ export const getAdjustmentById = async (
 		updatedAt: extractDateTime(item.updatedAt, "both"),
 		createdById: item.createdById,
 		updatedById: item.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return {

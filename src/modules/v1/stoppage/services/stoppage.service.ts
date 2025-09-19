@@ -271,8 +271,8 @@ export const getAllStoppage = async (
 				createdById: problem.createdById,
 				updatedById: problem.updatedById,
 				isActive: problem.isActive,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			}));
 		})
 	);
@@ -352,8 +352,8 @@ export const getStoppageById = async (
 		createdById: problem.createdById,
 		updatedById: problem.updatedById,
 		isActive: problem.isActive,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 
 	return data;

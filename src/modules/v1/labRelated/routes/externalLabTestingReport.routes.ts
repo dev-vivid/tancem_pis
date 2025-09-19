@@ -19,7 +19,7 @@ export const externalLabTestingReportRouter = Router();
 // Create
 externalLabTestingReportRouter.post(
 	"/labTestingReportAdd",
-	getUploadObj().fields([{ name: "labFileName", maxCount: 1 }]),
+	getUploadObj().fields([{ name: "labFileName", maxCount: 10 }]),
 	createExternalLabTestingReport
 );
 

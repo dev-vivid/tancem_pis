@@ -91,8 +91,8 @@ export const getAllPowerTransactions = async (
 						updatedAt: extractDateTime(power.updatedAt, "both"),
 						createdById: power.createdById,
 						updatedById: power.updatedById,
-						createdUser: createdUser,
-						updatedUser: updatedUser,
+						createdUser: createdUser?.userName,
+						updatedUser: updatedUser?.userName,
 						isActive: power.isActive,
 					};
 				})
@@ -333,8 +333,8 @@ export const getPowerTransactionById = async (
 		updatedAt: extractDateTime(powerDetail.updatedAt, "both"),
 		createdById: powerDetail.createdById,
 		updatedById: powerDetail.updatedById,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 		isActive: powerDetail.isActive,
 	};
 };

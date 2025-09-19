@@ -94,8 +94,8 @@ export const getAlldespatch = async (
 						createdById: detail.createdById,
 						updatedById: detail.updatedById,
 						isActive: detail.isActive,
-						createdUser: createdUser,
-						updatedUser: updatedUser,
+						createdUser: createdUser?.userName,
+						updatedUser: updatedUser?.userName,
 					};
 				})
 			);
@@ -152,8 +152,8 @@ export const getIddespatch = async (
 		createdById: detail.createdById,
 		updatedById: detail.updatedById,
 		isActive: detail.isActive,
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 

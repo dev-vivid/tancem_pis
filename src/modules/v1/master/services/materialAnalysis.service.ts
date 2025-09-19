@@ -123,8 +123,8 @@ export const getAllMaterialAnalysis = async (
 				createdBy: item.createdById,
 				updatedAt: extractDateTime(item.updatedAt, "both"),
 				updatedBy: item.updatedById,
-				createdUser: createdUser,
-				updatedUser: updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 				isActive: item.isActive,
 				status: item.status,
 			};
@@ -182,8 +182,8 @@ export const getByID = async (
 		materialName: materialName?.name || null,
 		createdAt: extractDateTime(result.createdAt, "both"),
 		updatedAt: extractDateTime(result.updatedAt, "both"),
-		createdUser: createdUser,
-		updatedUser: updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 		analysisDetails: {
 			description: result.MaterialAnalysis?.description || null,
 			type: result.MaterialAnalysis?.type || null,

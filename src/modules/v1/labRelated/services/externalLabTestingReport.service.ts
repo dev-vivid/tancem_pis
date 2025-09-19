@@ -90,8 +90,8 @@ export const getAllExternalLabTestingReports = async (
 			updatedAt: extractDateTime(report.updatedAt, "both"),
 			createdById: report.createdById,
 			updatedById: report.updatedById,
-			createdUser,
-			updatedUser,
+			createdUser: createdUser?.userName,
+			updatedUser: updatedUser?.userName,
 		});
 	}
 
@@ -139,8 +139,8 @@ export const getExternalLabTestingReportById = async (
 		updatedAt: extractDateTime(report.updatedAt, "both"),
 		createdById: report.createdById,
 		updatedById: report.updatedById,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 
