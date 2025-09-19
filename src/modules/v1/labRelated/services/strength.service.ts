@@ -142,14 +142,15 @@ export const getStrengthSchedule = async (
 	const trnDate = parseDateOnly(transactionDate);
 
 	const testDays = [
-		{ key: "day1", daysBefore: 2 },
-		{ key: "day3", daysBefore: 4 },
-		{ key: "day7", daysBefore: 8 },
-		{ key: "day28", daysBefore: 29 },
+		{ key: "day1", daysBefore: 2, field: "sampleDate1" },
+		{ key: "day3", daysBefore: 4, field: "sampleDate3" },
+		{ key: "day7", daysBefore: 8, field: "sampleDate7" },
+		{ key: "day28", daysBefore: 29, field: "sampleDate28" },
 	];
 
 	const sampleDates = testDays.map((t) => ({
 		key: t.key,
+		field: t.field,
 		sampleDate: subDays(trnDate, t.daysBefore),
 	}));
 
@@ -166,19 +167,69 @@ export const getStrengthSchedule = async (
 		},
 	});
 
-	const mapDay = (dayField: string) => {
-		const map = new Map();
-		records.forEach((rec) => {
-			const date = rec[dayField as keyof typeof rec] as Date;
-			if (date) map.set(date.toISOString().split("T")[0], rec);
+	// Helper to find record for a given day
+	const findRecord = (field: string, date: Date) => {
+		return records.find((r) => {
+			const recDate = r[field as keyof typeof r] as Date | null;
+			return (
+				recDate &&
+				recDate.toISOString().split("T")[0] === date.toISOString().split("T")[0]
+			);
 		});
-		return map;
 	};
 
-	const day1Map = mapDay("sampleDate1");
-	const day3Map = mapDay("sampleDate3");
-	const day7Map = mapDay("sampleDate7");
-	const day28Map = mapDay("sampleDate28");
+	// Build final samples (always 4 entries, with 0 as default)
+	const samples = sampleDates.map((s) => {
+		const rec = findRecord(s.field, s.sampleDate);
+		if (s.key === "day1") {
+			return {
+				sampleDate1: rec
+					? extractDateTime(rec.sampleDate1, "date")
+					: extractDateTime(s.sampleDate, "date"),
+				day1: rec?.day1 ?? 0,
+				day3: 0,
+				day7: 0,
+				day28: 0,
+				expansion: rec?.expansion ?? 0,
+			};
+		}
+		if (s.key === "day3") {
+			return {
+				sampleDate3: rec
+					? extractDateTime(rec.sampleDate3, "date")
+					: extractDateTime(s.sampleDate, "date"),
+				day1: 0,
+				day3: rec?.day3 ?? 0,
+				day7: 0,
+				day28: 0,
+				expansion: 0,
+			};
+		}
+		if (s.key === "day7") {
+			return {
+				sampleDate7: rec
+					? extractDateTime(rec.sampleDate7, "date")
+					: extractDateTime(s.sampleDate, "date"),
+				day1: 0,
+				day3: 0,
+				day7: rec?.day7 ?? 0,
+				day28: 0,
+				expansion: 0,
+			};
+		}
+		if (s.key === "day28") {
+			return {
+				sampleDate28: rec
+					? extractDateTime(rec.sampleDate28, "date")
+					: extractDateTime(s.sampleDate, "date"),
+				day1: 0,
+				day3: 0,
+				day7: 0,
+				day28: rec?.day28 ?? 0,
+				expansion: 0,
+			};
+		}
+	});
 
 	const anyRecord = records[0];
 
@@ -194,60 +245,7 @@ export const getStrengthSchedule = async (
 		updatedUser: anyRecord?.updatedById
 			? (await getUserData(anyRecord.updatedById))?.userName
 			: null,
-		samples: [
-			day1Map.size
-				? {
-						sampleDate1: extractDateTime(
-							[...day1Map.values()][0].sampleDate1,
-							"date"
-						),
-						day1: [...day1Map.values()][0].day1,
-						day3: 0,
-						day7: 0,
-						day28: 0,
-						expansion: [...day1Map.values()][0].expansion,
-				  }
-				: null,
-			day3Map.size
-				? {
-						sampleDate3: extractDateTime(
-							[...day3Map.values()][0].sampleDate3,
-							"date"
-						),
-						day1: 0,
-						day3: [...day3Map.values()][0].day3,
-						day7: 0,
-						day28: 0,
-						expansion: 0,
-				  }
-				: null,
-			day7Map.size
-				? {
-						sampleDate7: extractDateTime(
-							[...day7Map.values()][0].sampleDate7,
-							"date"
-						),
-						day1: 0,
-						day3: 0,
-						day7: [...day7Map.values()][0].day7,
-						day28: 0,
-						expansion: 0,
-				  }
-				: null,
-			day28Map.size
-				? {
-						sampleDate28: extractDateTime(
-							[...day28Map.values()][0].sampleDate28,
-							"date"
-						),
-						day1: 0,
-						day3: 0,
-						day7: 0,
-						day28: [...day28Map.values()][0].day28,
-						expansion: 0,
-				  }
-				: null,
-		].filter(Boolean),
+		samples,
 	};
 };
 
