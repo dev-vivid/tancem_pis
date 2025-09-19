@@ -25,14 +25,12 @@ export const createExternalLabTestingReport = async (
 		const files = (req.files as Record<string, Express.Multer.File[]>) || {};
 		let uploadedFileUrls: TUploadFileResult[] = [];
 
-		// ✅ Upload form1 files
-		const form1Fields = ["labFileName"];
-		const form1Files = filterFiles(files, form1Fields);
-		if (Object.keys(form1Files).length > 0) {
-			const urls = await uploadFiles("uploads/labFile", form1Files);
+		// Upload lab files
+		const labFileFields = ["labFileName"];
+		const labFiles = filterFiles(files, labFileFields);
+		if (Object.keys(labFiles).length > 0) {
+			const urls = await uploadFiles("uploads/labFile", labFiles);
 			uploadedFileUrls = [...uploadedFileUrls, ...urls];
-
-			console.log(uploadedFileUrls);
 		}
 
 		const result = await usecase.createExternalLabTestingReportUsecase(
@@ -118,14 +116,12 @@ export const updateExternalLabTestingReport = async (
 		const files = (req.files as Record<string, Express.Multer.File[]>) || {};
 		let uploadedFileUrls: TUploadFileResult[] = [];
 
-		// ✅ Upload form1 files
-		const form1Fields = ["labFileName"];
-		const form1Files = filterFiles(files, form1Fields);
-		if (Object.keys(form1Files).length > 0) {
-			const urls = await uploadFiles("uploads/labFile", form1Files);
+		// Upload lab files
+		const labFileFields = ["labFileName"];
+		const labFiles = filterFiles(files, labFileFields);
+		if (Object.keys(labFiles).length > 0) {
+			const urls = await uploadFiles("uploads/labFile", labFiles);
 			uploadedFileUrls = [...uploadedFileUrls, ...urls];
-
-			console.log(uploadedFileUrls);
 		}
 
 		const result = await usecase.updateExternalLabTestingReportUsecase(

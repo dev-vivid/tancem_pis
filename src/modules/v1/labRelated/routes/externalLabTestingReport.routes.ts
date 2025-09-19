@@ -38,7 +38,7 @@ externalLabTestingReportRouter.get(
 // Update
 externalLabTestingReportRouter.put(
 	"/labTestingReportEdit/:id",
-	getUploadObj().fields([{ name: "labFileName", maxCount: 1 }]),
+	getUploadObj().fields([{ name: "labFileName", maxCount: 10 }]),
 	updateExternalLabTestingReport
 );
 

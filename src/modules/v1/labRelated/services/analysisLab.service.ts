@@ -147,8 +147,8 @@ export const getAllAnalysisLab = async (
 				updatedAt: extractDateTime(analysis.updatedAt, "both"),
 				createdById: analysis.createdById,
 				updatedById: analysis.updatedById,
-				createdUser,
-				updatedUser,
+				createdUser: createdUser?.userName,
+				updatedUser: updatedUser?.userName,
 			});
 		}
 	}
@@ -218,8 +218,8 @@ export const getAnalysisLabById = async (
 		updatedAt: extractDateTime(record.updatedAt, "both"),
 		createdById: record.createdById,
 		updatedById: record.updatedById,
-		createdUser,
-		updatedUser,
+		createdUser: createdUser?.userName,
+		updatedUser: updatedUser?.userName,
 	};
 };
 
